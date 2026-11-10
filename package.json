@@ -1,0 +1,20 @@
+{
+  "name": "best-cream",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"server,mobile\" -c \"blue,green\" \"npm run dev -w @best-cream/server\" \"npm run dev -w @best-cream/mobile\"",
+    "dev:server": "npm run dev -w @best-cream/server",
+    "dev:mobile": "npm run dev -w @best-cream/mobile",
+    "build": "npm run build --workspaces --if-present",
+    "build:server": "npm run build -w @best-cream/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
+

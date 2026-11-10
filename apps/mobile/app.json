@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Best Cream",
+    "slug": "best-cream",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#fff1f2"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#fff1f2"
+      }
+    }
+  }
+}
+
