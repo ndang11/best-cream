@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
@@ -150,7 +151,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, tw`flex-1 bg-vanillaCream`]}>
       <StatusBar style="dark" />
 
       <View style={styles.container}>

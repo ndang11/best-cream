@@ -16,6 +16,8 @@ export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard';
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('splash');
   const [userEmail, setUserEmail] = useState<string>('customer@bestcream.com');
+  const [userName, setUserName] = useState<string>('Sweet Tooth');
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   // 1. Splash Screen (8-second branded entrance)
   if (currentScreen === 'splash') {
@@ -32,13 +34,15 @@ export default function App() {
     );
   }
 
-  // 3. Login Screen -> Routes straight to Dashboard on login
+  // 3. Login Screen -> Routes straight to Dashboard with "Welcome back [user name]"
   if (currentScreen === 'login') {
     return (
       <LoginScreen
         apiUrl={API_URL}
-        onLoginSuccess={(email) => {
-          if (email) setUserEmail(email);
+        onLoginSuccess={(user) => {
+          if (user.email) setUserEmail(user.email);
+          if (user.name) setUserName(user.name);
+          setIsNewUser(false);
           setCurrentScreen('dashboard');
         }}
         onGoToSignUp={() => setCurrentScreen('signup')}
@@ -46,13 +50,15 @@ export default function App() {
     );
   }
 
-  // 4. Sign Up Screen -> Routes straight to Dashboard on signup
+  // 4. Sign Up Screen -> Routes straight to Dashboard with "Welcome [user name]"
   if (currentScreen === 'signup') {
     return (
       <SignUpScreen
         apiUrl={API_URL}
-        onSignUpSuccess={(email) => {
-          if (email) setUserEmail(email);
+        onSignUpSuccess={(user) => {
+          if (user.email) setUserEmail(user.email);
+          if (user.name) setUserName(user.name);
+          setIsNewUser(true);
           setCurrentScreen('dashboard');
         }}
         onGoToLogin={() => setCurrentScreen('login')}
@@ -64,7 +70,9 @@ export default function App() {
   return (
     <DashboardScreen
       apiUrl={API_URL}
+      userName={userName}
       userEmail={userEmail}
+      isNewUser={isNewUser}
       onLogout={() => setCurrentScreen('welcome')}
     />
   );

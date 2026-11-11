@@ -16,7 +16,8 @@
     "expo-constants": "~58.0.15",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
-    "react-native": "0.88.1"
+    "react-native": "0.88.1",
+    "twrnc": "^4.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -25,4 +26,3 @@
   },
   "private": true
 }
-

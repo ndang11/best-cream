@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   ScrollView,
-  FlatList,
   Image,
   TouchableOpacity,
   TextInput,
@@ -12,33 +10,41 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
-  Dimensions,
+  Platform,
+  StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
+import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-
-const { width } = Dimensions.get('window');
 
 interface DashboardScreenProps {
   apiUrl: string;
   onLogout: () => void;
   userEmail?: string;
+  userName?: string;
+  isNewUser?: boolean;
 }
 
 type TabType = 'menu' | 'orders' | 'deals' | 'profile';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
 
-export default function DashboardScreen({ apiUrl, onLogout, userEmail }: DashboardScreenProps) {
+export default function DashboardScreen({
+  apiUrl,
+  onLogout,
+  userEmail,
+  userName = 'Sweet Tooth',
+  isNewUser = false,
+}: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState<TabType>('menu');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
-  
-  // Cart state
+
+  // Cart & Order State
   const [cart, setCart] = useState<{ [id: string]: number }>({});
   const [isCartModalVisible, setIsCartModalVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mtn-momo' | 'orange-money'>('mtn-momo');
@@ -55,7 +61,6 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         setMenuItems(json.data);
       }
     } catch {
-      // Fallback local items if server is offline
       setMenuItems(FALLBACK_MENU);
     } finally {
       setLoading(false);
@@ -71,7 +76,6 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         setOrders(json.data);
       }
     } catch {
-      // fallback sample order
       setOrders(FALLBACK_ORDERS);
     }
   };
@@ -153,7 +157,6 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         throw new Error('Order submission failed');
       }
     } catch {
-      // Local fallback simulation
       const fallbackNewOrder: Order = {
         id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
         items: orderItems,
@@ -186,54 +189,79 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
     return matchesCategory && matchesSearch;
   });
 
+  const topInset =
+    Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
 
       {/* ── Top Header Bar ── */}
-      <View style={styles.header}>
-        <View style={styles.headerBrand}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoBadgeEmoji}>🍦</Text>
+      <View
+        style={[
+          tw`flex-row items-center justify-between px-5 pb-2.5 bg-vanillaCream`,
+          { paddingTop: topInset },
+        ]}
+      >
+        <View style={tw`flex-row items-center gap-3 flex-1 mr-3`}>
+          <View style={tw`w-11 h-11 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}>
+            <Text style={tw`text-2xl`}>🍦</Text>
           </View>
-          <View>
-            <Text style={styles.headerTitle}>Best Cream</Text>
-            <View style={styles.locationRow}>
-              <Ionicons name="location-sharp" size={12} color={COLORS.strawberryPink} />
-              <Text style={styles.locationText}>Douala • Ice Cream & Pancakes</Text>
-            </View>
+          <View style={tw`flex-1`}>
+            <Text style={tw`text-lg font-black text-chocolateBrown tracking-wide`} numberOfLines={1}>
+              {isNewUser ? `Welcome ${userName}` : `Welcome back ${userName}`}
+            </Text>
+            <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-0.5`} numberOfLines={1}>
+              Ready for today's fresh treats?
+            </Text>
           </View>
         </View>
 
-        <View style={styles.headerActions}>
-          {/* Cart Icon with badge */}
+        {/* Header Action Buttons (Cart, Notification) */}
+        <View style={tw`flex-row items-center gap-2`}>
+          {/* 1. Cart Button */}
           <TouchableOpacity
-            style={styles.cartBtn}
+            style={tw`w-10 h-10 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="cart" size={22} color={COLORS.chocolateBrown} />
+            <Ionicons name="cart" size={20} color={COLORS.chocolateBrown} />
             {totalCartCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{totalCartCount}</Text>
+              <View style={tw`absolute -top-1 -right-1 bg-strawberryPink min-w-4 h-4 rounded-full items-center justify-center px-1`}>
+                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>{totalCartCount}</Text>
               </View>
             )}
+          </TouchableOpacity>
+
+          {/* 2. Notification Button */}
+          <TouchableOpacity
+            style={tw`w-10 h-10 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm relative`}
+            onPress={() =>
+              Alert.alert(
+                '🔔 Notifications',
+                '✨ 20% off on all Pancake Combos today!\n📱 Instant MTN MoMo & Orange Money payments active.'
+              )
+            }
+            activeOpacity={0.8}
+          >
+            <Ionicons name="notifications-outline" size={20} color={COLORS.chocolateBrown} />
+            <View style={tw`absolute top-2 right-2 w-2 h-2 rounded-full bg-strawberryPink`} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ── Tab Content ── */}
+      {/* ── Tab Content: Menu ── */}
       {activeTab === 'menu' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={tw`px-5 pt-2 pb-28`}
         >
           {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color={COLORS.chocolateBrownMuted} style={styles.searchIcon} />
+          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-2.5 my-2 border border-vanillaCreamDark shadow-sm`}>
+            <Ionicons name="search" size={18} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
             <TextInput
-              style={styles.searchInput}
-              placeholder="Search daily scoops, chocolate pancakes..."
+              style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
+              placeholder="Search daily scoops, pancakes..."
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -246,18 +274,24 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
           </View>
 
           {/* Special Offer Banner (Butter Yellow) */}
-          <View style={styles.specialOfferBanner}>
-            <View style={styles.offerTagBadge}>
-              <Ionicons name="sparkles" size={14} color={COLORS.chocolateBrown} />
-              <Text style={styles.offerTagText}>TODAY'S SPECIAL</Text>
+          <View style={tw`bg-butterYellow rounded-3xl p-4 my-2 shadow-md`}>
+            <View style={tw`flex-row items-center self-start bg-white px-2.5 py-1 rounded-xl gap-1 mb-2`}>
+              <Ionicons name="sparkles" size={12} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-xs font-black text-chocolateBrown tracking-wider`}>
+                TODAY'S SPECIAL
+              </Text>
             </View>
-            <Text style={styles.offerHeading}>Double Scoop & Pancake Combo!</Text>
-            <Text style={styles.offerSubtext}>
+            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
+              Double Scoop & Pancake Combo!
+            </Text>
+            <Text style={tw`text-xs font-semibold text-chocolateBrown opacity-90 leading-4`}>
               Get 20% off when you pair any fresh ice cream scoop with a warm chocolate pancake.
             </Text>
-            <View style={styles.offerFooter}>
-              <View style={styles.momoBadge}>
-                <Text style={styles.momoBadgeText}>📱 MTN MoMo & Orange Money Accepted</Text>
+            <View style={tw`mt-3 flex-row items-center`}>
+              <View style={tw`bg-white/70 px-2.5 py-1 rounded-lg`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  📱 MTN MoMo & Orange Money Accepted
+                </Text>
               </View>
             </View>
           </View>
@@ -266,12 +300,12 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryScroll}
+            contentContainerStyle={tw`flex-row gap-2 py-3`}
           >
             <TouchableOpacity
               style={[
-                styles.categoryPill,
-                selectedCategory === 'all' && styles.categoryPillActive,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'all' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('all')}
             >
@@ -282,8 +316,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               />
               <Text
                 style={[
-                  styles.categoryPillText,
-                  selectedCategory === 'all' && styles.categoryPillTextActive,
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'all' && tw`text-chocolateBrown font-black`,
                 ]}
               >
                 All Flavors
@@ -292,8 +326,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
 
             <TouchableOpacity
               style={[
-                styles.categoryPill,
-                selectedCategory === 'ice-cream' && styles.categoryPillActive,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'ice-cream' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('ice-cream')}
             >
@@ -304,8 +338,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               />
               <Text
                 style={[
-                  styles.categoryPillText,
-                  selectedCategory === 'ice-cream' && styles.categoryPillTextActive,
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'ice-cream' && tw`text-chocolateBrown font-black`,
                 ]}
               >
                 Ice Cream
@@ -314,8 +348,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
 
             <TouchableOpacity
               style={[
-                styles.categoryPill,
-                selectedCategory === 'pancake' && styles.categoryPillActive,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'pancake' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('pancake')}
             >
@@ -326,8 +360,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               />
               <Text
                 style={[
-                  styles.categoryPillText,
-                  selectedCategory === 'pancake' && styles.categoryPillTextActive,
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'pancake' && tw`text-chocolateBrown font-black`,
                 ]}
               >
                 Pancakes
@@ -336,8 +370,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
 
             <TouchableOpacity
               style={[
-                styles.categoryPill,
-                selectedCategory === 'combo' && styles.categoryPillActive,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'combo' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('combo')}
             >
@@ -348,8 +382,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               />
               <Text
                 style={[
-                  styles.categoryPillText,
-                  selectedCategory === 'combo' && styles.categoryPillTextActive,
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'combo' && tw`text-chocolateBrown font-black`,
                 ]}
               >
                 Combos
@@ -357,9 +391,9 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
             </TouchableOpacity>
           </ScrollView>
 
-          {/* Section Title */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeading}>
+          {/* Section Heading */}
+          <View style={tw`flex-row justify-between items-center my-2`}>
+            <Text style={tw`text-xl font-black text-chocolateBrown`}>
               {selectedCategory === 'all'
                 ? 'Fresh Today'
                 : selectedCategory === 'ice-cream'
@@ -368,62 +402,73 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                 ? 'Warm Fluffy Pancakes'
                 : 'Special Combo Stacks'}
             </Text>
-            <Text style={styles.productCountText}>{filteredProducts.length} items</Text>
+            <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+              {filteredProducts.length} items
+            </Text>
           </View>
 
           {/* Products List */}
           {loading ? (
-            <View style={styles.loadingContainer}>
+            <View style={tw`items-center py-12 gap-2`}>
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={styles.loadingSubtext}>Loading fresh treats...</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted`}>Loading fresh treats...</Text>
             </View>
           ) : (
-            <View style={styles.productsGrid}>
+            <View style={tw`gap-4 mt-2`}>
               {filteredProducts.map((product) => {
                 const qtyInCart = cart[product.id] || 0;
                 return (
-                  <View key={product.id} style={styles.productCard}>
-                    {/* Image Container with Badges */}
-                    <View style={styles.cardImageWrapper}>
+                  <View
+                    key={product.id}
+                    style={tw`bg-white rounded-3xl overflow-hidden shadow-md border border-vanillaCreamDark`}
+                  >
+                    {/* Image & Tags */}
+                    <View style={tw`w-full h-44 bg-vanillaCreamDark relative`}>
                       <Image
                         source={{ uri: product.imageUrl }}
-                        style={styles.cardImage}
+                        style={tw`w-full h-full`}
                         resizeMode="cover"
                       />
                       {product.isSpecialOffer && (
-                        <View style={styles.specialOfferTag}>
-                          <Text style={styles.specialOfferTagText}>
+                        <View style={tw`absolute top-2.5 left-2.5 bg-butterYellow px-2.5 py-1 rounded-xl shadow-sm`}>
+                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
                             {product.offerTag || 'Special'}
                           </Text>
                         </View>
                       )}
-                      <View style={styles.ratingBadge}>
+                      <View style={tw`absolute top-2.5 right-2.5 flex-row items-center gap-1 bg-white/90 px-2 py-1 rounded-xl`}>
                         <Ionicons name="star" size={12} color={COLORS.butterYellow} />
-                        <Text style={styles.ratingText}>{product.rating || '4.9'}</Text>
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                          {product.rating || '4.9'}
+                        </Text>
                       </View>
                     </View>
 
-                    {/* Content Details */}
-                    <View style={styles.cardBody}>
-                      <Text style={styles.cardTitle}>{product.name}</Text>
-                      <Text style={styles.cardFlavor}>
-                        <Text style={styles.flavorPrefix}>Flavor: </Text>
+                    {/* Body Details */}
+                    <View style={tw`p-4`}>
+                      <Text style={tw`text-lg font-black text-chocolateBrown mb-0.5`}>
+                        {product.name}
+                      </Text>
+                      <Text style={tw`text-xs text-chocolateBrownLight mb-1.5`}>
+                        <Text style={tw`font-bold text-strawberryPink`}>Flavor: </Text>
                         {product.flavor}
                       </Text>
                       {product.description ? (
-                        <Text style={styles.cardDescription} numberOfLines={2}>
+                        <Text style={tw`text-xs text-chocolateBrownMuted leading-4 mb-3`} numberOfLines={2}>
                           {product.description}
                         </Text>
                       ) : null}
 
-                      {/* Stock & Price Row */}
-                      <View style={styles.cardBottomRow}>
+                      {/* Price & Stock Row */}
+                      <View style={tw`flex-row justify-between items-center mt-1`}>
                         <View>
-                          <Text style={styles.cardPrice}>${product.price.toFixed(2)}</Text>
+                          <Text style={tw`text-lg font-black text-chocolateBrown`}>
+                            ${product.price.toFixed(2)}
+                          </Text>
                           <View
                             style={[
-                              styles.stockIndicator,
-                              product.inStock ? styles.stockIn : styles.stockOut,
+                              tw`flex-row items-center gap-1 px-2 py-0.5 rounded-lg mt-1`,
+                              product.inStock ? tw`bg-pistachioGreenLight` : tw`bg-outOfStockBg`,
                             ]}
                           >
                             <Ionicons
@@ -433,8 +478,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                             />
                             <Text
                               style={[
-                                styles.stockIndicatorText,
-                                product.inStock ? styles.stockInText : styles.stockOutText,
+                                tw`text-xs font-bold`,
+                                product.inStock ? tw`text-chocolateBrown` : tw`text-errorRed`,
                               ]}
                             >
                               {product.inStock ? 'Available' : 'Sold Out'}
@@ -444,33 +489,35 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
 
                         {/* Add to Cart Actions */}
                         {qtyInCart > 0 ? (
-                          <View style={styles.qtyControlRow}>
+                          <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark p-1 gap-2`}>
                             <TouchableOpacity
-                              style={styles.qtyBtn}
+                              style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
                               onPress={() => removeFromCart(product.id)}
                             >
-                              <Feather name="minus" size={16} color={COLORS.chocolateBrown} />
+                              <Feather name="minus" size={14} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
-                            <Text style={styles.qtyNumber}>{qtyInCart}</Text>
+                            <Text style={tw`text-sm font-black text-chocolateBrown min-w-4 text-center`}>
+                              {qtyInCart}
+                            </Text>
                             <TouchableOpacity
-                              style={styles.qtyBtn}
+                              style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
                               onPress={() => addToCart(product.id)}
                             >
-                              <Feather name="plus" size={16} color={COLORS.chocolateBrown} />
+                              <Feather name="plus" size={14} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
                           </View>
                         ) : (
                           <TouchableOpacity
                             style={[
-                              styles.addBtn,
-                              !product.inStock && styles.addBtnDisabled,
+                              tw`flex-row items-center gap-1 bg-strawberryPink px-4 py-2 rounded-xl shadow`,
+                              !product.inStock && tw`bg-vanillaCreamDark opacity-60`,
                             ]}
                             disabled={!product.inStock}
                             onPress={() => addToCart(product.id)}
                             activeOpacity={0.85}
                           >
-                            <Ionicons name="add" size={20} color={COLORS.chocolateBrown} />
-                            <Text style={styles.addBtnText}>Add</Text>
+                            <Ionicons name="add" size={18} color={COLORS.chocolateBrown} />
+                            <Text style={tw`text-xs font-black text-chocolateBrown`}>Add</Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -480,63 +527,72 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               })}
             </View>
           )}
-
-          <View style={{ height: 100 }} />
         </ScrollView>
       )}
 
-      {/* ── Orders Tab (Pending / Approved tracking) ── */}
+      {/* ── Tab Content: Orders ── */}
       {activeTab === 'orders' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
-          <View style={styles.tabHeadingRow}>
+          <View style={tw`flex-row justify-between items-center mb-4`}>
             <View>
-              <Text style={styles.sectionHeading}>My Orders</Text>
-              <Text style={styles.tabSubheading}>Track your ice cream & pancake requests</Text>
+              <Text style={tw`text-xl font-black text-chocolateBrown`}>My Orders</Text>
+              <Text style={tw`text-xs text-chocolateBrownLight mt-0.5`}>
+                Track your ice cream & pancake requests
+              </Text>
             </View>
-            <TouchableOpacity onPress={fetchOrders} style={styles.refreshBtn}>
+            <TouchableOpacity
+              onPress={fetchOrders}
+              style={tw`w-9 h-9 rounded-full bg-white items-center justify-center border border-vanillaCreamDark`}
+            >
               <Ionicons name="refresh" size={18} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
 
           {orders.length === 0 ? (
-            <View style={styles.emptyOrdersContainer}>
-              <Text style={styles.emptyOrdersEmoji}>🥞</Text>
-              <Text style={styles.emptyOrdersTitle}>No Orders Yet</Text>
-              <Text style={styles.emptyOrdersSub}>
-                Your delicious cravings will appear here once you place an order.
+            <View style={tw`items-center justify-center py-16`}>
+              <Text style={tw`text-5xl mb-2`}>🥞</Text>
+              <Text style={tw`text-lg font-black text-chocolateBrown`}>No Orders Yet</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1 px-8`}>
+                Your orders will appear here with live pending & approved status updates.
               </Text>
               <TouchableOpacity
-                style={styles.orderNowBtn}
+                style={tw`bg-strawberryPink px-6 py-3 rounded-2xl mt-4 shadow-sm`}
                 onPress={() => setActiveTab('menu')}
               >
-                <Text style={styles.orderNowBtnText}>Browse Daily Menu</Text>
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>Browse Daily Menu</Text>
               </TouchableOpacity>
             </View>
           ) : (
             orders.map((order) => {
               const isApproved = order.status === 'approved';
               return (
-                <View key={order.id} style={styles.orderCard}>
-                  {/* Order Top Info */}
-                  <View style={styles.orderCardHeader}>
+                <View
+                  key={order.id}
+                  style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}
+                >
+                  {/* Top Info */}
+                  <View style={tw`flex-row justify-between items-start border-b border-vanillaCreamDark pb-2.5`}>
                     <View>
-                      <Text style={styles.orderIdText}>{order.id}</Text>
-                      <Text style={styles.orderDateText}>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
+                      <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
                         {new Date(order.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
-                        })} • {order.items.length} item(s)
+                        })}{' '}
+                        • {order.items.length} item(s)
                       </Text>
                     </View>
 
                     {/* Status Badge: Pending vs Approved */}
                     <View
                       style={[
-                        styles.statusBadge,
-                        isApproved ? styles.statusApproved : styles.statusPending,
+                        tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border`,
+                        isApproved
+                          ? tw`bg-pistachioGreenLight border-pistachioGreen`
+                          : tw`bg-butterYellowLight border-butterYellow`,
                       ]}
                     >
                       <Ionicons
@@ -546,8 +602,8 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                       />
                       <Text
                         style={[
-                          styles.statusText,
-                          isApproved ? styles.statusApprovedText : styles.statusPendingText,
+                          tw`text-xs font-black`,
+                          isApproved ? tw`text-chocolateBrown` : tw`text-amber-800`,
                         ]}
                       >
                         {isApproved ? 'Approved / Received' : 'Pending Approval'}
@@ -555,34 +611,36 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                     </View>
                   </View>
 
-                  {/* Items list in order */}
-                  <View style={styles.orderItemsList}>
+                  {/* Order Items */}
+                  <View style={tw`py-2.5 gap-2`}>
                     {order.items.map((item, idx) => (
-                      <View key={idx} style={styles.orderItemRow}>
-                        <Text style={styles.orderItemQuantity}>{item.quantity}x</Text>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.orderItemName}>{item.name}</Text>
+                      <View key={idx} style={tw`flex-row items-center`}>
+                        <Text style={tw`text-xs font-black text-strawberryPink w-6`}>
+                          {item.quantity}x
+                        </Text>
+                        <View style={tw`flex-1`}>
+                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
                           {item.flavor ? (
-                            <Text style={styles.orderItemFlavor}>{item.flavor}</Text>
+                            <Text style={tw`text-xs text-chocolateBrownLight`}>{item.flavor}</Text>
                           ) : null}
                         </View>
-                        <Text style={styles.orderItemPrice}>
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>
                           ${(item.price * item.quantity).toFixed(2)}
                         </Text>
                       </View>
                     ))}
                   </View>
 
-                  {/* Footer with Payment info & Total */}
-                  <View style={styles.orderCardFooter}>
-                    <View style={styles.paymentMethodPill}>
-                      <Text style={styles.paymentMethodEmoji}>
+                  {/* Footer */}
+                  <View style={tw`flex-row justify-between items-center border-t border-vanillaCreamDark pt-2.5`}>
+                    <View style={tw`bg-vanillaCream px-2 py-1 rounded-lg`}>
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
                         {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                       </Text>
                     </View>
-                    <View style={styles.orderTotalWrapper}>
-                      <Text style={styles.orderTotalLabel}>Total Paid:</Text>
-                      <Text style={styles.orderTotalValue}>
+                    <View style={tw`flex-row items-center gap-1.5`}>
+                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Total Paid:</Text>
+                      <Text style={tw`text-base font-black text-chocolateBrown`}>
                         ${order.totalAmount.toFixed(2)}
                       </Text>
                     </View>
@@ -591,157 +649,165 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
               );
             })
           )}
-
-          <View style={{ height: 100 }} />
         </ScrollView>
       )}
 
-      {/* ── Deals Tab ── */}
+      {/* ── Tab Content: Deals ── */}
       {activeTab === 'deals' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
-          <Text style={styles.sectionHeading}>Special Offers 🌟</Text>
-          <Text style={styles.tabSubheading}>Handcrafted sweets on promotional discounts</Text>
+          <Text style={tw`text-xl font-black text-chocolateBrown`}>Special Offers 🌟</Text>
+          <Text style={tw`text-xs text-chocolateBrownLight mt-0.5 mb-4`}>
+            Handcrafted sweets on promotional discounts
+          </Text>
 
-          {/* Deal Card 1 */}
-          <View style={[styles.dealCard, { backgroundColor: COLORS.butterYellowLight }]}>
-            <View style={styles.dealHeaderRow}>
-              <View style={[styles.offerTagBadge, { backgroundColor: COLORS.butterYellow }]}>
+          {/* Deal 1 */}
+          <View style={tw`bg-butterYellowLight rounded-3xl p-4 mb-4 border border-butterYellow shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center mb-2`}>
+              <View style={tw`flex-row items-center gap-1 bg-butterYellow px-2.5 py-1 rounded-xl`}>
                 <Ionicons name="flame" size={14} color={COLORS.chocolateBrown} />
-                <Text style={styles.offerTagText}>HOT OFFER</Text>
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>HOT OFFER</Text>
               </View>
-              <Text style={styles.dealDiscount}>50% OFF</Text>
+              <Text style={tw`text-base font-black text-chocolateBrown`}>50% OFF</Text>
             </View>
-            <Text style={styles.dealTitle}>Pancake Syrup Combo</Text>
-            <Text style={styles.dealDesc}>
+            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
+              Pancake Syrup Combo
+            </Text>
+            <Text style={tw`text-xs text-chocolateBrownLight leading-4 mb-3`}>
               Buy any 2 artisanal ice cream scoops and get warm chocolate pancake syrup for half the price!
             </Text>
             <TouchableOpacity
-              style={styles.dealClaimBtn}
+              style={tw`flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm`}
               onPress={() => {
                 setActiveTab('menu');
                 setSelectedCategory('combo');
               }}
             >
-              <Text style={styles.dealClaimBtnText}>Order Combo Now</Text>
-              <Feather name="arrow-right" size={16} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>Order Combo Now</Text>
+              <Feather name="arrow-right" size={14} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
 
-          {/* Deal Card 2 */}
-          <View style={[styles.dealCard, { backgroundColor: COLORS.strawberryPinkLight }]}>
-            <View style={styles.dealHeaderRow}>
-              <View style={[styles.offerTagBadge, { backgroundColor: COLORS.strawberryPink }]}>
+          {/* Deal 2 */}
+          <View style={tw`bg-strawberryPinkLight rounded-3xl p-4 mb-4 border border-strawberryPink/30 shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center mb-2`}>
+              <View style={tw`flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1 rounded-xl`}>
                 <Ionicons name="gift" size={14} color={COLORS.chocolateBrown} />
-                <Text style={styles.offerTagText}>WELCOME BONUS</Text>
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>WELCOME BONUS</Text>
               </View>
-              <Text style={styles.dealDiscount}>10% OFF</Text>
+              <Text style={tw`text-base font-black text-chocolateBrown`}>10% OFF</Text>
             </View>
-            <Text style={styles.dealTitle}>First Mobile Money Payment</Text>
-            <Text style={styles.dealDesc}>
+            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
+              First Mobile Money Payment
+            </Text>
+            <Text style={tw`text-xs text-chocolateBrownLight leading-4 mb-3`}>
               Pay with MTN Mobile Money or Orange Money to automatically enjoy 10% cash discount on checkout.
             </Text>
             <TouchableOpacity
-              style={styles.dealClaimBtn}
+              style={tw`flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm`}
               onPress={() => setActiveTab('menu')}
             >
-              <Text style={styles.dealClaimBtnText}>Explore Treats</Text>
-              <Feather name="arrow-right" size={16} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>Explore Treats</Text>
+              <Feather name="arrow-right" size={14} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
-
-          <View style={{ height: 100 }} />
         </ScrollView>
       )}
 
-      {/* ── Profile Tab ── */}
+      {/* ── Tab Content: Profile ── */}
       {activeTab === 'profile' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
-          <View style={styles.profileHeaderCard}>
-            <View style={styles.avatarBubble}>
+          <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`w-20 h-20 rounded-full bg-strawberryPinkLight items-center justify-center mb-3`}>
               <Ionicons name="person" size={40} color={COLORS.strawberryPink} />
             </View>
-            <Text style={styles.profileName}>Best Cream Foodie</Text>
-            <Text style={styles.profileEmail}>{userEmail || 'customer@bestcream.com'}</Text>
-            <View style={styles.profileRoleBadge}>
-              <Text style={styles.profileRoleText}>🍦 Verified Sweet Tooth</Text>
+            <Text style={tw`text-xl font-black text-chocolateBrown`}>{userName}</Text>
+            <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+              {userEmail || 'customer@bestcream.com'}
+            </Text>
+            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2.5`}>
+              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>
+                🍦 Verified Sweet Tooth
+              </Text>
             </View>
           </View>
 
-          <View style={styles.profileSectionCard}>
-            <Text style={styles.profileSectionTitle}>Payment Preferences</Text>
-            
-            <View style={styles.profileRowItem}>
-              <View style={styles.profileRowLeft}>
+          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
+            <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
+              Payment Preferences
+            </Text>
+            <View style={tw`flex-row justify-between items-center py-2.5 border-b border-vanillaCreamDark`}>
+              <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="phone-portrait-outline" size={20} color={COLORS.chocolateBrown} />
-                <Text style={styles.profileRowText}>MTN Mobile Money</Text>
+                <Text style={tw`text-xs font-semibold text-chocolateBrown`}>MTN Mobile Money</Text>
               </View>
-              <Text style={styles.profileRowStatus}>Linked ✅</Text>
+              <Text style={tw`text-xs font-bold text-pistachioGreen`}>Linked ✅</Text>
             </View>
-
-            <View style={styles.profileRowItem}>
-              <View style={styles.profileRowLeft}>
+            <View style={tw`flex-row justify-between items-center py-2.5`}>
+              <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="wallet-outline" size={20} color={COLORS.chocolateBrown} />
-                <Text style={styles.profileRowText}>Orange Money</Text>
+                <Text style={tw`text-xs font-semibold text-chocolateBrown`}>Orange Money</Text>
               </View>
-              <Text style={styles.profileRowStatus}>Linked ✅</Text>
+              <Text style={tw`text-xs font-bold text-pistachioGreen`}>Linked ✅</Text>
             </View>
           </View>
 
-          <View style={styles.profileSectionCard}>
-            <Text style={styles.profileSectionTitle}>Account Actions</Text>
-            <TouchableOpacity style={styles.logoutActionBtn} onPress={onLogout} activeOpacity={0.8}>
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark shadow-sm`}>
+            <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
+              Account Actions
+            </Text>
+            <TouchableOpacity style={tw`flex-row items-center gap-2 py-2`} onPress={onLogout} activeOpacity={0.8}>
               <Ionicons name="log-out-outline" size={20} color={COLORS.errorRed} />
-              <Text style={styles.logoutActionText}>Log Out from Best Cream</Text>
+              <Text style={tw`text-sm font-bold text-errorRed`}>Log Out from Best Cream</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={{ height: 100 }} />
         </ScrollView>
       )}
 
       {/* ── Floating Cart Checkout Bar (When Cart Has Items) ── */}
       {totalCartCount > 0 && activeTab === 'menu' && (
-        <View style={styles.floatingCartBar}>
-          <View style={styles.cartBarInfo}>
-            <Text style={styles.cartBarCount}>
+        <View style={tw`absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-xl`}>
+          <View>
+            <Text style={tw`text-xs font-bold text-vanillaCreamDark uppercase tracking-wider`}>
               {totalCartCount} item{totalCartCount > 1 ? 's' : ''} in cart
             </Text>
-            <Text style={styles.cartBarTotal}>Total: ${totalCartPrice.toFixed(2)}</Text>
+            <Text style={tw`text-base font-black text-white`}>
+              Total: ${totalCartPrice.toFixed(2)}
+            </Text>
           </View>
           <TouchableOpacity
-            style={styles.cartBarBtn}
+            style={tw`flex-row items-center gap-1 bg-strawberryPink px-4 py-2 rounded-xl shadow-sm`}
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Text style={styles.cartBarBtnText}>View Cart & Pay</Text>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.chocolateBrown} />
+            <Text style={tw`text-xs font-black text-chocolateBrown`}>View Cart & Pay</Text>
+            <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrown} />
           </TouchableOpacity>
         </View>
       )}
 
       {/* ── Bottom Navigation Bar ── */}
       {/* Background: Vanilla Cream | Selected icon: Strawberry Pink */}
-      <View style={styles.bottomNav}>
+      <View style={tw`absolute bottom-0 left-0 right-0 h-16 bg-vanillaCream border-t border-vanillaCreamDark flex-row items-center justify-around shadow-md`}>
         <TouchableOpacity
-          style={styles.navItem}
+          style={tw`items-center justify-center py-1 px-3`}
           onPress={() => setActiveTab('menu')}
           activeOpacity={0.7}
         >
           <Ionicons
             name={activeTab === 'menu' ? 'ice-cream' : 'ice-cream-outline'}
-            size={24}
+            size={22}
             color={activeTab === 'menu' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
           />
           <Text
             style={[
-              styles.navLabel,
-              activeTab === 'menu' && styles.navLabelActive,
+              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              activeTab === 'menu' && tw`text-strawberryPink font-black`,
             ]}
           >
             Menu
@@ -749,19 +815,19 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navItem}
+          style={tw`items-center justify-center py-1 px-3`}
           onPress={() => setActiveTab('orders')}
           activeOpacity={0.7}
         >
           <Ionicons
             name={activeTab === 'orders' ? 'receipt' : 'receipt-outline'}
-            size={24}
+            size={22}
             color={activeTab === 'orders' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
           />
           <Text
             style={[
-              styles.navLabel,
-              activeTab === 'orders' && styles.navLabelActive,
+              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              activeTab === 'orders' && tw`text-strawberryPink font-black`,
             ]}
           >
             Orders
@@ -769,19 +835,19 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navItem}
+          style={tw`items-center justify-center py-1 px-3`}
           onPress={() => setActiveTab('deals')}
           activeOpacity={0.7}
         >
           <Ionicons
             name={activeTab === 'deals' ? 'pricetag' : 'pricetag-outline'}
-            size={24}
+            size={22}
             color={activeTab === 'deals' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
           />
           <Text
             style={[
-              styles.navLabel,
-              activeTab === 'deals' && styles.navLabelActive,
+              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              activeTab === 'deals' && tw`text-strawberryPink font-black`,
             ]}
           >
             Offers
@@ -789,19 +855,19 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navItem}
+          style={tw`items-center justify-center py-1 px-3`}
           onPress={() => setActiveTab('profile')}
           activeOpacity={0.7}
         >
           <Ionicons
             name={activeTab === 'profile' ? 'person' : 'person-outline'}
-            size={24}
+            size={22}
             color={activeTab === 'profile' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
           />
           <Text
             style={[
-              styles.navLabel,
-              activeTab === 'profile' && styles.navLabelActive,
+              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              activeTab === 'profile' && tw`text-strawberryPink font-black`,
             ]}
           >
             Profile
@@ -816,54 +882,64 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
         transparent={true}
         onRequestClose={() => setIsCartModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+        <View style={tw`flex-1 bg-black/50 justify-end`}>
+          <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8`}>
             {/* Modal Header */}
-            <View style={styles.modalHeader}>
+            <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-vanillaCreamDark`}>
               <View>
-                <Text style={styles.modalTitle}>Your Order Cart 🛒</Text>
-                <Text style={styles.modalSubtitle}>Pay with MTN MoMo or Orange Money</Text>
+                <Text style={tw`text-lg font-black text-chocolateBrown`}>Your Order Cart 🛒</Text>
+                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                  Pay with MTN MoMo or Orange Money
+                </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setIsCartModalVisible(false)}
-                style={styles.modalCloseBtn}
+                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
               >
-                <Ionicons name="close" size={22} color={COLORS.chocolateBrown} />
+                <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
             </View>
 
             {/* Cart Items List */}
-            <ScrollView style={styles.modalScroll}>
+            <ScrollView style={tw`px-5 pt-3`}>
               {Object.keys(cart).length === 0 ? (
-                <View style={styles.emptyCartBox}>
-                  <Text style={styles.emptyCartEmoji}>🍨</Text>
-                  <Text style={styles.emptyCartTitle}>Your cart is empty</Text>
-                  <Text style={styles.emptyCartSub}>Add delicious ice cream scoops or pancakes!</Text>
+                <View style={tw`items-center py-10`}>
+                  <Text style={tw`text-4xl mb-2`}>🍨</Text>
+                  <Text style={tw`text-base font-black text-chocolateBrown`}>Your cart is empty</Text>
+                  <Text style={tw`text-xs text-chocolateBrownMuted mt-1`}>
+                    Add delicious ice cream scoops or pancakes!
+                  </Text>
                 </View>
               ) : (
                 Object.entries(cart).map(([id, qty]) => {
                   const item = menuItems.find((m) => m.id === id);
                   if (!item) return null;
                   return (
-                    <View key={id} style={styles.cartItemRow}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.cartItemName}>{item.name}</Text>
-                        <Text style={styles.cartItemFlavor}>Flavor: {item.flavor}</Text>
-                        <Text style={styles.cartItemPrice}>${item.price.toFixed(2)} each</Text>
+                    <View key={id} style={tw`flex-row items-center py-3 border-b border-vanillaCreamDark`}>
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.name}</Text>
+                        <Text style={tw`text-xs text-chocolateBrownLight mt-0.5`}>
+                          Flavor: {item.flavor}
+                        </Text>
+                        <Text style={tw`text-xs font-bold text-chocolateBrown mt-0.5`}>
+                          ${item.price.toFixed(2)} each
+                        </Text>
                       </View>
-                      <View style={styles.qtyControlRow}>
+                      <View style={tw`flex-row items-center bg-vanillaCream rounded-xl border border-vanillaCreamDark p-1 gap-2`}>
                         <TouchableOpacity
-                          style={styles.qtyBtn}
+                          style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
                           onPress={() => removeFromCart(id)}
                         >
-                          <Feather name="minus" size={14} color={COLORS.chocolateBrown} />
+                          <Feather name="minus" size={12} color={COLORS.chocolateBrown} />
                         </TouchableOpacity>
-                        <Text style={styles.qtyNumber}>{qty}</Text>
+                        <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
+                          {qty}
+                        </Text>
                         <TouchableOpacity
-                          style={styles.qtyBtn}
+                          style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
                           onPress={() => addToCart(id)}
                         >
-                          <Feather name="plus" size={14} color={COLORS.chocolateBrown} />
+                          <Feather name="plus" size={12} color={COLORS.chocolateBrown} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -873,50 +949,54 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
 
               {/* Payment Section */}
               {totalCartCount > 0 && (
-                <View style={styles.paymentSection}>
-                  <Text style={styles.paymentSectionTitle}>Select Payment Method</Text>
+                <View style={tw`mt-4 pb-6`}>
+                  <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-2.5`}>
+                    Select Payment Method
+                  </Text>
 
-                  {/* Payment Options */}
-                  <View style={styles.paymentMethodsRow}>
+                  {/* Payment Choices */}
+                  <View style={tw`flex-row gap-2.5 mb-3.5`}>
                     <TouchableOpacity
                       style={[
-                        styles.paymentChoiceCard,
-                        paymentMethod === 'mtn-momo' && styles.paymentChoiceActive,
+                        tw`flex-1 border-2 border-vanillaCreamDark rounded-2xl p-3 items-center bg-vanillaCream relative`,
+                        paymentMethod === 'mtn-momo' && tw`border-strawberryPink bg-strawberryPinkLight`,
                       ]}
                       onPress={() => setPaymentMethod('mtn-momo')}
                     >
-                      <Text style={styles.paymentChoiceEmoji}>📱</Text>
-                      <Text style={styles.paymentChoiceTitle}>MTN MoMo</Text>
+                      <Text style={tw`text-2xl mb-1`}>📱</Text>
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>MTN MoMo</Text>
                       {paymentMethod === 'mtn-momo' && (
-                        <View style={styles.checkCircle}>
-                          <Ionicons name="checkmark" size={12} color={COLORS.white} />
+                        <View style={tw`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center`}>
+                          <Ionicons name="checkmark" size={10} color={COLORS.white} />
                         </View>
                       )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       style={[
-                        styles.paymentChoiceCard,
-                        paymentMethod === 'orange-money' && styles.paymentChoiceActive,
+                        tw`flex-1 border-2 border-vanillaCreamDark rounded-2xl p-3 items-center bg-vanillaCream relative`,
+                        paymentMethod === 'orange-money' && tw`border-strawberryPink bg-strawberryPinkLight`,
                       ]}
                       onPress={() => setPaymentMethod('orange-money')}
                     >
-                      <Text style={styles.paymentChoiceEmoji}>🟠</Text>
-                      <Text style={styles.paymentChoiceTitle}>Orange Money</Text>
+                      <Text style={tw`text-2xl mb-1`}>🟠</Text>
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>Orange Money</Text>
                       {paymentMethod === 'orange-money' && (
-                        <View style={styles.checkCircle}>
-                          <Ionicons name="checkmark" size={12} color={COLORS.white} />
+                        <View style={tw`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center`}>
+                          <Ionicons name="checkmark" size={10} color={COLORS.white} />
                         </View>
                       )}
                     </TouchableOpacity>
                   </View>
 
-                  {/* Phone input */}
-                  <Text style={styles.phoneInputLabel}>Account Phone Number</Text>
-                  <View style={styles.phoneInputBox}>
-                    <Ionicons name="call-outline" size={18} color={COLORS.chocolateBrown} style={{ marginRight: 8 }} />
+                  {/* Phone Input */}
+                  <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                    Account Phone Number
+                  </Text>
+                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5 mb-3.5`}>
+                    <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
                     <TextInput
-                      style={styles.phoneInput}
+                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
                       value={phoneNumber}
                       onChangeText={setPhoneNumber}
                       keyboardType="phone-pad"
@@ -925,24 +1005,31 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                   </View>
 
                   {/* Summary */}
-                  <View style={styles.billSummary}>
-                    <View style={styles.billRow}>
-                      <Text style={styles.billLabel}>Subtotal</Text>
-                      <Text style={styles.billValue}>${totalCartPrice.toFixed(2)}</Text>
+                  <View style={tw`bg-vanillaCream rounded-2xl p-3.5 mb-4 gap-1.5`}>
+                    <View style={tw`flex-row justify-between`}>
+                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                        ${totalCartPrice.toFixed(2)}
+                      </Text>
                     </View>
-                    <View style={styles.billRow}>
-                      <Text style={styles.billLabel}>Delivery / Prep</Text>
-                      <Text style={[styles.billValue, { color: COLORS.pistachioGreen }]}>FREE</Text>
+                    <View style={tw`flex-row justify-between`}>
+                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery / Prep</Text>
+                      <Text style={tw`text-xs font-bold text-pistachioGreen`}>FREE</Text>
                     </View>
-                    <View style={[styles.billRow, styles.billRowTotal]}>
-                      <Text style={styles.billTotalLabel}>Total Amount</Text>
-                      <Text style={styles.billTotalValue}>${totalCartPrice.toFixed(2)}</Text>
+                    <View style={tw`flex-row justify-between border-t border-vanillaCreamDark pt-2 mt-1`}>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
+                      <Text style={tw`text-base font-black text-chocolateBrown`}>
+                        ${totalCartPrice.toFixed(2)}
+                      </Text>
                     </View>
                   </View>
 
-                  {/* Action button */}
+                  {/* Action Button */}
                   <TouchableOpacity
-                    style={[styles.checkoutBtn, placingOrder && styles.checkoutBtnDisabled]}
+                    style={[
+                      tw`w-full bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-1.5 shadow-md`,
+                      placingOrder && tw`opacity-70`,
+                    ]}
                     disabled={placingOrder}
                     onPress={handlePlaceOrder}
                     activeOpacity={0.85}
@@ -951,14 +1038,14 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
                       <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                     ) : (
                       <>
-                        <Text style={styles.checkoutBtnText}>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>
                           Pay ${totalCartPrice.toFixed(2)} via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
                         </Text>
                         <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
                       </>
                     )}
                   </TouchableOpacity>
-                  <Text style={styles.orderNoticeText}>
+                  <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-2`}>
                     Upon payment, your order will show 'Pending' until approved by the admin.
                   </Text>
                 </View>
@@ -971,7 +1058,7 @@ export default function DashboardScreen({ apiUrl, onLogout, userEmail }: Dashboa
   );
 }
 
-// ─── Fallback Data (When Server is unreachable) ────────────────────────────────
+// ─── Fallback Data ─────────────────────────────────────────────────────────────
 const FALLBACK_MENU: MenuItem[] = [
   {
     id: '1',
@@ -1090,1051 +1177,3 @@ const FALLBACK_ORDERS: Order[] = [
     createdAt: new Date().toISOString(),
   },
 ];
-
-const CARD_RADIUS = 20;
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.vanillaCream,
-  },
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 10,
-  },
-
-  // ── Header Bar ──
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    backgroundColor: COLORS.vanillaCream,
-  },
-  headerBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.vanillaCreamDark,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoBadgeEmoji: {
-    fontSize: 22,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.3,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.chocolateBrownLight,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cartBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cartBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: COLORS.strawberryPink,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  cartBadgeText: {
-    color: COLORS.chocolateBrown,
-    fontSize: 10,
-    fontWeight: '900',
-  },
-
-  // ── Search Bar ──
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginTop: 6,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.chocolateBrown,
-    fontWeight: '500',
-  },
-
-  // ── Special Offer Banner (Butter Yellow) ──
-  specialOfferBanner: {
-    backgroundColor: COLORS.butterYellow,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 18,
-    shadowColor: COLORS.butterYellow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  offerTagBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    marginBottom: 8,
-  },
-  offerTagText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.5,
-  },
-  offerHeading: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    marginBottom: 4,
-  },
-  offerSubtext: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.chocolateBrown,
-    opacity: 0.85,
-    lineHeight: 17,
-  },
-  offerFooter: {
-    marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  momoBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  momoBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-
-  // ── Category Filter Pills ──
-  categoryScroll: {
-    gap: 8,
-    paddingBottom: 16,
-  },
-  categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.vanillaCreamDark,
-  },
-  categoryPillActive: {
-    backgroundColor: COLORS.strawberryPink,
-    borderColor: COLORS.strawberryPink,
-  },
-  categoryPillText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-  },
-  categoryPillTextActive: {
-    color: COLORS.chocolateBrown,
-    fontWeight: '900',
-  },
-
-  // ── Section Title ──
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  sectionHeading: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  productCountText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.chocolateBrownMuted,
-  },
-
-  // ── Products Grid ──
-  productsGrid: {
-    gap: 14,
-  },
-  productCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: CARD_RADIUS,
-    overflow: 'hidden',
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-  },
-  cardImageWrapper: {
-    width: '100%',
-    height: 160,
-    backgroundColor: COLORS.vanillaCreamDark,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  specialOfferTag: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    backgroundColor: COLORS.butterYellow,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  specialOfferTagText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  ratingBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  ratingText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  cardBody: {
-    padding: 14,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    marginBottom: 2,
-  },
-  cardFlavor: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownLight,
-    marginBottom: 6,
-  },
-  flavorPrefix: {
-    fontWeight: '700',
-    color: COLORS.strawberryPink,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownMuted,
-    lineHeight: 16,
-    marginBottom: 12,
-  },
-  cardBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  cardPrice: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  stockIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginTop: 4,
-  },
-  stockIn: {
-    backgroundColor: COLORS.pistachioGreenLight,
-  },
-  stockOut: {
-    backgroundColor: COLORS.outOfStockBg,
-  },
-  stockIndicatorText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  stockInText: {
-    color: COLORS.chocolateBrown,
-  },
-  stockOutText: {
-    color: COLORS.errorRed,
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.strawberryPink,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 14,
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  addBtnDisabled: {
-    backgroundColor: COLORS.vanillaCreamDark,
-    opacity: 0.6,
-  },
-  addBtnText: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  qtyControlRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.vanillaCream,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    padding: 3,
-    gap: 8,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  qtyNumber: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    minWidth: 16,
-    textAlign: 'center',
-  },
-
-  // ── Floating Cart Bar ──
-  floatingCartBar: {
-    position: 'absolute',
-    bottom: 70,
-    left: 18,
-    right: 18,
-    backgroundColor: COLORS.chocolateBrown,
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 8,
-  },
-  cartBarInfo: {
-    gap: 2,
-  },
-  cartBarCount: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.vanillaCreamDark,
-    textTransform: 'uppercase',
-  },
-  cartBarTotal: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.white,
-  },
-  cartBarBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.strawberryPink,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
-  },
-  cartBarBtnText: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-
-  // ── Bottom Navigation Bar ──
-  // Colors: Vanilla Cream background | Strawberry Pink selected icon
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 64,
-    backgroundColor: COLORS.vanillaCream,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.vanillaCreamDark,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.chocolateBrownMuted,
-    marginTop: 2,
-  },
-  navLabelActive: {
-    color: COLORS.strawberryPink,
-    fontWeight: '900',
-  },
-
-  // ── Orders Screen Styles ──
-  tabHeadingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  tabSubheading: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownLight,
-    marginTop: 2,
-  },
-  refreshBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-  },
-  orderCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  orderCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.vanillaCreamDark,
-    paddingBottom: 10,
-  },
-  orderIdText: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  orderDateText: {
-    fontSize: 11,
-    color: COLORS.chocolateBrownMuted,
-    marginTop: 2,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  statusPending: {
-    backgroundColor: COLORS.butterYellowLight,
-    borderWidth: 1,
-    borderColor: COLORS.butterYellow,
-  },
-  statusApproved: {
-    backgroundColor: COLORS.pistachioGreenLight,
-    borderWidth: 1,
-    borderColor: COLORS.pistachioGreen,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  statusPendingText: {
-    color: '#854D0E',
-  },
-  statusApprovedText: {
-    color: COLORS.chocolateBrown,
-  },
-  orderItemsList: {
-    paddingVertical: 10,
-    gap: 8,
-  },
-  orderItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  orderItemQuantity: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.strawberryPink,
-    width: 26,
-  },
-  orderItemName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-  },
-  orderItemFlavor: {
-    fontSize: 11,
-    color: COLORS.chocolateBrownLight,
-  },
-  orderItemPrice: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  orderCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.vanillaCreamDark,
-    paddingTop: 10,
-  },
-  paymentMethodPill: {
-    backgroundColor: COLORS.vanillaCream,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  paymentMethodEmoji: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-  },
-  orderTotalWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  orderTotalLabel: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownMuted,
-  },
-  orderTotalValue: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  emptyOrdersContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyOrdersEmoji: {
-    fontSize: 54,
-    marginBottom: 10,
-  },
-  emptyOrdersTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  emptyOrdersSub: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownMuted,
-    textAlign: 'center',
-    marginTop: 6,
-    paddingHorizontal: 30,
-    lineHeight: 18,
-  },
-  orderNowBtn: {
-    backgroundColor: COLORS.strawberryPink,
-    paddingHorizontal: 22,
-    paddingVertical: 12,
-    borderRadius: 16,
-    marginTop: 18,
-  },
-  orderNowBtnText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-
-  // ── Deals Tab Styles ──
-  dealCard: {
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  dealHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  dealDiscount: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  dealTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    marginBottom: 4,
-  },
-  dealDesc: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownLight,
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-  dealClaimBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 6,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  dealClaimBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-
-  // ── Profile Styles ──
-  profileHeaderCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-  },
-  avatarBubble: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.strawberryPinkLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  profileEmail: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownMuted,
-    marginTop: 2,
-  },
-  profileRoleBadge: {
-    backgroundColor: COLORS.butterYellowLight,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginTop: 10,
-  },
-  profileRoleText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  profileSectionCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-  },
-  profileSectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-    marginBottom: 12,
-  },
-  profileRowItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.vanillaCreamDark,
-  },
-  profileRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  profileRowText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.chocolateBrown,
-  },
-  profileRowStatus: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.pistachioGreen,
-  },
-  logoutActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-  },
-  logoutActionText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.errorRed,
-  },
-
-  // ── Modal Styles ──
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: '85%',
-    paddingBottom: 30,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.vanillaCreamDark,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  modalSubtitle: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownMuted,
-    marginTop: 2,
-  },
-  modalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.vanillaCream,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalScroll: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-  },
-  cartItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.vanillaCreamDark,
-  },
-  cartItemName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  cartItemFlavor: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownLight,
-    marginTop: 2,
-  },
-  cartItemPrice: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-    marginTop: 2,
-  },
-  emptyCartBox: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyCartEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  emptyCartTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  emptyCartSub: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownMuted,
-    marginTop: 4,
-  },
-
-  // ── Payment in Modal ──
-  paymentSection: {
-    marginTop: 18,
-    paddingBottom: 20,
-  },
-  paymentSectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-    marginBottom: 10,
-  },
-  paymentMethodsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 14,
-  },
-  paymentChoiceCard: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: COLORS.vanillaCreamDark,
-    borderRadius: 16,
-    padding: 12,
-    alignItems: 'center',
-    backgroundColor: COLORS.vanillaCream,
-  },
-  paymentChoiceActive: {
-    borderColor: COLORS.strawberryPink,
-    backgroundColor: COLORS.strawberryPinkLight,
-  },
-  paymentChoiceEmoji: {
-    fontSize: 22,
-    marginBottom: 4,
-  },
-  paymentChoiceTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  checkCircle: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.strawberryPink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  phoneInputLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-    marginBottom: 6,
-  },
-  phoneInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.vanillaCream,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.chocolateBrown,
-  },
-  billSummary: {
-    backgroundColor: COLORS.vanillaCream,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
-    gap: 6,
-  },
-  billRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  billLabel: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownMuted,
-  },
-  billValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-  },
-  billRowTotal: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.vanillaCreamDark,
-    paddingTop: 8,
-    marginTop: 4,
-  },
-  billTotalLabel: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  billTotalValue: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  checkoutBtn: {
-    backgroundColor: COLORS.strawberryPink,
-    borderRadius: 16,
-    paddingVertical: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  checkoutBtnDisabled: {
-    opacity: 0.7,
-  },
-  checkoutBtnText: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-  },
-  orderNoticeText: {
-    fontSize: 11,
-    color: COLORS.chocolateBrownMuted,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 15,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    gap: 8,
-  },
-  loadingSubtext: {
-    fontSize: 13,
-    color: COLORS.chocolateBrownMuted,
-  },
-});
-

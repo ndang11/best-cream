@@ -7,12 +7,10 @@ import {
   SafeAreaView,
   Animated,
   Easing,
-  Dimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-
-const { width } = Dimensions.get('window');
 
 interface WelcomeScreenProps {
   onGoToLogin: () => void;
@@ -29,11 +27,10 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
   const cardSlide = useRef(new Animated.Value(40)).current;
   const badgeFade = useRef(new Animated.Value(0)).current;
 
-  // Floating animation for the emblem
+  // Floating animation for emblem
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Staggered entrance
     Animated.sequence([
       Animated.parallel([
         Animated.timing(logoFade, {
@@ -84,7 +81,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
       }),
     ]).start();
 
-    // Continuous gentle float
+    // Subtle floating loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
@@ -104,127 +101,135 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
   }, []);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
 
       {/* Decorative background blobs */}
-      <View style={styles.blobTopRight} />
-      <View style={styles.blobBottomLeft} />
+      <View style={tw`absolute w-56 h-56 rounded-full bg-strawberryPinkLight -top-20 -right-20`} />
+      <View style={tw`absolute w-44 h-44 rounded-full bg-butterYellowLight -bottom-16 -left-16`} />
 
-      <View style={styles.container}>
-
+      <View style={tw`flex-1 items-center justify-center px-6 py-4`}>
         {/* ── Top: Emblem + Brand name ── */}
         <Animated.View
           style={[
-            styles.brandSection,
+            tw`items-center mb-4`,
             {
               opacity: logoFade,
               transform: [{ translateY: logoSlide }, { translateY: floatAnim }],
             },
           ]}
         >
-          {/* Outer glow ring */}
-          <View style={styles.glowRing}>
-            <View style={styles.emblemBubble}>
+          <View style={tw`p-2 rounded-full bg-strawberryPinkLight`}>
+            <View style={tw`w-36 h-36 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg`}>
               <IceCreamEmblem />
             </View>
           </View>
         </Animated.View>
 
-        {/* ── Tagline section ── */}
+        {/* ── Heading section ── */}
         <Animated.View
           style={[
-            styles.headingSection,
+            tw`items-center mb-6`,
             { opacity: textFade, transform: [{ translateY: textSlide }] },
           ]}
         >
-          <Text style={styles.brandName}>Best Cream</Text>
-          <Text style={styles.brandTagline}>Ice Cream & Pancakes</Text>
-          <View style={styles.dotRow}>
-            <View style={[styles.dot, { backgroundColor: COLORS.strawberryPink }]} />
-            <View style={[styles.dot, { backgroundColor: COLORS.butterYellow }]} />
-            <View style={[styles.dot, { backgroundColor: COLORS.pistachioGreen }]} />
+          <Text style={tw`text-4xl font-extrabold text-chocolateBrown tracking-wide`}>
+            Best Cream
+          </Text>
+          <Text style={tw`text-sm font-semibold text-chocolateBrownLight mt-1 tracking-wider`}>
+            Ice Cream & Pancakes
+          </Text>
+          <View style={tw`flex-row gap-2 my-2.5`}>
+            <View style={tw`w-1.5 h-1.5 rounded-full bg-strawberryPink`} />
+            <View style={tw`w-1.5 h-1.5 rounded-full bg-butterYellow`} />
+            <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen`} />
           </View>
-          <Text style={styles.brandDescription}>
+          <Text style={tw`text-sm font-medium text-chocolateBrownMuted text-center leading-5`}>
             Fresh flavors made daily.{'\n'}Order easily, pay instantly.
           </Text>
         </Animated.View>
 
-        {/* ── CTA card ── */}
+        {/* ── CTA Card ── */}
         <Animated.View
           style={[
-            styles.ctaCard,
+            tw`w-full bg-white rounded-3xl px-6 py-7 border border-vanillaCreamDark shadow-lg`,
             { opacity: cardFade, transform: [{ translateY: cardSlide }] },
           ]}
         >
-          <Text style={styles.ctaHeading}>Get Started</Text>
-          <Text style={styles.ctaSubtext}>Create an account or log in to start ordering</Text>
+          <Text style={tw`text-xl font-extrabold text-chocolateBrown text-center mb-1`}>
+            Get Started
+          </Text>
+          <Text style={tw`text-xs font-medium text-chocolateBrownLight text-center mb-5`}>
+            Create an account or log in to start ordering
+          </Text>
 
-          {/* Sign Up — primary */}
+          {/* Sign Up — Primary Button */}
           <TouchableOpacity
-            style={styles.signUpBtn}
+            style={tw`w-full bg-strawberryPink py-4 rounded-2xl items-center mb-3 shadow-md`}
             onPress={onGoToSignUp}
             activeOpacity={0.85}
           >
-            <Text style={styles.signUpBtnText}>Create Account</Text>
+            <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
+              Create Account
+            </Text>
           </TouchableOpacity>
 
-          {/* Log In — outline */}
+          {/* Log In — Secondary Outline Button */}
           <TouchableOpacity
-            style={styles.loginBtn}
+            style={tw`w-full border-2 border-strawberryPink py-3.5 rounded-2xl items-center bg-transparent`}
             onPress={onGoToLogin}
             activeOpacity={0.85}
           >
-            <Text style={styles.loginBtnText}>Log In</Text>
+            <Text style={tw`text-base font-extrabold text-strawberryPink tracking-wide`}>
+              Log In
+            </Text>
           </TouchableOpacity>
 
           {/* Divider */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Accepted payments</Text>
-            <View style={styles.dividerLine} />
+          <View style={tw`flex-row items-center my-4`}>
+            <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
+            <Text style={tw`mx-2.5 text-xs font-semibold text-chocolateBrownMuted`}>
+              Accepted payments
+            </Text>
+            <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
           </View>
 
-          {/* Payment badges */}
-          <View style={styles.paymentRow}>
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>📱</Text>
-              <Text style={styles.paymentLabel}>MTN MoMo</Text>
+          {/* Payment Badges */}
+          <View style={tw`flex-row items-center justify-center`}>
+            <View style={tw`flex-1 items-center gap-1`}>
+              <Text style={tw`text-2xl`}>📱</Text>
+              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>MTN MoMo</Text>
             </View>
-            <View style={styles.paymentDivider} />
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>🟠</Text>
-              <Text style={styles.paymentLabel}>Orange Money</Text>
+            <View style={tw`w-px h-8 bg-vanillaCreamDark mx-4`} />
+            <View style={tw`flex-1 items-center gap-1`}>
+              <Text style={tw`text-2xl`}>🟠</Text>
+              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>Orange Money</Text>
             </View>
           </View>
         </Animated.View>
 
-        {/* ── Bottom offer pill ── */}
-        <Animated.View style={[styles.offerPill, { opacity: badgeFade }]}>
-          <Text style={styles.offerText}>🎉 New members get 10% off their first order!</Text>
+        {/* ── Bottom Offer Pill ── */}
+        <Animated.View style={[tw`mt-5 bg-butterYellow px-5 py-2.5 rounded-full shadow`, { opacity: badgeFade }]}>
+          <Text style={tw`text-xs font-extrabold text-chocolateBrown text-center`}>
+            🎉 New members get 10% off their first order!
+          </Text>
         </Animated.View>
-
       </View>
     </SafeAreaView>
   );
 }
 
-// ─── Ice cream emblem (pure RN) ───────────────────────────────────────────────
+// ─── Ice Cream Emblem ────────────────────────────────────────────────────────
 function IceCreamEmblem() {
   return (
     <View style={emblemStyles.wrapper}>
-      {/* Waffle cone */}
       <View style={emblemStyles.cone} />
-      {/* Scoops */}
       <View style={[emblemStyles.scoop, emblemStyles.scoopBottom]} />
       <View style={[emblemStyles.scoop, emblemStyles.scoopMiddle]} />
       <View style={[emblemStyles.scoop, emblemStyles.scoopTop]} />
-      {/* Cherry */}
       <View style={emblemStyles.cherry} />
-      {/* Chocolate drizzles */}
       <View style={emblemStyles.drizzle1} />
       <View style={emblemStyles.drizzle2} />
-      {/* Sprinkles */}
       <View style={[emblemStyles.sprinkle, { top: 24, left: 8, backgroundColor: COLORS.butterYellow, transform: [{ rotate: '30deg' }] }]} />
       <View style={[emblemStyles.sprinkle, { top: 30, right: 10, backgroundColor: COLORS.pistachioGreen, transform: [{ rotate: '-20deg' }] }]} />
       <View style={[emblemStyles.sprinkle, { top: 44, left: 14, backgroundColor: COLORS.strawberryPink, transform: [{ rotate: '50deg' }] }]} />
@@ -308,227 +313,3 @@ const emblemStyles = StyleSheet.create({
     borderRadius: 2,
   },
 });
-// ─────────────────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.vanillaCream,
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 20,
-  },
-
-  // ── Decorative blobs ──
-  blobTopRight: {
-    position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: COLORS.strawberryPinkLight,
-    top: -80,
-    right: -80,
-  },
-  blobBottomLeft: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: COLORS.butterYellowLight,
-    bottom: -60,
-    left: -60,
-  },
-
-  // ── Brand ──
-  brandSection: {
-    alignItems: 'center',
-  },
-  glowRing: {
-    padding: 8,
-    borderRadius: 80,
-    backgroundColor: COLORS.strawberryPinkLight,
-  },
-  emblemBubble: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
-    borderWidth: 3,
-    borderColor: COLORS.strawberryPinkLight,
-  },
-
-  // ── Heading ──
-  headingSection: {
-    alignItems: 'center',
-  },
-  brandName: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.5,
-  },
-  brandTagline: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.chocolateBrownLight,
-    marginTop: 4,
-    letterSpacing: 0.5,
-  },
-  dotRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  brandDescription: {
-    fontSize: 14,
-    color: COLORS.chocolateBrownMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-    fontWeight: '500',
-  },
-
-  // ── CTA Card ──
-  ctaCard: {
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderRadius: 28,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.09,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  ctaHeading: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  ctaSubtext: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.chocolateBrownLight,
-    textAlign: 'center',
-    marginBottom: 22,
-    lineHeight: 18,
-  },
-
-  // ── Buttons ──
-  signUpBtn: {
-    backgroundColor: COLORS.strawberryPink,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  signUpBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.4,
-  },
-  loginBtn: {
-    borderRadius: 16,
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.strawberryPink,
-    backgroundColor: 'transparent',
-  },
-  loginBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.strawberryPink,
-    letterSpacing: 0.4,
-  },
-
-  // ── Divider ──
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 18,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.vanillaCreamDark,
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.chocolateBrownMuted,
-  },
-
-  // ── Payment badges ──
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paymentBadge: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  paymentEmoji: {
-    fontSize: 22,
-  },
-  paymentLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.chocolateBrownLight,
-  },
-  paymentDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: COLORS.vanillaCreamDark,
-    marginHorizontal: 16,
-  },
-
-  // ── Offer pill ──
-  offerPill: {
-    backgroundColor: COLORS.butterYellow,
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    shadowColor: COLORS.butterYellow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  offerText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-    textAlign: 'center',
-  },
-});
-

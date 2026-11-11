@@ -13,6 +13,7 @@ import {
   Pressable,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
 // ─── Re-usable ice-cream emblem (small version for sign-up) ──────────────────
@@ -78,10 +79,14 @@ const emblemStyles = StyleSheet.create({
     bottom: 78,
   },
 });
-// ─────────────────────────────────────────────────────────────────────────────
+
+interface SignUpUserData {
+  name: string;
+  email: string;
+}
 
 interface SignUpScreenProps {
-  onSignUpSuccess: (email?: string) => void;
+  onSignUpSuccess: (user: SignUpUserData) => void;
   onGoToLogin: () => void;
   apiUrl?: string;
 }
@@ -148,7 +153,11 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
 
   const clearError = (field: string) => {
     if (errors[field]) {
-      setErrors((prev) => { const next = { ...prev }; delete next[field]; return next; });
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -177,11 +186,10 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
       console.log('Using demo sign-up due to offline server');
     } finally {
       setLoading(false);
-      onSignUpSuccess(email.trim());
+      onSignUpSuccess({ name: fullName.trim(), email: email.trim() });
     }
   };
 
-  // ── Password strength indicator ──────────────────────────────────────────
   const getStrength = (): { label: string; color: string; pct: number } => {
     if (!password) return { label: '', color: 'transparent', pct: 0 };
     if (password.length < 6) return { label: 'Weak', color: '#E53935', pct: 0.25 };
@@ -193,116 +201,146 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
   const strength = getStrength();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
-        style={styles.kav}
+        style={tw`flex-1`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={tw`flex-grow px-6 pt-4 pb-8 items-center`}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Top brand bar ── */}
-          <View style={styles.topBar}>
+          {/* ── Top Bar ── */}
+          <View style={tw`w-full flex-row items-center justify-between mb-4`}>
             <TouchableOpacity
-              style={styles.backBtn}
+              style={tw`bg-white px-3.5 py-2 rounded-2xl border border-vanillaCreamDark w-16 items-center shadow-sm`}
               onPress={onGoToLogin}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={styles.backBtnText}>← Back</Text>
+              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>← Back</Text>
             </TouchableOpacity>
-            <View style={styles.emblemBubble}>
+
+            <View style={tw`w-20 h-20 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md`}>
               <IceCreamEmblemSmall />
             </View>
-            <View style={{ width: 60 }} />
+
+            <View style={{ width: 64 }} />
           </View>
 
           {/* ── Heading ── */}
-          <View style={styles.headingSection}>
-            <Text style={styles.heading}>Join Best Cream 🍦</Text>
-            <Text style={styles.subheading}>Create your account and start ordering</Text>
+          <View style={tw`items-center mb-3`}>
+            <Text style={tw`text-2xl font-extrabold text-chocolateBrown tracking-wide`}>
+              Join Best Cream 🍦
+            </Text>
+            <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-1`}>
+              Create your account and start ordering
+            </Text>
           </View>
 
-          {/* ── Special offer pill ── */}
-          <View style={styles.offerPill}>
-            <Text style={styles.offerPillText}>🎉 New members get 10% off their first order!</Text>
+          {/* ── Offer Pill ── */}
+          <View style={tw`bg-butterYellow rounded-full px-4 py-2 mb-4 shadow`}>
+            <Text style={tw`text-xs font-extrabold text-chocolateBrown text-center`}>
+              🎉 New members get 10% off their first order!
+            </Text>
           </View>
 
-          {/* ── Form card ── */}
-          <View style={styles.card}>
-
+          {/* ── Form Card ── */}
+          <View style={tw`w-full bg-white rounded-3xl px-6 py-6 border border-vanillaCreamDark shadow-lg`}>
             {/* Full Name */}
             <Field
               label="Full Name"
               icon="👤"
               placeholder="e.g. John Doe"
               value={fullName}
-              onChangeText={(t) => { setFullName(t); clearError('fullName'); }}
+              onChangeText={(t) => {
+                setFullName(t);
+                clearError('fullName');
+              }}
               error={errors.fullName}
               returnKeyType="next"
             />
 
-            {/* Email */}
+            {/* Email Address */}
             <Field
               label="Email Address"
               icon="✉️"
               placeholder="you@example.com"
               value={email}
-              onChangeText={(t) => { setEmail(t); clearError('email'); }}
+              onChangeText={(t) => {
+                setEmail(t);
+                clearError('email');
+              }}
               error={errors.email}
               keyboardType="email-address"
               autoCapitalize="none"
               returnKeyType="next"
             />
 
-            {/* Phone */}
+            {/* Phone Number */}
             <Field
               label="Phone Number"
               icon="📞"
               placeholder="+237 6XX XXX XXX"
               value={phone}
-              onChangeText={(t) => { setPhone(t); clearError('phone'); }}
+              onChangeText={(t) => {
+                setPhone(t);
+                clearError('phone');
+              }}
               error={errors.phone}
               keyboardType="phone-pad"
               returnKeyType="next"
             />
 
             {/* Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Password</Text>
-              <View style={[styles.inputWrapper, errors.password ? styles.inputError : null]}>
-                <Text style={styles.inputIcon}>🔒</Text>
+            <View style={tw`mb-3`}>
+              <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>Password</Text>
+              <View
+                style={[
+                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
+                  errors.password ? tw`border-errorRed bg-errorRedLight` : null,
+                ]}
+              >
+                <Text style={tw`text-base mr-2.5`}>🔒</Text>
                 <TextInput
-                  style={styles.input}
+                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
                   placeholder="Min. 6 characters"
                   placeholderTextColor={COLORS.chocolateBrownMuted}
                   value={password}
-                  onChangeText={(t) => { setPassword(t); clearError('password'); }}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    clearError('password');
+                  }}
                   secureTextEntry={!showPassword}
                   returnKeyType="next"
                 />
                 <Pressable onPress={() => setShowPassword((v) => !v)} hitSlop={8}>
-                  <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+                  <Text style={tw`text-base pl-2`}>{showPassword ? '🙈' : '👁️'}</Text>
                 </Pressable>
               </View>
               {errors.password ? (
-                <Text style={styles.errorText}>{errors.password}</Text>
+                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
+                  {errors.password}
+                </Text>
               ) : null}
-              {/* Strength bar */}
+
+              {/* Password strength indicator bar */}
               {password.length > 0 ? (
-                <View style={styles.strengthRow}>
-                  <View style={styles.strengthBarBg}>
+                <View style={tw`flex-row items-center mt-2 gap-2`}>
+                  <View style={tw`flex-1 h-1.5 bg-vanillaCreamDark rounded-full overflow-hidden`}>
                     <View
                       style={[
-                        styles.strengthBarFill,
-                        { width: `${strength.pct * 100}%` as unknown as number, backgroundColor: strength.color },
+                        tw`h-full rounded-full`,
+                        {
+                          width: `${strength.pct * 100}%` as unknown as number,
+                          backgroundColor: strength.color,
+                        },
                       ]}
                     />
                   </View>
-                  <Text style={[styles.strengthLabel, { color: strength.color }]}>
+                  <Text style={[tw`text-xs font-extrabold text-right`, { color: strength.color }]}>
                     {strength.label}
                   </Text>
                 </View>
@@ -310,85 +348,85 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
             </View>
 
             {/* Confirm Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={[styles.inputWrapper, errors.confirmPassword ? styles.inputError : null]}>
-                <Text style={styles.inputIcon}>✅</Text>
+            <View style={tw`mb-3`}>
+              <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>Confirm Password</Text>
+              <View
+                style={[
+                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
+                  errors.confirmPassword ? tw`border-errorRed bg-errorRedLight` : null,
+                ]}
+              >
+                <Text style={tw`text-base mr-2.5`}>✅</Text>
                 <TextInput
-                  style={styles.input}
+                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
                   placeholder="Re-enter your password"
                   placeholderTextColor={COLORS.chocolateBrownMuted}
                   value={confirmPassword}
-                  onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
+                  onChangeText={(t) => {
+                    setConfirmPassword(t);
+                    clearError('confirmPassword');
+                  }}
                   secureTextEntry={!showConfirm}
                   returnKeyType="done"
                   onSubmitEditing={handleSignUp}
                 />
                 <Pressable onPress={() => setShowConfirm((v) => !v)} hitSlop={8}>
-                  <Text style={styles.eyeIcon}>{showConfirm ? '🙈' : '👁️'}</Text>
+                  <Text style={tw`text-base pl-2`}>{showConfirm ? '🙈' : '👁️'}</Text>
                 </Pressable>
               </View>
               {errors.confirmPassword ? (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
+                  {errors.confirmPassword}
+                </Text>
               ) : null}
             </View>
 
             {/* Terms note */}
-            <Text style={styles.termsText}>
+            <Text style={tw`text-xs text-chocolateBrownMuted text-center my-3 leading-4`}>
               By creating an account you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text>
+              <Text style={tw`text-strawberryPink font-bold`}>Terms of Service</Text>
               {' & '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              <Text style={tw`text-strawberryPink font-bold`}>Privacy Policy</Text>
             </Text>
 
-            {/* CTA Button */}
-            <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: 8 }}>
+            {/* Create Account Button */}
+            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
               <TouchableOpacity
-                style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+                style={[
+                  tw`w-full bg-strawberryPink py-4 rounded-2xl items-center shadow-md`,
+                  loading && tw`opacity-70`,
+                ]}
                 onPress={handleSignUp}
                 onPressIn={() => animatePress(0.96)}
                 onPressOut={() => animatePress(1)}
                 activeOpacity={1}
                 disabled={loading}
               >
-                {loading ? (
-                  <Text style={styles.primaryBtnText}>Creating Account…</Text>
-                ) : (
-                  <Text style={styles.primaryBtnText}>Create Account 🍦</Text>
-                )}
+                <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
+                  {loading ? 'Creating Account…' : 'Create Account 🍦'}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
 
-            {/* Login link */}
-            <View style={styles.loginRow}>
-              <Text style={styles.loginPrompt}>Already have an account? </Text>
+            {/* Login Link */}
+            <View style={tw`flex-row justify-center items-center mt-4`}>
+              <Text style={tw`text-sm font-medium text-chocolateBrownLight`}>
+                Already have an account?{' '}
+              </Text>
               <TouchableOpacity onPress={onGoToLogin} activeOpacity={0.7}>
-                <Text style={styles.loginLink}>Log In</Text>
+                <Text style={tw`text-sm font-extrabold text-strawberryPink`}>
+                  Log In
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* ── Payment badges ── */}
-          <View style={styles.paymentRow}>
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>📱</Text>
-              <Text style={styles.paymentLabel}>MTN MoMo</Text>
-            </View>
-            <View style={styles.paymentDivider} />
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>🟠</Text>
-              <Text style={styles.paymentLabel}>Orange Money</Text>
-            </View>
-          </View>
-
-          <View style={{ height: 24 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-// ─── Reusable Field component ─────────────────────────────────────────────────
+// ─── Reusable Field Component ────────────────────────────────────────────────
 interface FieldProps {
   label: string;
   icon: string;
@@ -413,12 +451,17 @@ function Field({
   returnKeyType = 'next',
 }: FieldProps) {
   return (
-    <View style={styles.fieldGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrapper, error ? styles.inputError : null]}>
-        <Text style={styles.inputIcon}>{icon}</Text>
+    <View style={tw`mb-3`}>
+      <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>{label}</Text>
+      <View
+        style={[
+          tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
+          error ? tw`border-errorRed bg-errorRedLight` : null,
+        ]}
+      >
+        <Text style={tw`text-base mr-2.5`}>{icon}</Text>
         <TextInput
-          style={styles.input}
+          style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
           placeholder={placeholder}
           placeholderTextColor={COLORS.chocolateBrownMuted}
           value={value}
@@ -429,277 +472,9 @@ function Field({
           returnKeyType={returnKeyType}
         />
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>{error}</Text>
+      ) : null}
     </View>
   );
 }
-
-const CARD_RADIUS = 28;
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.vanillaCream,
-  },
-  kav: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-    alignItems: 'center',
-  },
-
-  // ── Top bar ──
-  topBar: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  backBtn: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.vanillaCreamDark,
-    width: 60,
-    alignItems: 'center',
-  },
-  backBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-  },
-  emblemBubble: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 2.5,
-    borderColor: COLORS.strawberryPinkLight,
-  },
-
-  // ── Heading ──
-  headingSection: {
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.3,
-  },
-  subheading: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.chocolateBrownLight,
-    marginTop: 4,
-  },
-
-  // ── Offer pill ──
-  offerPill: {
-    backgroundColor: COLORS.butterYellow,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    marginBottom: 18,
-    shadowColor: COLORS.butterYellow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  offerPillText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.chocolateBrown,
-    textAlign: 'center',
-  },
-
-  // ── Card ──
-  card: {
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderRadius: CARD_RADIUS,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.09,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-
-  // ── Form ──
-  fieldGroup: {
-    marginBottom: 14,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-    marginBottom: 7,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.vanillaCream,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.vanillaCreamDark,
-    paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-  },
-  inputError: {
-    borderColor: '#E53935',
-    backgroundColor: '#FFF5F5',
-  },
-  inputIcon: {
-    fontSize: 15,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.chocolateBrown,
-    fontWeight: '500',
-  },
-  eyeIcon: {
-    fontSize: 18,
-    paddingLeft: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#E53935',
-    marginTop: 5,
-    marginLeft: 4,
-    fontWeight: '600',
-  },
-
-  // ── Strength bar ──
-  strengthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 7,
-    gap: 8,
-  },
-  strengthBarBg: {
-    flex: 1,
-    height: 5,
-    backgroundColor: COLORS.vanillaCreamDark,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  strengthBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  strengthLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    minWidth: 44,
-    textAlign: 'right',
-  },
-
-  // ── Terms ──
-  termsText: {
-    fontSize: 12,
-    color: COLORS.chocolateBrownMuted,
-    textAlign: 'center',
-    marginBottom: 16,
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  termsLink: {
-    color: COLORS.strawberryPink,
-    fontWeight: '700',
-  },
-
-  // ── Buttons ──
-  primaryBtn: {
-    backgroundColor: COLORS.strawberryPink,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  primaryBtnDisabled: {
-    opacity: 0.7,
-  },
-  primaryBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.4,
-  },
-
-  // ── Login row ──
-  loginRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 18,
-  },
-  loginPrompt: {
-    fontSize: 14,
-    color: COLORS.chocolateBrownLight,
-    fontWeight: '500',
-  },
-  loginLink: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.strawberryPink,
-  },
-
-  // ── Payment badges ──
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 24,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  paymentBadge: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  paymentEmoji: {
-    fontSize: 22,
-  },
-  paymentLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.chocolateBrownLight,
-  },
-  paymentDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: COLORS.vanillaCreamDark,
-    marginHorizontal: 16,
-  },
-});

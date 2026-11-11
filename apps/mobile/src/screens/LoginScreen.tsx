@@ -13,21 +13,18 @@ import {
   Pressable,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
-// ─── Ice-cream SVG-style emblem drawn purely in RN ───────────────────────────
+// ─── Ice-cream emblem ────────────────────────────────────────────────────────
 function IceCreamEmblem() {
   return (
     <View style={emblemStyles.wrapper}>
-      {/* Waffle cone */}
       <View style={emblemStyles.cone} />
-      {/* Three scoops */}
       <View style={[emblemStyles.scoop, emblemStyles.scoopBottom]} />
       <View style={[emblemStyles.scoop, emblemStyles.scoopMiddle]} />
       <View style={[emblemStyles.scoop, emblemStyles.scoopTop]} />
-      {/* Cherry */}
       <View style={emblemStyles.cherry} />
-      {/* Drizzle lines */}
       <View style={emblemStyles.drizzle1} />
       <View style={emblemStyles.drizzle2} />
     </View>
@@ -49,7 +46,7 @@ const emblemStyles = StyleSheet.create({
     borderTopWidth: 44,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: COLORS.chocolateBrown,
+    borderTopColor: '#C47C3E',
     marginTop: 'auto' as unknown as number,
   },
   scoop: {
@@ -105,10 +102,14 @@ const emblemStyles = StyleSheet.create({
     transform: [{ rotate: '15deg' }],
   },
 });
-// ─────────────────────────────────────────────────────────────────────────────
+
+interface LoginUserData {
+  name?: string;
+  email: string;
+}
 
 interface LoginScreenProps {
-  onLoginSuccess: (email?: string) => void;
+  onLoginSuccess: (user: LoginUserData) => void;
   onGoToSignUp: () => void;
   apiUrl?: string;
 }
@@ -121,7 +122,6 @@ export default function LoginScreen({ onLoginSuccess, onGoToSignUp, apiUrl }: Lo
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Button press scale animation
   const btnScale = useRef(new Animated.Value(1)).current;
 
   const animatePress = (toValue: number) => {
@@ -160,146 +160,185 @@ export default function LoginScreen({ onLoginSuccess, onGoToSignUp, apiUrl }: Lo
   const handleLogin = async () => {
     if (!validate()) return;
     setLoading(true);
+    let resolvedName = '';
+    const cleanEmail = email.trim();
+    // Default name from email prefix (e.g. "alex.smith@..." -> "Alex")
+    const fallbackName = cleanEmail.split('@')[0].split(/[._-]/)[0];
+    resolvedName = fallbackName ? fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1) : 'Customer';
+
     try {
       if (apiUrl) {
         const res = await fetch(`${apiUrl}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim(), password }),
+          body: JSON.stringify({ email: cleanEmail, password }),
         });
         const json = await res.json();
-        if (!json.success) {
-          // If server returns error, show error or fallback if test credentials
+        if (json.success && json.data?.user?.user_metadata?.full_name) {
+          resolvedName = json.data.user.user_metadata.full_name;
+        } else if (!json.success) {
           console.warn('Backend login message:', json.error);
         }
       } else {
         await new Promise<void>((r) => setTimeout(r, 800));
       }
-    } catch (e) {
+    } catch {
       console.log('Using demo sign-in due to offline server');
     } finally {
       setLoading(false);
-      onLoginSuccess(email.trim());
+      onLoginSuccess({ name: resolvedName, email: cleanEmail });
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
-        style={styles.kav}
+        style={tw`flex-1`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={tw`flex-grow px-6 pt-5 pb-8 items-center`}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* ── Top brand section ── */}
-          <View style={styles.brandSection}>
-            <View style={styles.emblemBubble}>
+          <View style={tw`items-center mb-6`}>
+            <View style={tw`w-28 h-28 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg mb-3`}>
               <IceCreamEmblem />
             </View>
-            <Text style={styles.brandName}>Best Cream</Text>
-            <Text style={styles.brandTagline}>Ice Cream & Pancakes</Text>
+            <Text style={tw`text-3xl font-extrabold text-chocolateBrown tracking-wide`}>
+              Best Cream
+            </Text>
+            <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-1 tracking-wider`}>
+              Ice Cream & Pancakes
+            </Text>
           </View>
 
           {/* ── Card ── */}
-          <View style={styles.card}>
-            <Text style={styles.heading}>Welcome Back 👋</Text>
-            <Text style={styles.subheading}>Log in to your account to continue</Text>
+          <View style={tw`w-full bg-white rounded-3xl px-6 py-7 border border-vanillaCreamDark shadow-lg`}>
+            <Text style={tw`text-2xl font-extrabold text-chocolateBrown mb-1`}>
+              Welcome Back 👋
+            </Text>
+            <Text style={tw`text-xs font-medium text-chocolateBrownLight mb-6 leading-4`}>
+              Log in to your account to continue
+            </Text>
 
-            {/* Email */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Email Address</Text>
-              <View style={[styles.inputWrapper, emailError ? styles.inputError : null]}>
-                <Text style={styles.inputIcon}>✉️</Text>
+            {/* Email Field */}
+            <View style={tw`mb-4`}>
+              <Text style={tw`text-xs font-bold text-chocolateBrown mb-2`}>
+                Email Address
+              </Text>
+              <View
+                style={[
+                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
+                  emailError ? tw`border-errorRed bg-errorRedLight` : null,
+                ]}
+              >
+                <Text style={tw`text-base mr-2.5`}>✉️</Text>
                 <TextInput
-                  style={styles.input}
+                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
                   placeholder="you@example.com"
                   placeholderTextColor={COLORS.chocolateBrownMuted}
                   value={email}
-                  onChangeText={(t) => { setEmail(t); setEmailError(''); }}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    setEmailError('');
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
                 />
               </View>
-              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+              {emailError ? (
+                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
+                  {emailError}
+                </Text>
+              ) : null}
             </View>
 
-            {/* Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Password</Text>
-              <View style={[styles.inputWrapper, passwordError ? styles.inputError : null]}>
-                <Text style={styles.inputIcon}>🔒</Text>
+            {/* Password Field */}
+            <View style={tw`mb-2`}>
+              <Text style={tw`text-xs font-bold text-chocolateBrown mb-2`}>
+                Password
+              </Text>
+              <View
+                style={[
+                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
+                  passwordError ? tw`border-errorRed bg-errorRedLight` : null,
+                ]}
+              >
+                <Text style={tw`text-base mr-2.5`}>🔒</Text>
                 <TextInput
-                  style={styles.input}
+                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
                   placeholder="Enter your password"
                   placeholderTextColor={COLORS.chocolateBrownMuted}
                   value={password}
-                  onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    setPasswordError('');
+                  }}
                   secureTextEntry={!showPassword}
                   returnKeyType="done"
                   onSubmitEditing={handleLogin}
                 />
                 <Pressable onPress={() => setShowPassword((v) => !v)} hitSlop={8}>
-                  <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+                  <Text style={tw`text-base pl-2`}>{showPassword ? '🙈' : '👁️'}</Text>
                 </Pressable>
               </View>
-              {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+              {passwordError ? (
+                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
+                  {passwordError}
+                </Text>
+              ) : null}
             </View>
 
             {/* Forgot password */}
-            <TouchableOpacity style={styles.forgotWrap} activeOpacity={0.7}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
+            <TouchableOpacity style={tw`self-end my-3`} activeOpacity={0.7}>
+              <Text style={tw`text-xs font-bold text-strawberryPink`}>
+                Forgot Password?
+              </Text>
             </TouchableOpacity>
 
             {/* Login button */}
             <Animated.View style={{ transform: [{ scale: btnScale }] }}>
               <TouchableOpacity
-                style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+                style={[
+                  tw`w-full bg-strawberryPink py-4 rounded-2xl items-center shadow-md`,
+                  loading && tw`opacity-70`,
+                ]}
                 onPress={handleLogin}
                 onPressIn={() => animatePress(0.96)}
                 onPressOut={() => animatePress(1)}
                 activeOpacity={1}
                 disabled={loading}
               >
-                {loading ? (
-                  <Text style={styles.primaryBtnText}>Logging in…</Text>
-                ) : (
-                  <Text style={styles.primaryBtnText}>Log In</Text>
-                )}
+                <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
+                  {loading ? 'Logging in…' : 'Log In'}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
 
             {/* Divider */}
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
+            <View style={tw`flex-row items-center my-5`}>
+              <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
+              <Text style={tw`mx-3 text-xs font-semibold text-chocolateBrownMuted`}>
+                or
+              </Text>
+              <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
             </View>
 
             {/* Sign up link */}
-            <View style={styles.signUpRow}>
-              <Text style={styles.signUpPrompt}>Don't have an account? </Text>
+            <View style={tw`flex-row justify-center items-center`}>
+              <Text style={tw`text-sm font-medium text-chocolateBrownLight`}>
+                Don't have an account?{' '}
+              </Text>
               <TouchableOpacity onPress={onGoToSignUp} activeOpacity={0.7}>
-                <Text style={styles.signUpLink}>Sign Up</Text>
+                <Text style={tw`text-sm font-extrabold text-strawberryPink`}>
+                  Sign Up
+                </Text>
               </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ── Payment badges ── */}
-          <View style={styles.paymentRow}>
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>📱</Text>
-              <Text style={styles.paymentLabel}>MTN MoMo</Text>
-            </View>
-            <View style={styles.paymentDivider} />
-            <View style={styles.paymentBadge}>
-              <Text style={styles.paymentEmoji}>🟠</Text>
-              <Text style={styles.paymentLabel}>Orange Money</Text>
             </View>
           </View>
         </ScrollView>
@@ -307,232 +346,3 @@ export default function LoginScreen({ onLoginSuccess, onGoToSignUp, apiUrl }: Lo
     </SafeAreaView>
   );
 }
-
-const CARD_RADIUS = 28;
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.vanillaCream,
-  },
-  kav: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 32,
-    alignItems: 'center',
-  },
-
-  // ── Brand section ──
-  brandSection: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  emblemBubble: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 14,
-    elevation: 8,
-    marginBottom: 14,
-    borderWidth: 3,
-    borderColor: COLORS.strawberryPinkLight,
-  },
-  brandName: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.5,
-  },
-  brandTagline: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.chocolateBrownLight,
-    marginTop: 3,
-    letterSpacing: 0.3,
-  },
-
-  // ── Card ──
-  card: {
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderRadius: CARD_RADIUS,
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.09,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    marginBottom: 4,
-  },
-  subheading: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.chocolateBrownLight,
-    marginBottom: 24,
-    lineHeight: 18,
-  },
-
-  // ── Form ──
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.chocolateBrown,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.vanillaCream,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.vanillaCreamDark,
-    paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-  },
-  inputError: {
-    borderColor: '#E53935',
-    backgroundColor: '#FFF5F5',
-  },
-  inputIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.chocolateBrown,
-    fontWeight: '500',
-  },
-  eyeIcon: {
-    fontSize: 18,
-    paddingLeft: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#E53935',
-    marginTop: 5,
-    marginLeft: 4,
-    fontWeight: '600',
-  },
-  forgotWrap: {
-    alignSelf: 'flex-end',
-    marginBottom: 22,
-    marginTop: -4,
-  },
-  forgotText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.strawberryPink,
-  },
-
-  // ── Buttons ──
-  primaryBtn: {
-    backgroundColor: COLORS.strawberryPink,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: COLORS.strawberryPink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  primaryBtnDisabled: {
-    opacity: 0.7,
-  },
-  primaryBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.chocolateBrown,
-    letterSpacing: 0.5,
-  },
-
-  // ── Divider ──
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.vanillaCreamDark,
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.chocolateBrownMuted,
-  },
-
-  // ── Sign up row ──
-  signUpRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signUpPrompt: {
-    fontSize: 14,
-    color: COLORS.chocolateBrownLight,
-    fontWeight: '500',
-  },
-  signUpLink: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.strawberryPink,
-  },
-
-  // ── Payment badges ──
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 28,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    shadowColor: COLORS.chocolateBrown,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  paymentBadge: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  paymentEmoji: {
-    fontSize: 22,
-  },
-  paymentLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.chocolateBrownLight,
-  },
-  paymentDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: COLORS.vanillaCreamDark,
-    marginHorizontal: 16,
-  },
-});
