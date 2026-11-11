@@ -9,11 +9,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
 import type { MenuItem, ApiResponse } from '@best-cream/shared';
 
-// Note: If testing on Android emulator, use 'http://10.0.2.2:5000'
-// If testing on a physical mobile device, replace localhost with your local LAN IP (e.g. 192.168.1.X)
-const API_URL = 'http://localhost:5000';
+// Automatically resolve the backend host IP from the Expo development server
+const hostUri = Constants.expoConfig?.hostUri;
+const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
+const API_URL = `http://${hostIp}:5000`;
 
 export default function App() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
