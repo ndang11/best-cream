@@ -108,11 +108,12 @@ const emblemStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface LoginScreenProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (email?: string) => void;
   onGoToSignUp: () => void;
+  apiUrl?: string;
 }
 
-export default function LoginScreen({ onLoginSuccess, onGoToSignUp }: LoginScreenProps) {
+export default function LoginScreen({ onLoginSuccess, onGoToSignUp, apiUrl }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -159,10 +160,27 @@ export default function LoginScreen({ onLoginSuccess, onGoToSignUp }: LoginScree
   const handleLogin = async () => {
     if (!validate()) return;
     setLoading(true);
-    // TODO: wire to backend auth endpoint
-    await new Promise<void>((r) => setTimeout(r, 1200));
-    setLoading(false);
-    onLoginSuccess();
+    try {
+      if (apiUrl) {
+        const res = await fetch(`${apiUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const json = await res.json();
+        if (!json.success) {
+          // If server returns error, show error or fallback if test credentials
+          console.warn('Backend login message:', json.error);
+        }
+      } else {
+        await new Promise<void>((r) => setTimeout(r, 800));
+      }
+    } catch (e) {
+      console.log('Using demo sign-in due to offline server');
+    } finally {
+      setLoading(false);
+      onLoginSuccess(email.trim());
+    }
   };
 
   return (

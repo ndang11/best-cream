@@ -17,6 +17,7 @@
     "concurrently": "^9.1.0"
   },
   "dependencies": {
+    "@supabase/server": "^1.9.2",
     "react-native-web": "~0.19.13"
   }
 }
