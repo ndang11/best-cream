@@ -68,14 +68,40 @@ export interface GeoResult {
   displayName: string;
 }
 
+// ─── Popular Yaoundé Quarters / Landmarks ────────────────────────────────────
+export const YAOUNDE_LANDMARKS: Record<string, { lat: number; lon: number; label: string }> = {
+  Bastos: { lat: 3.8864, lon: 11.5135, label: 'Bastos, Yaoundé' },
+  Omnisports: { lat: 3.8821, lon: 11.5412, label: 'Omnisports, Yaoundé' },
+  'Biyem-Assi': { lat: 3.834, lon: 11.487, label: 'Biyem-Assi, Yaoundé' },
+  Mvan: { lat: 3.815, lon: 11.52, label: 'Mvan, Yaoundé' },
+  Mendong: { lat: 3.829, lon: 11.468, label: 'Mendong, Yaoundé' },
+  Nlongkak: { lat: 3.88, lon: 11.52, label: 'Nlongkak, Yaoundé' },
+  Tsinga: { lat: 3.887, lon: 11.498, label: 'Tsinga, Yaoundé' },
+  Essos: { lat: 3.868, lon: 11.545, label: 'Essos, Yaoundé' },
+};
+
 export async function geocodeAddress(address: string): Promise<GeoResult | null> {
-  const encoded = encodeURIComponent(`${address}, Yaoundé, Cameroon`);
+  const clean = address.trim();
+  // 1. Instant local landmark match (instant, offline-friendly)
+  const landmarkKey = Object.keys(YAOUNDE_LANDMARKS).find(
+    (k) => k.toLowerCase() === clean.toLowerCase()
+  );
+  if (landmarkKey) {
+    const lm = YAOUNDE_LANDMARKS[landmarkKey];
+    return {
+      latitude: lm.lat,
+      longitude: lm.lon,
+      displayName: lm.label,
+    };
+  }
+
+  // 2. OpenStreetMap Nominatim query for custom addresses
+  const encoded = encodeURIComponent(`${clean}, Yaoundé, Cameroon`);
   const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=cm`;
 
   try {
     const res = await fetch(url, {
       headers: {
-        // Nominatim requires a valid User-Agent
         'User-Agent': 'BestCreamApp/1.0 (contact@bestcream.cm)',
         'Accept-Language': 'en',
       },

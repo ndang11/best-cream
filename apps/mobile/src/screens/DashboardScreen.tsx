@@ -27,6 +27,7 @@ import {
   geocodeAddress,
   formatDistance,
   formatXAF,
+  YAOUNDE_LANDMARKS,
   type DeliveryTier,
 } from '../utils/location';
 
@@ -68,6 +69,7 @@ export default function DashboardScreen({
   // Location & Delivery State
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [locationLoading, setLocationLoading] = useState(false);
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [locationResult, setLocationResult] = useState<{
     distanceKm: number;
     tier: DeliveryTier;
@@ -219,11 +221,34 @@ export default function DashboardScreen({
     }
   };
 
-  // ── Clear location when cart modal closes ────────────────────────────────────
+  // ── Location: one-tap Yaoundé quarter selection ────────────────────────────
+  const selectQuarter = async (quarter: string) => {
+    setDeliveryAddress(quarter);
+    setLocationLoading(true);
+    try {
+      const result = await geocodeAddress(quarter);
+      if (!result) {
+        Alert.alert('Address Not Found', `Could not locate ${quarter} in Yaoundé.`);
+        return;
+      }
+      const distanceKm = haversineDistanceKm(
+        result.latitude,
+        result.longitude,
+        STORE_LOCATION.latitude,
+        STORE_LOCATION.longitude
+      );
+      const tier = getDeliveryTier(distanceKm);
+      setLocationResult({ distanceKm, tier, displayName: result.displayName, source: 'address' });
+    } catch {
+      Alert.alert('Error', 'Could not compute distance.');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // ── Close cart modal ────────────────────────────────────────────────────────
   const closeCartModal = () => {
     setIsCartModalVisible(false);
-    setLocationResult(null);
-    setDeliveryAddress('');
   };
 
   // Place Order with MTN MoMo / Orange Money
@@ -392,6 +417,44 @@ export default function DashboardScreen({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ── Prominent Location Bar (Yaoundé Store & Delivery Destination) ── */}
+      <TouchableOpacity
+        style={tw`flex-row items-center justify-between bg-white mx-5 mb-2 px-3.5 py-2.5 rounded-2xl border border-vanillaCreamDark shadow-sm`}
+        onPress={() => setIsLocationModalVisible(true)}
+        activeOpacity={0.8}
+      >
+        <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
+          <View style={tw`w-8 h-8 rounded-full bg-strawberryPinkLight items-center justify-center`}>
+            <Ionicons name="location" size={17} color={COLORS.strawberryPink} />
+          </View>
+          <View style={tw`flex-1`}>
+            <View style={tw`flex-row items-center gap-1.5`}>
+              <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+                Delivery Destination
+              </Text>
+              <Text style={tw`text-[9px] bg-vanillaCream text-chocolateBrown font-bold px-1.5 py-0.2 rounded-md border border-vanillaCreamDark`}>
+                Yaoundé
+              </Text>
+            </View>
+            <Text style={tw`text-xs font-black text-chocolateBrown mt-0.5`} numberOfLines={1}>
+              {locationResult ? locationResult.displayName : 'Tap to set location or detect GPS'}
+            </Text>
+            {locationResult && (
+              <Text style={tw`text-[10px] font-bold text-pistachioGreen mt-0.5`}>
+                {formatDistance(locationResult.distanceKm)} from Centre-ville • {locationResult.tier.feeUsd === 0 ? 'FREE delivery' : `${formatXAF(locationResult.tier.fee)} fee`} • {locationResult.tier.estimatedMinutes}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <View style={tw`flex-row items-center gap-1 bg-vanillaCream px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark`}>
+          <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
+            {locationResult ? 'Change' : 'Set 📍'}
+          </Text>
+          <Ionicons name="chevron-down" size={12} color={COLORS.chocolateBrown} />
+        </View>
+      </TouchableOpacity>
 
       {/* ── Tab Content: Menu ── */}
       {activeTab === 'menu' && (
@@ -1358,6 +1421,170 @@ export default function DashboardScreen({
                   </Text>
                 </View>
               )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Prominent Location Selector Modal (Accessible Directly from Dashboard) ── */}
+      <Modal
+        visible={isLocationModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsLocationModalVisible(false)}
+      >
+        <View style={tw`flex-1 bg-black/50 justify-end`}>
+          <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8 px-5 pt-4`}>
+            {/* Modal Header */}
+            <View style={tw`flex-row justify-between items-center pb-3 border-b border-vanillaCreamDark`}>
+              <View>
+                <Text style={tw`text-lg font-black text-chocolateBrown`}>Set Delivery Destination 📍</Text>
+                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                  Store: Best Cream, Centre-ville, Yaoundé
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsLocationModalVisible(false)}
+                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
+              >
+                <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={tw`pt-4`}>
+              {/* 1. GPS Button */}
+              <TouchableOpacity
+                style={[
+                  tw`flex-row items-center justify-center gap-2.5 bg-strawberryPinkLight border-2 border-strawberryPink/50 rounded-2xl py-3 px-4 mb-4 shadow-sm`,
+                  locationLoading && tw`opacity-70`,
+                ]}
+                onPress={detectGPSLocation}
+                disabled={locationLoading}
+                activeOpacity={0.8}
+              >
+                {locationLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                ) : (
+                  <Ionicons name="navigate-circle" size={22} color={COLORS.strawberryPink} />
+                )}
+                <View style={tw`items-start`}>
+                  <Text style={tw`text-sm font-black text-strawberryPink`}>
+                    {locationLoading ? 'Detecting GPS Coordinates...' : 'Use Current GPS Location'}
+                  </Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                    Auto-measures exact distance from Yaoundé store
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 2. Manual Address / Quarter Input */}
+              <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                Or Type Your Quarter in Yaoundé:
+              </Text>
+              <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5 mb-3`}>
+                <Ionicons name="search" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
+                <TextInput
+                  style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1.5`}
+                  value={deliveryAddress}
+                  onChangeText={(txt) => {
+                    setDeliveryAddress(txt);
+                    if (locationResult) setLocationResult(null);
+                  }}
+                  placeholder="e.g. Bastos, Omnisports, Biyem-Assi, Mvan..."
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+                <TouchableOpacity
+                  style={tw`bg-chocolateBrown px-3.5 py-2 rounded-xl ml-1`}
+                  onPress={geocodeManualAddress}
+                  disabled={locationLoading}
+                  activeOpacity={0.8}
+                >
+                  <Text style={tw`text-xs font-bold text-white`}>Calculate</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* 3. Popular Yaoundé Quarters Quick Chips */}
+              <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-2`}>
+                Quick Select Popular Quarters:
+              </Text>
+              <View style={tw`flex-row flex-wrap gap-2 mb-4`}>
+                {Object.keys(YAOUNDE_LANDMARKS).map((quarter) => {
+                  const isSelected =
+                    deliveryAddress.toLowerCase().includes(quarter.toLowerCase()) ||
+                    (locationResult && locationResult.displayName.toLowerCase().includes(quarter.toLowerCase()));
+                  return (
+                    <TouchableOpacity
+                      key={quarter}
+                      style={[
+                        tw`px-3 py-2 rounded-xl border border-vanillaCreamDark bg-vanillaCream`,
+                        isSelected && tw`bg-strawberryPink border-strawberryPink`,
+                      ]}
+                      onPress={() => selectQuarter(quarter)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          tw`text-xs font-bold text-chocolateBrown`,
+                          isSelected && tw`text-white font-black`,
+                        ]}
+                      >
+                        📍 {quarter}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* 4. Result Preview Card */}
+              {locationResult && (
+                <View style={tw`bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-4 mb-4 shadow-sm`}>
+                  <View style={tw`flex-row items-center justify-between mb-1.5`}>
+                    <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+                      <Text style={tw`text-xl`}>{locationResult.tier.emoji}</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>
+                        {locationResult.tier.label}
+                      </Text>
+                    </View>
+                    <View style={tw`bg-white px-2.5 py-1 rounded-full border border-pistachioGreen`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                        {formatDistance(locationResult.distanceKm)} from shop
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={tw`text-xs text-chocolateBrownLight mb-2.5`} numberOfLines={2}>
+                    📍 {locationResult.displayName}
+                  </Text>
+
+                  <View style={tw`flex-row justify-between items-center pt-2.5 border-t border-pistachioGreen/30`}>
+                    <View>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Est. Delivery Time</Text>
+                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                        ⏱️ {locationResult.tier.estimatedMinutes}
+                      </Text>
+                    </View>
+                    <View style={tw`items-end`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Delivery Fee</Text>
+                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                        {locationResult.tier.feeUsd === 0
+                          ? 'FREE'
+                          : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* 5. Done / Confirm Button */}
+              <TouchableOpacity
+                style={tw`w-full bg-strawberryPink py-3.5 rounded-2xl items-center justify-center mt-1 mb-6 shadow-md`}
+                onPress={() => setIsLocationModalVisible(false)}
+                activeOpacity={0.85}
+              >
+                <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                  {locationResult ? 'Confirm Delivery Location ✅' : 'Done'}
+                </Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
