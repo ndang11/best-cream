@@ -16,6 +16,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
+import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
@@ -43,6 +44,7 @@ export default function DashboardScreen({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
+  const [selectedProductForDetails, setSelectedProductForDetails] = useState<MenuItem | null>(null);
 
   // Cart & Order State
   const [cart, setCart] = useState<{ [id: string]: number }>({});
@@ -112,6 +114,23 @@ export default function DashboardScreen({
   };
 
   const clearCart = () => setCart({});
+
+  // Delete an order with confirmation
+  const deleteOrder = (orderId: string) => {
+    Alert.alert(
+      'Delete Order',
+      'Are you sure you want to remove this order?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setOrders((prev) => prev.filter((o) => o.id !== orderId)),
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   // Place Order with MTN MoMo / Orange Money
   const handlePlaceOrder = async () => {
@@ -188,6 +207,27 @@ export default function DashboardScreen({
       item.flavor.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  if (selectedProductForDetails) {
+    return (
+      <ProductDetailsScreen
+        product={selectedProductForDetails}
+        onBack={() => setSelectedProductForDetails(null)}
+        onAddToCart={(customizedItem: CustomizedOrderItem) => {
+          setCart((prev) => ({
+            ...prev,
+            [customizedItem.product.id]:
+              (prev[customizedItem.product.id] || 0) + customizedItem.quantity,
+          }));
+          setSelectedProductForDetails(null);
+          Alert.alert(
+            '✨ Added to Cart!',
+            `${customizedItem.quantity}x ${customizedItem.product.name} added to your order.`
+          );
+        }}
+      />
+    );
+  }
 
   const topInset =
     Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
@@ -422,8 +462,12 @@ export default function DashboardScreen({
                     key={product.id}
                     style={tw`bg-white rounded-3xl overflow-hidden shadow-md border border-vanillaCreamDark`}
                   >
-                    {/* Image & Tags */}
-                    <View style={tw`w-full h-44 bg-vanillaCreamDark relative`}>
+                    {/* Image & Tags (Tappable to customize) */}
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      onPress={() => setSelectedProductForDetails(product)}
+                      style={tw`w-full h-44 bg-vanillaCreamDark relative`}
+                    >
                       <Image
                         source={{ uri: product.imageUrl }}
                         style={tw`w-full h-full`}
@@ -442,22 +486,27 @@ export default function DashboardScreen({
                           {product.rating || '4.9'}
                         </Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
 
-                    {/* Body Details */}
+                    {/* Body Details (Tappable to customize) */}
                     <View style={tw`p-4`}>
-                      <Text style={tw`text-lg font-black text-chocolateBrown mb-0.5`}>
-                        {product.name}
-                      </Text>
-                      <Text style={tw`text-xs text-chocolateBrownLight mb-1.5`}>
-                        <Text style={tw`font-bold text-strawberryPink`}>Flavor: </Text>
-                        {product.flavor}
-                      </Text>
-                      {product.description ? (
-                        <Text style={tw`text-xs text-chocolateBrownMuted leading-4 mb-3`} numberOfLines={2}>
-                          {product.description}
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedProductForDetails(product)}
+                      >
+                        <Text style={tw`text-lg font-black text-chocolateBrown mb-0.5`}>
+                          {product.name}
                         </Text>
-                      ) : null}
+                        <Text style={tw`text-xs text-chocolateBrownLight mb-1.5`}>
+                          <Text style={tw`font-bold text-strawberryPink`}>Flavor: </Text>
+                          {product.flavor}
+                        </Text>
+                        {product.description ? (
+                          <Text style={tw`text-xs text-chocolateBrownMuted leading-4 mb-3`} numberOfLines={2}>
+                            {product.description}
+                          </Text>
+                        ) : null}
+                      </TouchableOpacity>
 
                       {/* Price & Stock Row */}
                       <View style={tw`flex-row justify-between items-center mt-1`}>
@@ -586,28 +635,39 @@ export default function DashboardScreen({
                       </Text>
                     </View>
 
-                    {/* Status Badge: Pending vs Approved */}
-                    <View
-                      style={[
-                        tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border`,
-                        isApproved
-                          ? tw`bg-pistachioGreenLight border-pistachioGreen`
-                          : tw`bg-butterYellowLight border-butterYellow`,
-                      ]}
-                    >
-                      <Ionicons
-                        name={isApproved ? 'checkmark-circle-sharp' : 'time-outline'}
-                        size={14}
-                        color={isApproved ? COLORS.chocolateBrown : '#854D0E'}
-                      />
-                      <Text
+                    {/* Status Badge + Delete */}
+                    <View style={tw`flex-row items-center gap-2`}>
+                      <View
                         style={[
-                          tw`text-xs font-black`,
-                          isApproved ? tw`text-chocolateBrown` : tw`text-amber-800`,
+                          tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border`,
+                          isApproved
+                            ? tw`bg-pistachioGreenLight border-pistachioGreen`
+                            : tw`bg-butterYellowLight border-butterYellow`,
                         ]}
                       >
-                        {isApproved ? 'Approved / Received' : 'Pending Approval'}
-                      </Text>
+                        <Ionicons
+                          name={isApproved ? 'checkmark-circle-sharp' : 'time-outline'}
+                          size={14}
+                          color={isApproved ? COLORS.chocolateBrown : '#854D0E'}
+                        />
+                        <Text
+                          style={[
+                            tw`text-xs font-black`,
+                            isApproved ? tw`text-chocolateBrown` : tw`text-amber-800`,
+                          ]}
+                        >
+                          {isApproved ? 'Approved / Received' : 'Pending Approval'}
+                        </Text>
+                      </View>
+
+                      {/* Delete button */}
+                      <TouchableOpacity
+                        style={tw`w-7 h-7 rounded-lg bg-red-100 items-center justify-center border border-red-300`}
+                        onPress={() => deleteOrder(order.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="trash-outline" size={14} color="#DC2626" />
+                      </TouchableOpacity>
                     </View>
                   </View>
 
