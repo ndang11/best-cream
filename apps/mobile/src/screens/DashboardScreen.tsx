@@ -23,6 +23,7 @@ import { COLORS } from '../theme/colors';
 interface DashboardScreenProps {
   apiUrl: string;
   onLogout: () => void;
+  onGoToAdmin?: () => void;
   userEmail?: string;
   userName?: string;
   isNewUser?: boolean;
@@ -34,6 +35,7 @@ type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
 export default function DashboardScreen({
   apiUrl,
   onLogout,
+  onGoToAdmin,
   userEmail,
   userName = 'Sweet Tooth',
   isNewUser = false,
@@ -821,6 +823,20 @@ export default function DashboardScreen({
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
               Account Actions
             </Text>
+            {/* Admin Panel shortcut */}
+            {onGoToAdmin && (
+              <TouchableOpacity
+                style={tw`flex-row items-center gap-2 py-2 mb-1`}
+                onPress={onGoToAdmin}
+                activeOpacity={0.8}
+              >
+                <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
+                  <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.strawberryPink} />
+                </View>
+                <Text style={tw`text-sm font-bold text-strawberryPink`}>Admin Order Panel</Text>
+                <Ionicons name="chevron-forward" size={16} color={COLORS.strawberryPink} style={tw`ml-auto`} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={tw`flex-row items-center gap-2 py-2`} onPress={onLogout} activeOpacity={0.8}>
               <Ionicons name="log-out-outline" size={20} color={COLORS.errorRed} />
               <Text style={tw`text-sm font-bold text-errorRed`}>Log Out from Best Cream</Text>

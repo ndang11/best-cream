@@ -5,13 +5,14 @@ import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import AdminScreen from './src/screens/AdminScreen';
 
 // Automatically resolve backend host IP from the Expo development server
 const hostUri = Constants.expoConfig?.hostUri;
 const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
 const API_URL = `http://${hostIp}:5000`;
 
-export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard';
+export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('splash');
@@ -66,7 +67,18 @@ export default function App() {
     );
   }
 
-  // 5. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
+  // 5. Admin Screen — PIN-protected order management panel
+  if (currentScreen === 'admin') {
+    return (
+      <AdminScreen
+        apiUrl={API_URL}
+        adminName={userName}
+        onLogout={() => setCurrentScreen('dashboard')}
+      />
+    );
+  }
+
+  // 6. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
   return (
     <DashboardScreen
       apiUrl={API_URL}
@@ -74,6 +86,7 @@ export default function App() {
       userEmail={userEmail}
       isNewUser={isNewUser}
       onLogout={() => setCurrentScreen('welcome')}
+      onGoToAdmin={() => setCurrentScreen('admin')}
     />
   );
 }
