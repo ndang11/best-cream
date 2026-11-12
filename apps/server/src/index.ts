@@ -173,7 +173,7 @@ app.get('/api/orders', (_req: Request, res: Response<ApiResponse<Order[]>>) => {
 });
 
 app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
-  const { items, totalAmount, paymentMethod, phoneNumber } = req.body;
+  const { items, totalAmount, paymentMethod, phoneNumber, deliveryAddress, deliveryFee, distanceKm } = req.body;
   const newOrder: Order = {
     id: `ORD-${Date.now().toString().slice(-4)}`,
     items: items || [],
@@ -182,6 +182,9 @@ app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
     phoneNumber: phoneNumber || '',
     status: 'pending',
     createdAt: new Date().toISOString(),
+    deliveryAddress,
+    deliveryFee,
+    distanceKm,
   };
   orders.unshift(newOrder);
   res.json({

@@ -279,7 +279,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
         </View>
 
         {/* ── Payment method pill ── */}
-        <View style={tw`flex-row items-center mb-3`}>
+        <View style={tw`flex-row items-center mb-2.5`}>
           <View style={tw`bg-vanillaCream px-3 py-1 rounded-full border border-vanillaCreamDark flex-row items-center gap-1.5`}>
             <Text style={tw`text-xs`}>
               {order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}
@@ -290,6 +290,23 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
             <Text style={tw`text-xs text-chocolateBrownMuted`}>· {order.phoneNumber}</Text>
           </View>
         </View>
+
+        {/* ── Delivery Location if available ── */}
+        {order.deliveryAddress ? (
+          <View style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark mb-3`}>
+            <Ionicons name="location-sharp" size={14} color={COLORS.strawberryPink} />
+            <Text style={tw`text-xs font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
+              {order.deliveryAddress}
+            </Text>
+            {order.distanceKm ? (
+              <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                  {order.distanceKm.toFixed(1)} km
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         {/* ── Order items ── */}
         <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-1.5 mb-3`}>

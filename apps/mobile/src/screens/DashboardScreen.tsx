@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Text,
   View,
@@ -14,11 +14,21 @@ import {
   StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as ExpoLocation from 'expo-location';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
+import {
+  STORE_LOCATION,
+  haversineDistanceKm,
+  getDeliveryTier,
+  geocodeAddress,
+  formatDistance,
+  formatXAF,
+  type DeliveryTier,
+} from '../utils/location';
 
 interface DashboardScreenProps {
   apiUrl: string;
@@ -54,6 +64,16 @@ export default function DashboardScreen({
   const [paymentMethod, setPaymentMethod] = useState<'mtn-momo' | 'orange-money'>('mtn-momo');
   const [phoneNumber, setPhoneNumber] = useState('+237 670 123 456');
   const [placingOrder, setPlacingOrder] = useState(false);
+
+  // Location & Delivery State
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationResult, setLocationResult] = useState<{
+    distanceKm: number;
+    tier: DeliveryTier;
+    displayName: string;
+    source: 'gps' | 'address';
+  } | null>(null);
 
   // Fetch Menu from Server
   const fetchMenu = async () => {
@@ -134,10 +154,85 @@ export default function DashboardScreen({
     );
   };
 
+  // ── Location: use GPS automatically ─────────────────────────────────────────
+  const detectGPSLocation = async () => {
+    setLocationLoading(true);
+    setLocationResult(null);
+    try {
+      const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Location Permission Denied',
+          'Please enable location access in your device settings, or type your address manually below.'
+        );
+        setLocationLoading(false);
+        return;
+      }
+      const pos = await ExpoLocation.getCurrentPositionAsync({ accuracy: ExpoLocation.Accuracy.Balanced });
+      const { latitude, longitude } = pos.coords;
+      const distanceKm = haversineDistanceKm(latitude, longitude, STORE_LOCATION.latitude, STORE_LOCATION.longitude);
+      const tier = getDeliveryTier(distanceKm);
+
+      // Reverse-geocode the GPS coords to get a readable address
+      const [place] = await ExpoLocation.reverseGeocodeAsync({ latitude, longitude });
+      const displayName = [place?.street, place?.district, place?.city]
+        .filter(Boolean)
+        .join(', ') || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+      setDeliveryAddress(displayName);
+      setLocationResult({ distanceKm, tier, displayName, source: 'gps' });
+    } catch {
+      Alert.alert('GPS Error', 'Could not get your location. Please type your address instead.');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // ── Location: geocode a typed address via Nominatim (OpenStreetMap — FREE) ──
+  const geocodeManualAddress = async () => {
+    if (!deliveryAddress.trim()) {
+      Alert.alert('Enter Address', 'Please type your delivery address first.');
+      return;
+    }
+    setLocationLoading(true);
+    setLocationResult(null);
+    try {
+      const result = await geocodeAddress(deliveryAddress.trim());
+      if (!result) {
+        Alert.alert(
+          'Address Not Found',
+          'Could not locate that address in Yaoundé. Try a nearby landmark or neighbourhood name.'
+        );
+        setLocationLoading(false);
+        return;
+      }
+      const distanceKm = haversineDistanceKm(
+        result.latitude, result.longitude,
+        STORE_LOCATION.latitude, STORE_LOCATION.longitude
+      );
+      const tier = getDeliveryTier(distanceKm);
+      setLocationResult({ distanceKm, tier, displayName: result.displayName, source: 'address' });
+    } catch {
+      Alert.alert('Geocoding Error', 'Could not look up the address. Check your connection and try again.');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // ── Clear location when cart modal closes ────────────────────────────────────
+  const closeCartModal = () => {
+    setIsCartModalVisible(false);
+    setLocationResult(null);
+    setDeliveryAddress('');
+  };
+
   // Place Order with MTN MoMo / Orange Money
   const handlePlaceOrder = async () => {
     if (totalCartCount === 0) return;
     setPlacingOrder(true);
+
+    const deliveryFee = locationResult?.tier.feeUsd ?? 0;
+    const grandTotal = totalCartPrice + deliveryFee;
 
     const orderItems = Object.entries(cart).map(([id, qty]) => {
       const item = menuItems.find((m) => m.id === id);
@@ -158,9 +253,12 @@ export default function DashboardScreen({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: orderItems,
-          totalAmount: totalCartPrice,
+          totalAmount: grandTotal,
           paymentMethod,
           phoneNumber,
+          deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
+          deliveryFee,
+          distanceKm: locationResult?.distanceKm ?? 0,
         }),
       });
 
@@ -168,7 +266,7 @@ export default function DashboardScreen({
       if (json.success) {
         setOrders((prev) => [json.data, ...prev]);
         clearCart();
-        setIsCartModalVisible(false);
+        closeCartModal();
         setActiveTab('orders');
         Alert.alert(
           '🎉 Order Placed!',
@@ -181,15 +279,18 @@ export default function DashboardScreen({
       const fallbackNewOrder: Order = {
         id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
         items: orderItems,
-        totalAmount: totalCartPrice,
+        totalAmount: grandTotal,
         paymentMethod,
         phoneNumber,
         status: 'pending',
         createdAt: new Date().toISOString(),
+        deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
+        deliveryFee,
+        distanceKm: locationResult?.distanceKm ?? 0,
       };
       setOrders((prev) => [fallbackNewOrder, ...prev]);
       clearCart();
-      setIsCartModalVisible(false);
+      closeCartModal();
       setActiveTab('orders');
       Alert.alert(
         '🎉 Order Placed (Demo Mode)',
@@ -693,6 +794,21 @@ export default function DashboardScreen({
                     ))}
                   </View>
 
+                  {/* Delivery Location if available */}
+                  {order.deliveryAddress ? (
+                    <View style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-2.5 py-1.5 rounded-xl mb-2.5 border border-vanillaCreamDark`}>
+                      <Ionicons name="location-sharp" size={13} color={COLORS.strawberryPink} />
+                      <Text style={tw`text-[11px] font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
+                        {order.deliveryAddress}
+                      </Text>
+                      {order.distanceKm ? (
+                        <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                          {order.distanceKm.toFixed(1)} km
+                        </Text>
+                      ) : null}
+                    </View>
+                  ) : null}
+
                   {/* Footer */}
                   <View style={tw`flex-row justify-between items-center border-t border-vanillaCreamDark pt-2.5`}>
                     <View style={tw`bg-vanillaCream px-2 py-1 rounded-lg`}>
@@ -1080,6 +1196,97 @@ export default function DashboardScreen({
                     />
                   </View>
 
+                  {/* ── Delivery Location (Yaoundé Store) ── */}
+                  <View style={tw`mb-4`}>
+                    <View style={tw`flex-row justify-between items-center mb-1.5`}>
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                        Delivery Destination 📍
+                      </Text>
+                      <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                        Shop: Centre-ville, Yaoundé
+                      </Text>
+                    </View>
+
+                    {/* GPS Button */}
+                    <TouchableOpacity
+                      style={[
+                        tw`flex-row items-center justify-center gap-2 bg-strawberryPinkLight border border-strawberryPink/40 rounded-2xl py-2.5 px-3 mb-2`,
+                        locationLoading && tw`opacity-70`,
+                      ]}
+                      onPress={detectGPSLocation}
+                      disabled={locationLoading}
+                      activeOpacity={0.8}
+                    >
+                      {locationLoading ? (
+                        <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                      ) : (
+                        <Ionicons name="navigate-circle" size={18} color={COLORS.strawberryPink} />
+                      )}
+                      <Text style={tw`text-xs font-black text-strawberryPink`}>
+                        {locationLoading ? 'Detecting Location...' : 'Use My Current GPS Location'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* Manual Address Input + Check Button */}
+                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5`}>
+                      <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                      <TextInput
+                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1`}
+                        value={deliveryAddress}
+                        onChangeText={(txt) => {
+                          setDeliveryAddress(txt);
+                          if (locationResult) setLocationResult(null);
+                        }}
+                        placeholder="e.g. Bastos, Omnisports, Biyem-Assi..."
+                        placeholderTextColor={COLORS.chocolateBrownMuted}
+                      />
+                      <TouchableOpacity
+                        style={tw`bg-chocolateBrown px-3 py-1.5 rounded-xl ml-1`}
+                        onPress={geocodeManualAddress}
+                        disabled={locationLoading}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={tw`text-xs font-bold text-white`}>Check</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Calculated Distance & Fee Card */}
+                    {locationResult ? (
+                      <View style={tw`mt-2.5 bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-3`}>
+                        <View style={tw`flex-row items-center justify-between mb-1`}>
+                          <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+                            <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
+                            <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
+                              {locationResult.tier.label}
+                            </Text>
+                          </View>
+                          <View style={tw`bg-white px-2 py-0.5 rounded-full border border-pistachioGreen/50`}>
+                            <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                              {formatDistance(locationResult.distanceKm)} from shop
+                            </Text>
+                          </View>
+                        </View>
+
+                        <Text style={tw`text-xs text-chocolateBrownLight`} numberOfLines={2}>
+                          📍 {locationResult.displayName}
+                        </Text>
+
+                        <View style={tw`flex-row justify-between items-center mt-2 pt-2 border-t border-pistachioGreen/30`}>
+                          <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                            ⏱️ Est. arrival: <Text style={tw`font-bold text-chocolateBrown`}>{locationResult.tier.estimatedMinutes}</Text>
+                          </Text>
+                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                            Fee: {locationResult.tier.feeUsd === 0 ? 'FREE' : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1 ml-1`}>
+                        💡 Tap GPS or enter a quarter in Yaoundé to compute distance & delivery fee.
+                      </Text>
+                    )}
+                  </View>
+
                   {/* Summary */}
                   <View style={tw`bg-vanillaCream rounded-2xl p-3.5 mb-4 gap-1.5`}>
                     <View style={tw`flex-row justify-between`}>
@@ -1088,15 +1295,40 @@ export default function DashboardScreen({
                         ${totalCartPrice.toFixed(2)}
                       </Text>
                     </View>
-                    <View style={tw`flex-row justify-between`}>
-                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery / Prep</Text>
-                      <Text style={tw`text-xs font-bold text-pistachioGreen`}>FREE</Text>
+                    <View style={tw`flex-row justify-between items-center`}>
+                      <View style={tw`flex-row items-center gap-1`}>
+                        <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery</Text>
+                        {locationResult && (
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            ({formatDistance(locationResult.distanceKm)})
+                          </Text>
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          tw`text-xs font-bold`,
+                          (locationResult?.tier.feeUsd ?? 0) === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
+                        ]}
+                      >
+                        {locationResult
+                          ? locationResult.tier.feeUsd === 0
+                            ? 'FREE'
+                            : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`
+                          : 'FREE / Pickup'}
+                      </Text>
                     </View>
                     <View style={tw`flex-row justify-between border-t border-vanillaCreamDark pt-2 mt-1`}>
                       <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
-                      <Text style={tw`text-base font-black text-chocolateBrown`}>
-                        ${totalCartPrice.toFixed(2)}
-                      </Text>
+                      <View style={tw`items-end`}>
+                        <Text style={tw`text-base font-black text-chocolateBrown`}>
+                          ${(totalCartPrice + (locationResult?.tier.feeUsd ?? 0)).toFixed(2)}
+                        </Text>
+                        {locationResult && locationResult.tier.fee > 0 && (
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            incl. {formatXAF(locationResult.tier.fee)} delivery
+                          </Text>
+                        )}
+                      </View>
                     </View>
                   </View>
 
@@ -1115,7 +1347,7 @@ export default function DashboardScreen({
                     ) : (
                       <>
                         <Text style={tw`text-sm font-black text-chocolateBrown`}>
-                          Pay ${totalCartPrice.toFixed(2)} via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
+                          Pay ${(totalCartPrice + (locationResult?.tier.feeUsd ?? 0)).toFixed(2)} via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
                         </Text>
                         <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
                       </>

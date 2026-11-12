@@ -10,13 +10,29 @@
       "backgroundColor": "#FFF8EE"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Best Cream needs your location to calculate the delivery distance from our shop in Yaoundé.",
+        "NSLocationAlwaysUsageDescription": "Best Cream needs your location to calculate the delivery distance from our shop in Yaoundé."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFDF0"
-      }
-    }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Best Cream needs your location to calculate delivery distance from our Yaoundé shop."
+        }
+      ]
+    ]
   }
 }
 

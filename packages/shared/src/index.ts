@@ -38,6 +38,9 @@ export interface Order {
   phoneNumber: string;
   status: 'pending' | 'received' | 'approved';
   createdAt: string;
+  deliveryAddress?: string;
+  deliveryFee?: number;
+  distanceKm?: number;
 }
 
 export interface ApiResponse<T> {
