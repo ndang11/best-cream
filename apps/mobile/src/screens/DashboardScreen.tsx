@@ -21,6 +21,7 @@ import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import YaoundeMapView from '../components/YaoundeMapView';
 import OrderTrackingModal from '../components/OrderTrackingModal';
+import { downloadReceiptPdf } from '../utils/receipt';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import {
@@ -126,6 +127,7 @@ export default function DashboardScreen({
   const [orderFilter, setOrderFilter] = useState<OrderFilterType>('all');
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [refreshingOrders, setRefreshingOrders] = useState(false);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
 
   // Location & Delivery State
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -199,6 +201,12 @@ export default function DashboardScreen({
         },
       ]
     );
+  };
+
+  const handleDownloadReceipt = async (order: Order) => {
+    setDownloadingOrderId(order.id);
+    await downloadReceiptPdf(order);
+    setDownloadingOrderId(null);
   };
 
   const orderCounts = {
@@ -1420,18 +1428,35 @@ export default function DashboardScreen({
                         onPress={() => setSelectedOrderForTracking(order)}
                         activeOpacity={0.85}
                       >
-                        <Ionicons name="map" size={14} color={COLORS.chocolateBrown} />
+                        <Ionicons name="map" size={13} color={COLORS.chocolateBrown} />
                         <Text style={tw`text-xs font-black text-chocolateBrown`}>Track Live 🛵</Text>
+                      </TouchableOpacity>
+
+                      {/* Download Receipt Button */}
+                      <TouchableOpacity
+                        style={tw`flex-row items-center justify-center gap-1 bg-white px-3 py-2.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+                        onPress={() => handleDownloadReceipt(order)}
+                        disabled={downloadingOrderId === order.id}
+                        activeOpacity={0.8}
+                      >
+                        {downloadingOrderId === order.id ? (
+                          <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                        ) : (
+                          <>
+                            <Ionicons name="document-text-outline" size={14} color={COLORS.chocolateBrown} />
+                            <Text style={tw`text-xs font-bold text-chocolateBrown`}>Receipt</Text>
+                          </>
+                        )}
                       </TouchableOpacity>
 
                       {/* Reorder Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-vanillaCream py-2.5 rounded-xl border border-vanillaCreamDark`}
+                        style={tw`flex-row items-center justify-center gap-1 bg-vanillaCream px-3 py-2.5 rounded-xl border border-vanillaCreamDark`}
                         onPress={() => handleReorder(order)}
                         activeOpacity={0.8}
                       >
                         <Ionicons name="repeat" size={14} color={COLORS.chocolateBrown} />
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Reorder 🔁</Text>
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>Reorder</Text>
                       </TouchableOpacity>
 
                       {/* Delete Button */}

@@ -11,7 +11,7 @@
  * Integrated with interactive Yaoundé OpenStreetMap & direct shop phone call.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import type { Order } from '@best-cream/shared';
@@ -27,6 +28,7 @@ import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import YaoundeMapView from './YaoundeMapView';
 import { STORE_LOCATION, formatDistance, formatXAF } from '../utils/location';
+import { downloadReceiptPdf } from '../utils/receipt';
 
 interface OrderTrackingModalProps {
   order: Order | null;
@@ -36,6 +38,8 @@ interface OrderTrackingModalProps {
 
 export default function OrderTrackingModal({ order, visible, onClose }: OrderTrackingModalProps) {
   if (!order) return null;
+
+  const [downloading, setDownloading] = useState(false);
 
   const isPending = order.status === 'pending';
   const isApproved = order.status === 'approved';
@@ -49,6 +53,12 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
     Linking.openURL(`tel:${phoneNumber}`).catch(() => {
       Alert.alert('Phone Call', `Best Cream Yaoundé: ${phoneNumber}`);
     });
+  };
+
+  const handleDownloadReceipt = async () => {
+    setDownloading(true);
+    await downloadReceiptPdf(order);
+    setDownloading(false);
   };
 
   const steps = [
@@ -138,13 +148,27 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               </Text>
             </View>
 
-            <TouchableOpacity
-              onPress={onClose}
-              style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
-            </TouchableOpacity>
+            <View style={tw`flex-row items-center gap-2`}>
+              <TouchableOpacity
+                onPress={handleDownloadReceipt}
+                disabled={downloading}
+                style={tw`w-9 h-9 rounded-full bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center`}
+                activeOpacity={0.7}
+              >
+                {downloading ? (
+                  <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                ) : (
+                  <Ionicons name="download-outline" size={18} color={COLORS.strawberryPink} />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onClose}
+                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView style={tw`px-5 pt-3`} showsVerticalScrollIndicator={false}>
@@ -295,6 +319,33 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                 </View>
               </View>
             </View>
+
+            {/* ── Download Official PDF Receipt Button ── */}
+            <TouchableOpacity
+              style={[
+                tw`flex-row items-center justify-center gap-2 bg-strawberryPink py-3.5 rounded-2xl mb-3 shadow-sm`,
+                downloading && tw`opacity-70`,
+              ]}
+              disabled={downloading}
+              onPress={handleDownloadReceipt}
+              activeOpacity={0.85}
+            >
+              {downloading ? (
+                <>
+                  <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    Generating PDF Receipt…
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="document-text" size={17} color={COLORS.chocolateBrown} />
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    Download Official Receipt (PDF) 📥
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
 
             {/* ── Contact Shop Support Button ── */}
             <TouchableOpacity
