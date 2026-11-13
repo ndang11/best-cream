@@ -19,6 +19,9 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
+import type { TranslationKey } from '../utils/i18n';
 
 // ─── Ice-cream emblem ────────────────────────────────────────────────────────
 function IceCreamEmblem() {
@@ -107,16 +110,17 @@ const emblemStyles = StyleSheet.create({
   },
 });
 
-// ─── Yup Validation Schema ───────────────────────────────────────────────────
-const LoginSchema = Yup.object().shape({
-  email: Yup.string()
-    .trim()
-    .email('Please enter a valid email address')
-    .required('Email address is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-});
+// ─── Dynamic Yup Validation Schema ───────────────────────────────────────────
+const getLoginSchema = (t: (k: TranslationKey) => string) =>
+  Yup.object().shape({
+    email: Yup.string()
+      .trim()
+      .email(t('valEmailInvalid'))
+      .required(t('valEmailRequired')),
+    password: Yup.string()
+      .min(6, t('valPasswordMin'))
+      .required(t('valPasswordRequired')),
+  });
 
 interface LoginFormValues {
   email: string;
@@ -139,6 +143,7 @@ export default function LoginScreen({
   onGoToSignUp,
   apiUrl,
 }: LoginScreenProps) {
+  const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
 
@@ -182,6 +187,8 @@ export default function LoginScreen({
     }
   };
 
+  const validationSchema = getLoginSchema(t);
+
   return (
     <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
@@ -190,22 +197,27 @@ export default function LoginScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={tw`flex-grow px-6 pt-5 pb-8 items-center justify-center`}
+          contentContainerStyle={tw`flex-grow px-6 pt-3 pb-8 items-center justify-center`}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* ── Top Bar: Language Selector (English / French) ── */}
+          <View style={tw`w-full flex-row justify-end mb-2`}>
+            <LanguageSelector />
+          </View>
+
           {/* ── Brand Logo & Header ── */}
-          <View style={tw`items-center mb-5`}>
-            <View style={tw`w-24 h-24 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg mb-2.5`}>
+          <View style={tw`items-center mb-4`}>
+            <View style={tw`w-24 h-24 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg mb-2`}>
               <IceCreamEmblem />
             </View>
             <Text style={tw`text-3xl font-black text-chocolateBrown tracking-wide`}>
-              Best Cream
+              {t('brandName')}
             </Text>
             <View style={tw`flex-row items-center gap-1.5 mt-1`}>
-              <Text style={tw`text-xs font-bold text-strawberryPink`}>🍦 Gelato</Text>
+              <Text style={tw`text-xs font-bold text-strawberryPink`}>{t('gelato')}</Text>
               <Text style={tw`text-xs text-chocolateBrownMuted`}>•</Text>
-              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>🥞 Golden Pancakes</Text>
+              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>{t('pancakes')}</Text>
             </View>
           </View>
 
@@ -214,17 +226,18 @@ export default function LoginScreen({
             <View style={tw`flex-row justify-between items-start mb-4`}>
               <View>
                 <Text style={tw`text-2xl font-black text-chocolateBrown`}>
-                  Welcome Back 👋
+                  {t('welcomeBack')}
                 </Text>
                 <Text style={tw`text-xs font-medium text-chocolateBrownMuted mt-0.5`}>
-                  Log in to manage orders & treats
+                  {t('loginSubtitle')}
                 </Text>
               </View>
             </View>
 
             <Formik
+              enableReinitialize
               initialValues={{ email: '', password: '' }}
-              validationSchema={LoginSchema}
+              validationSchema={validationSchema}
               onSubmit={handleLoginSubmit}
             >
               {({
@@ -253,14 +266,14 @@ export default function LoginScreen({
                     >
                       <Ionicons name="sparkles" size={12} color="#854D0E" />
                       <Text style={tw`text-[11px] font-bold text-amber-900`}>
-                        Quick Demo Fill
+                        {t('quickDemo')}
                       </Text>
                     </TouchableOpacity>
 
                     {/* Email Input Field */}
                     <View style={tw`mb-3.5`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Email Address
+                        {t('emailLabel')}
                       </Text>
                       <View
                         style={[
@@ -286,7 +299,7 @@ export default function LoginScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="e.g. alex@bestcream.com"
+                          placeholder={t('emailPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.email}
                           onChangeText={handleChange('email')}
@@ -317,7 +330,7 @@ export default function LoginScreen({
                     {/* Password Input Field */}
                     <View style={tw`mb-2`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Password
+                        {t('passwordLabel')}
                       </Text>
                       <View
                         style={[
@@ -343,7 +356,7 @@ export default function LoginScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="Enter your password"
+                          placeholder={t('passwordPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.password}
                           onChangeText={handleChange('password')}
@@ -376,7 +389,7 @@ export default function LoginScreen({
                     {/* Forgot password */}
                     <TouchableOpacity style={tw`self-end my-2.5`} activeOpacity={0.7}>
                       <Text style={tw`text-xs font-bold text-strawberryPink`}>
-                        Forgot Password?
+                        {t('forgotPassword')}
                       </Text>
                     </TouchableOpacity>
 
@@ -397,14 +410,14 @@ export default function LoginScreen({
                           <>
                             <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              Logging in…
+                              {t('loggingIn')}
                             </Text>
                           </>
                         ) : (
                           <>
                             <Ionicons name="log-in-outline" size={18} color={COLORS.chocolateBrown} />
                             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              Log In
+                              {t('logIn')}
                             </Text>
                           </>
                         )}
@@ -419,7 +432,7 @@ export default function LoginScreen({
             <View style={tw`flex-row items-center my-4`}>
               <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
               <Text style={tw`mx-3 text-xs font-semibold text-chocolateBrownMuted`}>
-                or
+                {t('or')}
               </Text>
               <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
             </View>
@@ -427,11 +440,11 @@ export default function LoginScreen({
             {/* Sign up link */}
             <View style={tw`flex-row justify-center items-center`}>
               <Text style={tw`text-xs font-semibold text-chocolateBrownLight`}>
-                Don't have an account?{' '}
+                {t('dontHaveAccount')}{' '}
               </Text>
               <TouchableOpacity onPress={onGoToSignUp} activeOpacity={0.7}>
                 <Text style={tw`text-xs font-black text-strawberryPink`}>
-                  Create Account 🍦
+                  {t('createAccount')}
                 </Text>
               </TouchableOpacity>
             </View>

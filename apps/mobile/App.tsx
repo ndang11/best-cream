@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Constants from 'expo-constants';
+import { LanguageProvider } from './src/context/LanguageContext';
 import SplashScreen from './src/screens/SplashScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -14,7 +15,7 @@ const API_URL = `http://${hostIp}:5000`;
 
 export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin';
 
-export default function App() {
+function MainApp() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('splash');
   const [userEmail, setUserEmail] = useState<string>('customer@bestcream.com');
   const [userName, setUserName] = useState<string>('Sweet Tooth');
@@ -88,5 +89,13 @@ export default function App() {
       onLogout={() => setCurrentScreen('welcome')}
       onGoToAdmin={() => setCurrentScreen('admin')}
     />
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <MainApp />
+    </LanguageProvider>
   );
 }

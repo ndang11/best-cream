@@ -19,6 +19,9 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
+import type { TranslationKey } from '../utils/i18n';
 
 // ─── Small Ice-cream Emblem for Sign-up ───────────────────────────────────────
 function IceCreamEmblemSmall() {
@@ -84,30 +87,31 @@ const emblemStyles = StyleSheet.create({
   },
 });
 
-// ─── Yup Validation Schema ───────────────────────────────────────────────────
-const SignUpSchema = Yup.object().shape({
-  fullName: Yup.string()
-    .trim()
-    .min(2, 'Name must be at least 2 characters')
-    .required('Full name is required'),
-  email: Yup.string()
-    .trim()
-    .email('Please enter a valid email address')
-    .required('Email address is required'),
-  phone: Yup.string()
-    .trim()
-    .matches(
-      /^\+?[0-9\s-]{8,16}$/,
-      'Enter a valid phone number (e.g. +237 670 123 456)'
-    )
-    .required('Phone number is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password')], 'Passwords do not match')
-    .required('Please confirm your password'),
-});
+// ─── Dynamic Yup Validation Schema ───────────────────────────────────────────
+const getSignUpSchema = (t: (k: TranslationKey) => string) =>
+  Yup.object().shape({
+    fullName: Yup.string()
+      .trim()
+      .min(2, t('valNameMin'))
+      .required(t('valNameRequired')),
+    email: Yup.string()
+      .trim()
+      .email(t('valEmailInvalid'))
+      .required(t('valEmailRequired')),
+    phone: Yup.string()
+      .trim()
+      .matches(
+        /^\+?[0-9\s-]{8,16}$/,
+        t('valPhoneInvalid')
+      )
+      .required(t('valPhoneRequired')),
+    password: Yup.string()
+      .min(6, t('valPasswordMin'))
+      .required(t('valPasswordRequired')),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password')], t('valPasswordsMatch'))
+      .required(t('valConfirmRequired')),
+  });
 
 interface SignUpFormValues {
   fullName: string;
@@ -133,6 +137,7 @@ export default function SignUpScreen({
   onGoToLogin,
   apiUrl,
 }: SignUpScreenProps) {
+  const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
@@ -150,12 +155,12 @@ export default function SignUpScreen({
     pwd: string
   ): { label: string; color: string; pct: number } => {
     if (!pwd) return { label: '', color: 'transparent', pct: 0 };
-    if (pwd.length < 6) return { label: 'Weak', color: '#E53935', pct: 0.25 };
+    if (pwd.length < 6) return { label: t('strengthWeak'), color: '#E53935', pct: 0.25 };
     if (pwd.length < 10)
-      return { label: 'Fair', color: COLORS.butterYellow, pct: 0.55 };
+      return { label: t('strengthFair'), color: COLORS.butterYellow, pct: 0.55 };
     if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd))
-      return { label: 'Strong', color: COLORS.pistachioGreen, pct: 1 };
-    return { label: 'Good', color: COLORS.pistachioGreen, pct: 0.8 };
+      return { label: t('strengthStrong'), color: COLORS.pistachioGreen, pct: 1 };
+    return { label: t('strengthGood'), color: COLORS.pistachioGreen, pct: 0.8 };
   };
 
   const handleSignUpSubmit = async (values: SignUpFormValues) => {
@@ -187,6 +192,8 @@ export default function SignUpScreen({
     }
   };
 
+  const validationSchema = getSignUpSchema(t);
+
   return (
     <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
       <StatusBar style="dark" />
@@ -195,36 +202,35 @@ export default function SignUpScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={tw`flex-grow px-6 pt-4 pb-8 items-center`}
+          contentContainerStyle={tw`flex-grow px-6 pt-3 pb-8 items-center`}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Top Bar ── */}
-          <View style={tw`w-full flex-row items-center justify-between mb-3`}>
+          {/* ── Top Bar with Back & Language Selector ── */}
+          <View style={tw`w-full flex-row items-center justify-between mb-2`}>
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1 bg-white px-3.5 py-2 rounded-2xl border border-vanillaCreamDark shadow-sm`}
+              style={tw`flex-row items-center gap-1 bg-white px-3.5 py-1.5 rounded-2xl border border-vanillaCreamDark shadow-sm`}
               onPress={onGoToLogin}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name="chevron-back" size={14} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-black text-chocolateBrown`}>Back</Text>
+              <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('back')}</Text>
             </TouchableOpacity>
 
-            <View style={tw`w-16 h-16 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md`}>
-              <IceCreamEmblemSmall />
-            </View>
-
-            <View style={{ width: 68 }} />
+            <LanguageSelector />
           </View>
 
-          {/* ── Heading ── */}
-          <View style={tw`items-center mb-3`}>
+          {/* ── Header with Logo ── */}
+          <View style={tw`items-center mb-3 mt-1`}>
+            <View style={tw`w-16 h-16 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md mb-2`}>
+              <IceCreamEmblemSmall />
+            </View>
             <Text style={tw`text-2xl font-black text-chocolateBrown tracking-wide`}>
-              Join Best Cream 🍦
+              {t('joinTitle')}
             </Text>
             <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5`}>
-              Create your account & unlock sweet perks
+              {t('joinSubtitle')}
             </Text>
           </View>
 
@@ -232,13 +238,14 @@ export default function SignUpScreen({
           <View style={tw`flex-row items-center gap-2 bg-butterYellowLight border border-butterYellow/60 rounded-2xl px-4 py-2 mb-4 shadow-sm`}>
             <Text style={tw`text-sm`}>🎉</Text>
             <Text style={tw`text-xs font-black text-amber-900`}>
-              Enjoy 10% OFF your first ice cream or pancake order!
+              {t('offerBanner')}
             </Text>
           </View>
 
           {/* ── Formik Form Card ── */}
           <View style={tw`w-full bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-lg`}>
             <Formik
+              enableReinitialize
               initialValues={{
                 fullName: '',
                 email: '',
@@ -246,7 +253,7 @@ export default function SignUpScreen({
                 password: '',
                 confirmPassword: '',
               }}
-              validationSchema={SignUpSchema}
+              validationSchema={validationSchema}
               onSubmit={handleSignUpSubmit}
             >
               {({
@@ -268,7 +275,7 @@ export default function SignUpScreen({
                     {/* 1. Full Name */}
                     <View style={tw`mb-3`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Full Name
+                        {t('fullNameLabel')}
                       </Text>
                       <View
                         style={[
@@ -294,7 +301,7 @@ export default function SignUpScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="e.g. Samuel Eto'o"
+                          placeholder={t('fullNamePlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.fullName}
                           onChangeText={handleChange('fullName')}
@@ -324,7 +331,7 @@ export default function SignUpScreen({
                     {/* 2. Email Address */}
                     <View style={tw`mb-3`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Email Address
+                        {t('emailLabel')}
                       </Text>
                       <View
                         style={[
@@ -350,7 +357,7 @@ export default function SignUpScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="you@example.com"
+                          placeholder={t('emailPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.email}
                           onChangeText={handleChange('email')}
@@ -381,7 +388,7 @@ export default function SignUpScreen({
                     {/* 3. Phone Number */}
                     <View style={tw`mb-3`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Mobile Money Phone Number
+                        {t('phoneLabel')}
                       </Text>
                       <View
                         style={[
@@ -407,7 +414,7 @@ export default function SignUpScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="+237 6XX XXX XXX"
+                          placeholder={t('phonePlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.phone}
                           onChangeText={handleChange('phone')}
@@ -436,7 +443,7 @@ export default function SignUpScreen({
                     {/* 4. Password with Strength Meter */}
                     <View style={tw`mb-3`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Password
+                        {t('passwordLabel')}
                       </Text>
                       <View
                         style={[
@@ -520,7 +527,7 @@ export default function SignUpScreen({
                     {/* 5. Confirm Password */}
                     <View style={tw`mb-4`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        Confirm Password
+                        {t('confirmPasswordLabel')}
                       </Text>
                       <View
                         style={[
@@ -546,7 +553,7 @@ export default function SignUpScreen({
                         />
                         <TextInput
                           style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                          placeholder="Re-enter your password"
+                          placeholder={t('confirmPasswordPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.confirmPassword}
                           onChangeText={handleChange('confirmPassword')}
@@ -578,10 +585,10 @@ export default function SignUpScreen({
 
                     {/* Terms note */}
                     <Text style={tw`text-[11px] text-chocolateBrownMuted text-center mb-4 leading-4`}>
-                      By signing up you agree to our{' '}
-                      <Text style={tw`text-strawberryPink font-bold`}>Terms of Service</Text>
-                      {' & '}
-                      <Text style={tw`text-strawberryPink font-bold`}>Privacy Policy</Text>.
+                      {t('termsPre')}{' '}
+                      <Text style={tw`text-strawberryPink font-bold`}>{t('termsOfService')}</Text>
+                      {' '}{t('and')}{' '}
+                      <Text style={tw`text-strawberryPink font-bold`}>{t('privacyPolicy')}</Text>.
                     </Text>
 
                     {/* Submit Button */}
@@ -601,14 +608,14 @@ export default function SignUpScreen({
                           <>
                             <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              Creating Account…
+                              {t('creatingAccount')}
                             </Text>
                           </>
                         ) : (
                           <>
                             <Ionicons name="sparkles" size={16} color={COLORS.chocolateBrown} />
                             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              Create Account 🍦
+                              {t('createAccountBtn')}
                             </Text>
                           </>
                         )}
@@ -622,11 +629,11 @@ export default function SignUpScreen({
             {/* Login Link */}
             <View style={tw`flex-row justify-center items-center mt-5`}>
               <Text style={tw`text-xs font-semibold text-chocolateBrownLight`}>
-                Already have an account?{' '}
+                {t('alreadyHaveAccount')}{' '}
               </Text>
               <TouchableOpacity onPress={onGoToLogin} activeOpacity={0.7}>
                 <Text style={tw`text-xs font-black text-strawberryPink`}>
-                  Log In
+                  {t('logIn')}
                 </Text>
               </TouchableOpacity>
             </View>
