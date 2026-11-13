@@ -351,3 +351,4 @@ export async function downloadReceiptPdf(order: Order): Promise<void> {
     );
   }
 }
+

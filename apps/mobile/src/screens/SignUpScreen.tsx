@@ -11,12 +11,16 @@ import {
   ScrollView,
   Animated,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
-// ─── Re-usable ice-cream emblem (small version for sign-up) ──────────────────
+// ─── Small Ice-cream Emblem for Sign-up ───────────────────────────────────────
 function IceCreamEmblemSmall() {
   return (
     <View style={emblemStyles.wrapper}>
@@ -54,7 +58,7 @@ const emblemStyles = StyleSheet.create({
     width: 36,
     height: 36,
     backgroundColor: COLORS.strawberryPink,
-    bottom: 26,
+    bottom: 24,
   },
   scoopMiddle: {
     width: 32,
@@ -67,7 +71,7 @@ const emblemStyles = StyleSheet.create({
     height: 26,
     backgroundColor: COLORS.vanillaCream,
     bottom: 56,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: COLORS.vanillaCreamDark,
   },
   cherry: {
@@ -76,9 +80,42 @@ const emblemStyles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#E53935',
-    bottom: 78,
+    bottom: 80,
   },
 });
+
+// ─── Yup Validation Schema ───────────────────────────────────────────────────
+const SignUpSchema = Yup.object().shape({
+  fullName: Yup.string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .required('Full name is required'),
+  email: Yup.string()
+    .trim()
+    .email('Please enter a valid email address')
+    .required('Email address is required'),
+  phone: Yup.string()
+    .trim()
+    .matches(
+      /^\+?[0-9\s-]{8,16}$/,
+      'Enter a valid phone number (e.g. +237 670 123 456)'
+    )
+    .required('Phone number is required'),
+  password: Yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password')], 'Passwords do not match')
+    .required('Please confirm your password'),
+});
+
+interface SignUpFormValues {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
 
 interface SignUpUserData {
   name: string;
@@ -91,18 +128,13 @@ interface SignUpScreenProps {
   apiUrl?: string;
 }
 
-export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: SignUpScreenProps) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+export default function SignUpScreen({
+  onSignUpSuccess,
+  onGoToLogin,
+  apiUrl,
+}: SignUpScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const btnScale = useRef(new Animated.Value(1)).current;
 
   const animatePress = (toValue: number) => {
@@ -114,70 +146,33 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
     }).start();
   };
 
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (fullName.trim().length < 2) {
-      newErrors.fullName = 'Name must be at least 2 characters';
-    }
-
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      newErrors.email = 'Enter a valid email address';
-    }
-
-    if (!phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[0-9]{8,15}$/.test(phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Enter a valid phone number';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const getPasswordStrength = (
+    pwd: string
+  ): { label: string; color: string; pct: number } => {
+    if (!pwd) return { label: '', color: 'transparent', pct: 0 };
+    if (pwd.length < 6) return { label: 'Weak', color: '#E53935', pct: 0.25 };
+    if (pwd.length < 10)
+      return { label: 'Fair', color: COLORS.butterYellow, pct: 0.55 };
+    if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd))
+      return { label: 'Strong', color: COLORS.pistachioGreen, pct: 1 };
+    return { label: 'Good', color: COLORS.pistachioGreen, pct: 0.8 };
   };
 
-  const clearError = (field: string) => {
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
-
-  const handleSignUp = async () => {
-    if (!validate()) return;
-    setLoading(true);
+  const handleSignUpSubmit = async (values: SignUpFormValues) => {
     try {
       if (apiUrl) {
         const res = await fetch(`${apiUrl}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: email.trim(),
-            password,
-            full_name: fullName.trim(),
+            email: values.email.trim(),
+            password: values.password,
+            full_name: values.fullName.trim(),
           }),
         });
         const json = await res.json();
         if (!json.success) {
-          console.warn('Backend signup error:', json.error);
+          console.warn('Backend signup message:', json.error);
         }
       } else {
         await new Promise<void>((r) => setTimeout(r, 800));
@@ -185,20 +180,12 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
     } catch {
       console.log('Using demo sign-up due to offline server');
     } finally {
-      setLoading(false);
-      onSignUpSuccess({ name: fullName.trim(), email: email.trim() });
+      onSignUpSuccess({
+        name: values.fullName.trim(),
+        email: values.email.trim(),
+      });
     }
   };
-
-  const getStrength = (): { label: string; color: string; pct: number } => {
-    if (!password) return { label: '', color: 'transparent', pct: 0 };
-    if (password.length < 6) return { label: 'Weak', color: '#E53935', pct: 0.25 };
-    if (password.length < 10) return { label: 'Fair', color: COLORS.butterYellow, pct: 0.55 };
-    if (/[A-Z]/.test(password) && /[0-9]/.test(password))
-      return { label: 'Strong', color: COLORS.pistachioGreen, pct: 1 };
-    return { label: 'Good', color: COLORS.pistachioGreen, pct: 0.8 };
-  };
-  const strength = getStrength();
 
   return (
     <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
@@ -213,208 +200,432 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
           showsVerticalScrollIndicator={false}
         >
           {/* ── Top Bar ── */}
-          <View style={tw`w-full flex-row items-center justify-between mb-4`}>
+          <View style={tw`w-full flex-row items-center justify-between mb-3`}>
             <TouchableOpacity
-              style={tw`bg-white px-3.5 py-2 rounded-2xl border border-vanillaCreamDark w-16 items-center shadow-sm`}
+              style={tw`flex-row items-center gap-1 bg-white px-3.5 py-2 rounded-2xl border border-vanillaCreamDark shadow-sm`}
               onPress={onGoToLogin}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>← Back</Text>
+              <Ionicons name="chevron-back" size={14} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-xs font-black text-chocolateBrown`}>Back</Text>
             </TouchableOpacity>
 
-            <View style={tw`w-20 h-20 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md`}>
+            <View style={tw`w-16 h-16 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md`}>
               <IceCreamEmblemSmall />
             </View>
 
-            <View style={{ width: 64 }} />
+            <View style={{ width: 68 }} />
           </View>
 
           {/* ── Heading ── */}
           <View style={tw`items-center mb-3`}>
-            <Text style={tw`text-2xl font-extrabold text-chocolateBrown tracking-wide`}>
+            <Text style={tw`text-2xl font-black text-chocolateBrown tracking-wide`}>
               Join Best Cream 🍦
             </Text>
-            <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-1`}>
-              Create your account and start ordering
+            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5`}>
+              Create your account & unlock sweet perks
             </Text>
           </View>
 
-          {/* ── Offer Pill ── */}
-          <View style={tw`bg-butterYellow rounded-full px-4 py-2 mb-4 shadow`}>
-            <Text style={tw`text-xs font-extrabold text-chocolateBrown text-center`}>
-              🎉 New members get 10% off their first order!
+          {/* ── Offer Pill Banner ── */}
+          <View style={tw`flex-row items-center gap-2 bg-butterYellowLight border border-butterYellow/60 rounded-2xl px-4 py-2 mb-4 shadow-sm`}>
+            <Text style={tw`text-sm`}>🎉</Text>
+            <Text style={tw`text-xs font-black text-amber-900`}>
+              Enjoy 10% OFF your first ice cream or pancake order!
             </Text>
           </View>
 
-          {/* ── Form Card ── */}
-          <View style={tw`w-full bg-white rounded-3xl px-6 py-6 border border-vanillaCreamDark shadow-lg`}>
-            {/* Full Name */}
-            <Field
-              label="Full Name"
-              icon="👤"
-              placeholder="e.g. John Doe"
-              value={fullName}
-              onChangeText={(t) => {
-                setFullName(t);
-                clearError('fullName');
+          {/* ── Formik Form Card ── */}
+          <View style={tw`w-full bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-lg`}>
+            <Formik
+              initialValues={{
+                fullName: '',
+                email: '',
+                phone: '',
+                password: '',
+                confirmPassword: '',
               }}
-              error={errors.fullName}
-              returnKeyType="next"
-            />
+              validationSchema={SignUpSchema}
+              onSubmit={handleSignUpSubmit}
+            >
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+                isSubmitting,
+              }) => {
+                const strength = getPasswordStrength(values.password);
 
-            {/* Email Address */}
-            <Field
-              label="Email Address"
-              icon="✉️"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={(t) => {
-                setEmail(t);
-                clearError('email');
-              }}
-              error={errors.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              returnKeyType="next"
-            />
+                const isFieldValid = (field: keyof SignUpFormValues) =>
+                  touched[field] && !errors[field] && values[field].length > 0;
 
-            {/* Phone Number */}
-            <Field
-              label="Phone Number"
-              icon="📞"
-              placeholder="+237 6XX XXX XXX"
-              value={phone}
-              onChangeText={(t) => {
-                setPhone(t);
-                clearError('phone');
-              }}
-              error={errors.phone}
-              keyboardType="phone-pad"
-              returnKeyType="next"
-            />
+                return (
+                  <View>
+                    {/* 1. Full Name */}
+                    <View style={tw`mb-3`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                        Full Name
+                      </Text>
+                      <View
+                        style={[
+                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          touched.fullName && errors.fullName
+                            ? tw`border-errorRed bg-errorRedLight/40`
+                            : isFieldValid('fullName')
+                            ? tw`border-pistachioGreen bg-white`
+                            : tw`border-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name="person-outline"
+                          size={18}
+                          color={
+                            touched.fullName && errors.fullName
+                              ? COLORS.errorRed
+                              : isFieldValid('fullName')
+                              ? COLORS.pistachioGreen
+                              : COLORS.chocolateBrownMuted
+                          }
+                          style={tw`mr-2.5`}
+                        />
+                        <TextInput
+                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          placeholder="e.g. Samuel Eto'o"
+                          placeholderTextColor={COLORS.chocolateBrownMuted}
+                          value={values.fullName}
+                          onChangeText={handleChange('fullName')}
+                          onBlur={handleBlur('fullName')}
+                          autoCapitalize="words"
+                          autoCorrect={false}
+                          returnKeyType="next"
+                        />
+                        {isFieldValid('fullName') && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={COLORS.pistachioGreen}
+                          />
+                        )}
+                      </View>
+                      {touched.fullName && errors.fullName && (
+                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                          <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
+                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                            {errors.fullName}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
 
-            {/* Password */}
-            <View style={tw`mb-3`}>
-              <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>Password</Text>
-              <View
-                style={[
-                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
-                  errors.password ? tw`border-errorRed bg-errorRedLight` : null,
-                ]}
-              >
-                <Text style={tw`text-base mr-2.5`}>🔒</Text>
-                <TextInput
-                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
-                  placeholder="Min. 6 characters"
-                  placeholderTextColor={COLORS.chocolateBrownMuted}
-                  value={password}
-                  onChangeText={(t) => {
-                    setPassword(t);
-                    clearError('password');
-                  }}
-                  secureTextEntry={!showPassword}
-                  returnKeyType="next"
-                />
-                <Pressable onPress={() => setShowPassword((v) => !v)} hitSlop={8}>
-                  <Text style={tw`text-base pl-2`}>{showPassword ? '🙈' : '👁️'}</Text>
-                </Pressable>
-              </View>
-              {errors.password ? (
-                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
-                  {errors.password}
-                </Text>
-              ) : null}
+                    {/* 2. Email Address */}
+                    <View style={tw`mb-3`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                        Email Address
+                      </Text>
+                      <View
+                        style={[
+                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          touched.email && errors.email
+                            ? tw`border-errorRed bg-errorRedLight/40`
+                            : isFieldValid('email')
+                            ? tw`border-pistachioGreen bg-white`
+                            : tw`border-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name="mail-outline"
+                          size={18}
+                          color={
+                            touched.email && errors.email
+                              ? COLORS.errorRed
+                              : isFieldValid('email')
+                              ? COLORS.pistachioGreen
+                              : COLORS.chocolateBrownMuted
+                          }
+                          style={tw`mr-2.5`}
+                        />
+                        <TextInput
+                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          placeholder="you@example.com"
+                          placeholderTextColor={COLORS.chocolateBrownMuted}
+                          value={values.email}
+                          onChangeText={handleChange('email')}
+                          onBlur={handleBlur('email')}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          returnKeyType="next"
+                        />
+                        {isFieldValid('email') && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={COLORS.pistachioGreen}
+                          />
+                        )}
+                      </View>
+                      {touched.email && errors.email && (
+                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                          <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
+                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                            {errors.email}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
 
-              {/* Password strength indicator bar */}
-              {password.length > 0 ? (
-                <View style={tw`flex-row items-center mt-2 gap-2`}>
-                  <View style={tw`flex-1 h-1.5 bg-vanillaCreamDark rounded-full overflow-hidden`}>
-                    <View
-                      style={[
-                        tw`h-full rounded-full`,
-                        {
-                          width: `${strength.pct * 100}%` as unknown as number,
-                          backgroundColor: strength.color,
-                        },
-                      ]}
-                    />
+                    {/* 3. Phone Number */}
+                    <View style={tw`mb-3`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                        Mobile Money Phone Number
+                      </Text>
+                      <View
+                        style={[
+                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          touched.phone && errors.phone
+                            ? tw`border-errorRed bg-errorRedLight/40`
+                            : isFieldValid('phone')
+                            ? tw`border-pistachioGreen bg-white`
+                            : tw`border-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name="call-outline"
+                          size={18}
+                          color={
+                            touched.phone && errors.phone
+                              ? COLORS.errorRed
+                              : isFieldValid('phone')
+                              ? COLORS.pistachioGreen
+                              : COLORS.chocolateBrownMuted
+                          }
+                          style={tw`mr-2.5`}
+                        />
+                        <TextInput
+                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          placeholder="+237 6XX XXX XXX"
+                          placeholderTextColor={COLORS.chocolateBrownMuted}
+                          value={values.phone}
+                          onChangeText={handleChange('phone')}
+                          onBlur={handleBlur('phone')}
+                          keyboardType="phone-pad"
+                          returnKeyType="next"
+                        />
+                        {isFieldValid('phone') && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={COLORS.pistachioGreen}
+                          />
+                        )}
+                      </View>
+                      {touched.phone && errors.phone && (
+                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                          <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
+                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                            {errors.phone}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* 4. Password with Strength Meter */}
+                    <View style={tw`mb-3`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                        Password
+                      </Text>
+                      <View
+                        style={[
+                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          touched.password && errors.password
+                            ? tw`border-errorRed bg-errorRedLight/40`
+                            : isFieldValid('password')
+                            ? tw`border-pistachioGreen bg-white`
+                            : tw`border-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name="lock-closed-outline"
+                          size={18}
+                          color={
+                            touched.password && errors.password
+                              ? COLORS.errorRed
+                              : isFieldValid('password')
+                              ? COLORS.pistachioGreen
+                              : COLORS.chocolateBrownMuted
+                          }
+                          style={tw`mr-2.5`}
+                        />
+                        <TextInput
+                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          placeholder="Min. 6 characters"
+                          placeholderTextColor={COLORS.chocolateBrownMuted}
+                          value={values.password}
+                          onChangeText={handleChange('password')}
+                          onBlur={handleBlur('password')}
+                          secureTextEntry={!showPassword}
+                          returnKeyType="next"
+                        />
+                        <Pressable
+                          onPress={() => setShowPassword((prev) => !prev)}
+                          hitSlop={8}
+                        >
+                          <Ionicons
+                            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                            size={18}
+                            color={COLORS.chocolateBrownMuted}
+                          />
+                        </Pressable>
+                      </View>
+
+                      {/* Live Password Strength Meter */}
+                      {values.password.length > 0 && (
+                        <View style={tw`flex-row items-center mt-2 gap-2`}>
+                          <View style={tw`flex-1 h-1.5 bg-vanillaCreamDark rounded-full overflow-hidden`}>
+                            <View
+                              style={[
+                                tw`h-full rounded-full`,
+                                {
+                                  width: `${strength.pct * 100}%` as unknown as number,
+                                  backgroundColor: strength.color,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text
+                            style={[
+                              tw`text-[11px] font-black text-right`,
+                              { color: strength.color },
+                            ]}
+                          >
+                            {strength.label}
+                          </Text>
+                        </View>
+                      )}
+
+                      {touched.password && errors.password && (
+                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                          <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
+                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                            {errors.password}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* 5. Confirm Password */}
+                    <View style={tw`mb-4`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                        Confirm Password
+                      </Text>
+                      <View
+                        style={[
+                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          touched.confirmPassword && errors.confirmPassword
+                            ? tw`border-errorRed bg-errorRedLight/40`
+                            : isFieldValid('confirmPassword')
+                            ? tw`border-pistachioGreen bg-white`
+                            : tw`border-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name="shield-checkmark-outline"
+                          size={18}
+                          color={
+                            touched.confirmPassword && errors.confirmPassword
+                              ? COLORS.errorRed
+                              : isFieldValid('confirmPassword')
+                              ? COLORS.pistachioGreen
+                              : COLORS.chocolateBrownMuted
+                          }
+                          style={tw`mr-2.5`}
+                        />
+                        <TextInput
+                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          placeholder="Re-enter your password"
+                          placeholderTextColor={COLORS.chocolateBrownMuted}
+                          value={values.confirmPassword}
+                          onChangeText={handleChange('confirmPassword')}
+                          onBlur={handleBlur('confirmPassword')}
+                          secureTextEntry={!showConfirm}
+                          returnKeyType="done"
+                          onSubmitEditing={() => handleSubmit()}
+                        />
+                        <Pressable
+                          onPress={() => setShowConfirm((prev) => !prev)}
+                          hitSlop={8}
+                        >
+                          <Ionicons
+                            name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
+                            size={18}
+                            color={COLORS.chocolateBrownMuted}
+                          />
+                        </Pressable>
+                      </View>
+                      {touched.confirmPassword && errors.confirmPassword && (
+                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                          <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
+                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                            {errors.confirmPassword}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Terms note */}
+                    <Text style={tw`text-[11px] text-chocolateBrownMuted text-center mb-4 leading-4`}>
+                      By signing up you agree to our{' '}
+                      <Text style={tw`text-strawberryPink font-bold`}>Terms of Service</Text>
+                      {' & '}
+                      <Text style={tw`text-strawberryPink font-bold`}>Privacy Policy</Text>.
+                    </Text>
+
+                    {/* Submit Button */}
+                    <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                      <TouchableOpacity
+                        style={[
+                          tw`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 shadow-md`,
+                          isSubmitting && tw`opacity-70`,
+                        ]}
+                        onPress={() => handleSubmit()}
+                        onPressIn={() => animatePress(0.97)}
+                        onPressOut={() => animatePress(1)}
+                        activeOpacity={1}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
+                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
+                              Creating Account…
+                            </Text>
+                          </>
+                        ) : (
+                          <>
+                            <Ionicons name="sparkles" size={16} color={COLORS.chocolateBrown} />
+                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
+                              Create Account 🍦
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </Animated.View>
                   </View>
-                  <Text style={[tw`text-xs font-extrabold text-right`, { color: strength.color }]}>
-                    {strength.label}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-
-            {/* Confirm Password */}
-            <View style={tw`mb-3`}>
-              <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>Confirm Password</Text>
-              <View
-                style={[
-                  tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
-                  errors.confirmPassword ? tw`border-errorRed bg-errorRedLight` : null,
-                ]}
-              >
-                <Text style={tw`text-base mr-2.5`}>✅</Text>
-                <TextInput
-                  style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
-                  placeholder="Re-enter your password"
-                  placeholderTextColor={COLORS.chocolateBrownMuted}
-                  value={confirmPassword}
-                  onChangeText={(t) => {
-                    setConfirmPassword(t);
-                    clearError('confirmPassword');
-                  }}
-                  secureTextEntry={!showConfirm}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSignUp}
-                />
-                <Pressable onPress={() => setShowConfirm((v) => !v)} hitSlop={8}>
-                  <Text style={tw`text-base pl-2`}>{showConfirm ? '🙈' : '👁️'}</Text>
-                </Pressable>
-              </View>
-              {errors.confirmPassword ? (
-                <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>
-                  {errors.confirmPassword}
-                </Text>
-              ) : null}
-            </View>
-
-            {/* Terms note */}
-            <Text style={tw`text-xs text-chocolateBrownMuted text-center my-3 leading-4`}>
-              By creating an account you agree to our{' '}
-              <Text style={tw`text-strawberryPink font-bold`}>Terms of Service</Text>
-              {' & '}
-              <Text style={tw`text-strawberryPink font-bold`}>Privacy Policy</Text>
-            </Text>
-
-            {/* Create Account Button */}
-            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-              <TouchableOpacity
-                style={[
-                  tw`w-full bg-strawberryPink py-4 rounded-2xl items-center shadow-md`,
-                  loading && tw`opacity-70`,
-                ]}
-                onPress={handleSignUp}
-                onPressIn={() => animatePress(0.96)}
-                onPressOut={() => animatePress(1)}
-                activeOpacity={1}
-                disabled={loading}
-              >
-                <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
-                  {loading ? 'Creating Account…' : 'Create Account 🍦'}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                );
+              }}
+            </Formik>
 
             {/* Login Link */}
-            <View style={tw`flex-row justify-center items-center mt-4`}>
-              <Text style={tw`text-sm font-medium text-chocolateBrownLight`}>
+            <View style={tw`flex-row justify-center items-center mt-5`}>
+              <Text style={tw`text-xs font-semibold text-chocolateBrownLight`}>
                 Already have an account?{' '}
               </Text>
               <TouchableOpacity onPress={onGoToLogin} activeOpacity={0.7}>
-                <Text style={tw`text-sm font-extrabold text-strawberryPink`}>
+                <Text style={tw`text-xs font-black text-strawberryPink`}>
                   Log In
                 </Text>
               </TouchableOpacity>
@@ -423,58 +634,5 @@ export default function SignUpScreen({ onSignUpSuccess, onGoToLogin, apiUrl }: S
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-}
-
-// ─── Reusable Field Component ────────────────────────────────────────────────
-interface FieldProps {
-  label: string;
-  icon: string;
-  placeholder: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  error?: string;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  returnKeyType?: 'done' | 'next' | 'go' | 'search' | 'send';
-}
-
-function Field({
-  label,
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-  error,
-  keyboardType = 'default',
-  autoCapitalize = 'words',
-  returnKeyType = 'next',
-}: FieldProps) {
-  return (
-    <View style={tw`mb-3`}>
-      <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>{label}</Text>
-      <View
-        style={[
-          tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-3`,
-          error ? tw`border-errorRed bg-errorRedLight` : null,
-        ]}
-      >
-        <Text style={tw`text-base mr-2.5`}>{icon}</Text>
-        <TextInput
-          style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
-          placeholder={placeholder}
-          placeholderTextColor={COLORS.chocolateBrownMuted}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          autoCorrect={false}
-          returnKeyType={returnKeyType}
-        />
-      </View>
-      {error ? (
-        <Text style={tw`text-xs text-errorRed font-semibold mt-1 ml-1`}>{error}</Text>
-      ) : null}
-    </View>
   );
 }
