@@ -11,6 +11,7 @@ import {
   Modal,
   Alert,
   Platform,
+  RefreshControl,
   StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -44,6 +45,60 @@ interface DashboardScreenProps {
 
 type TabType = 'menu' | 'orders' | 'deals' | 'profile';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
+type OrderFilterType = 'all' | 'active' | 'pending' | 'completed';
+
+function formatOrderDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return 'Recent';
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `Today at ${time}`;
+    return `${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}, ${time}`;
+  } catch {
+    return 'Recent';
+  }
+}
+
+function getOrderStatusInfo(status: Order['status']) {
+  switch (status) {
+    case 'approved':
+      return {
+        label: 'Preparing & Delivery',
+        emoji: '🛵',
+        step: 2,
+        bg: 'bg-pistachioGreenLight',
+        border: 'border-pistachioGreen',
+        text: 'text-chocolateBrown',
+        icon: 'bicycle-outline' as const,
+        iconColor: COLORS.pistachioGreen,
+      };
+    case 'received':
+      return {
+        label: 'Delivered',
+        emoji: '🎉',
+        step: 3,
+        bg: 'bg-blue-50',
+        border: 'border-blue-300',
+        text: 'text-blue-800',
+        icon: 'checkmark-done-circle' as const,
+        iconColor: '#1D4ED8',
+      };
+    case 'pending':
+    default:
+      return {
+        label: 'Pending Approval',
+        emoji: '⏳',
+        step: 1,
+        bg: 'bg-butterYellowLight',
+        border: 'border-butterYellow',
+        text: 'text-amber-800',
+        icon: 'time-outline' as const,
+        iconColor: '#B45309',
+      };
+  }
+}
 
 export default function DashboardScreen({
   apiUrl,
@@ -68,6 +123,9 @@ export default function DashboardScreen({
   const [phoneNumber, setPhoneNumber] = useState('+237 670 123 456');
   const [placingOrder, setPlacingOrder] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
+  const [orderFilter, setOrderFilter] = useState<OrderFilterType>('all');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  const [refreshingOrders, setRefreshingOrders] = useState(false);
 
   // Location & Delivery State
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -109,8 +167,68 @@ export default function DashboardScreen({
       }
     } catch {
       setOrders(FALLBACK_ORDERS);
+    } finally {
+      setRefreshingOrders(false);
     }
   };
+
+  const handleRefreshOrders = () => {
+    setRefreshingOrders(true);
+    fetchOrders();
+  };
+
+  const handleReorder = (order: Order) => {
+    setCart((prev) => {
+      const next = { ...prev };
+      order.items.forEach((item) => {
+        next[item.menuItemId] = (next[item.menuItemId] || 0) + item.quantity;
+      });
+      return next;
+    });
+    Alert.alert(
+      'Items Added to Cart! 🛒',
+      `Added ${order.items.length} item(s) from order ${order.id} to your cart.`,
+      [
+        { text: 'Keep Browsing', style: 'cancel' },
+        {
+          text: 'View Cart & Pay',
+          onPress: () => {
+            setActiveTab('menu');
+            setIsCartModalVisible(true);
+          },
+        },
+      ]
+    );
+  };
+
+  const orderCounts = {
+    all: orders.length,
+    active: orders.filter((o) => o.status === 'pending' || o.status === 'approved').length,
+    pending: orders.filter((o) => o.status === 'pending').length,
+    completed: orders.filter((o) => o.status === 'received').length,
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    if (orderFilter === 'active' && order.status !== 'pending' && order.status !== 'approved') {
+      return false;
+    }
+    if (orderFilter === 'pending' && order.status !== 'pending') {
+      return false;
+    }
+    if (orderFilter === 'completed' && order.status !== 'received') {
+      return false;
+    }
+
+    if (!orderSearchQuery.trim()) return true;
+    const query = orderSearchQuery.toLowerCase();
+    const matchesId = order.id.toLowerCase().includes(query);
+    const matchesAddress = order.deliveryAddress?.toLowerCase().includes(query) ?? false;
+    const matchesItems = order.items.some(
+      (item) => item.name.toLowerCase().includes(query) || (item.flavor && item.flavor.toLowerCase().includes(query))
+    );
+    const matchesPhone = order.phoneNumber?.toLowerCase().includes(query) ?? false;
+    return matchesId || matchesAddress || matchesItems || matchesPhone;
+  });
 
   useEffect(() => {
     fetchMenu();
@@ -904,151 +1022,426 @@ export default function DashboardScreen({
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw`px-5 pt-3 pb-28`}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshingOrders}
+              onRefresh={handleRefreshOrders}
+              tintColor={COLORS.strawberryPink}
+              colors={[COLORS.strawberryPink]}
+            />
+          }
         >
-          <View style={tw`flex-row justify-between items-center mb-4`}>
+          {/* 1. Header & Title */}
+          <View style={tw`flex-row justify-between items-center mb-3`}>
             <View>
-              <Text style={tw`text-xl font-black text-chocolateBrown`}>My Orders</Text>
-              <Text style={tw`text-xs text-chocolateBrownLight mt-0.5`}>
-                Track your ice cream & pancake requests
+              <Text style={tw`text-2xl font-black text-chocolateBrown`}>My Orders</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                Real-time tracking, live timeline & receipts
               </Text>
             </View>
             <TouchableOpacity
-              onPress={fetchOrders}
-              style={tw`w-9 h-9 rounded-full bg-white items-center justify-center border border-vanillaCreamDark`}
+              onPress={handleRefreshOrders}
+              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}
+              activeOpacity={0.7}
             >
-              <Ionicons name="refresh" size={18} color={COLORS.chocolateBrown} />
+              {refreshingOrders ? (
+                <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+              ) : (
+                <Ionicons name="reload-outline" size={18} color={COLORS.chocolateBrown} />
+              )}
             </TouchableOpacity>
           </View>
 
-          {orders.length === 0 ? (
-            <View style={tw`items-center justify-center py-16`}>
-              <Text style={tw`text-5xl mb-2`}>🥞</Text>
-              <Text style={tw`text-lg font-black text-chocolateBrown`}>No Orders Yet</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1 px-8`}>
-                Your orders will appear here with live pending & approved status updates.
+          {/* 2. Quick Stat Overview Cards */}
+          <View style={tw`flex-row gap-2.5 mb-3.5`}>
+            {/* Total Orders */}
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+              <View style={tw`flex-row items-center justify-between mb-1`}>
+                <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+                  Total
+                </Text>
+                <Text style={tw`text-sm`}>🧾</Text>
+              </View>
+              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.all}</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Placed orders</Text>
+            </View>
+
+            {/* In Progress */}
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+              <View style={tw`flex-row items-center justify-between mb-1`}>
+                <Text style={tw`text-[10px] font-black text-pistachioGreen uppercase tracking-wider`}>
+                  Active
+                </Text>
+                <View style={tw`w-2 h-2 rounded-full bg-pistachioGreen`} />
+              </View>
+              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.active}</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>In kitchen / transit</Text>
+            </View>
+
+            {/* Completed */}
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+              <View style={tw`flex-row items-center justify-between mb-1`}>
+                <Text style={tw`text-[10px] font-black text-blue-600 uppercase tracking-wider`}>
+                  Done
+                </Text>
+                <Text style={tw`text-sm`}>🎉</Text>
+              </View>
+              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.completed}</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Delivered</Text>
+            </View>
+          </View>
+
+          {/* 3. Search Bar */}
+          <View style={tw`flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3.5 py-2 mb-3 shadow-sm`}>
+            <Ionicons name="search-outline" size={17} color={COLORS.chocolateBrownMuted} />
+            <TextInput
+              style={tw`flex-1 text-xs text-chocolateBrown ml-2`}
+              placeholder="Search order ID, flavor, or destination…"
+              placeholderTextColor={COLORS.chocolateBrownMuted}
+              value={orderSearchQuery}
+              onChangeText={setOrderSearchQuery}
+              returnKeyType="search"
+            />
+            {orderSearchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setOrderSearchQuery('')} style={tw`p-1`}>
+                <Ionicons name="close-circle" size={16} color={COLORS.chocolateBrownMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* 4. Filter Chips */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw`gap-2 pb-3`}
+          >
+            {[
+              { id: 'all', label: 'All Orders', count: orderCounts.all },
+              { id: 'active', label: 'Active 🛵', count: orderCounts.active },
+              { id: 'pending', label: 'Pending ⏳', count: orderCounts.pending },
+              { id: 'completed', label: 'Completed ✅', count: orderCounts.completed },
+            ].map((tab) => {
+              const active = orderFilter === tab.id;
+              return (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[
+                    tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-2xl border`,
+                    active
+                      ? tw`bg-strawberryPink border-strawberryPink shadow-sm`
+                      : tw`bg-white border-vanillaCreamDark`,
+                  ]}
+                  onPress={() => setOrderFilter(tab.id as OrderFilterType)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      tw`text-xs font-black`,
+                      active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                  <View
+                    style={[
+                      tw`px-1.5 py-0.2 rounded-full`,
+                      active ? tw`bg-white/80` : tw`bg-vanillaCream`,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        tw`text-[10px] font-black`,
+                        active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                      ]}
+                    >
+                      {tab.count}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* 5. Order List or Empty State */}
+          {filteredOrders.length === 0 ? (
+            <View style={tw`bg-white rounded-3xl p-8 items-center justify-center border border-vanillaCreamDark mt-2 shadow-sm`}>
+              <Text style={tw`text-5xl mb-3`}>
+                {orderFilter === 'completed'
+                  ? '🎉'
+                  : orderFilter === 'active'
+                  ? '🛵'
+                  : orderSearchQuery
+                  ? '🔍'
+                  : '🥞'}
+              </Text>
+              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>
+                {orderSearchQuery
+                  ? `No orders matching "${orderSearchQuery}"`
+                  : orderFilter === 'active'
+                  ? 'No active orders in progress'
+                  : orderFilter === 'completed'
+                  ? 'No completed orders yet'
+                  : 'No orders yet'}
+              </Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1.5 px-4 leading-4`}>
+                {orderSearchQuery
+                  ? 'Try searching by a different order number, ice cream flavor, or destination.'
+                  : 'Your delicious ice cream scoops and golden pancakes will appear here once placed!'}
               </Text>
               <TouchableOpacity
-                style={tw`bg-strawberryPink px-6 py-3 rounded-2xl mt-4 shadow-sm`}
-                onPress={() => setActiveTab('menu')}
+                style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-6 py-3 rounded-2xl mt-5 shadow-sm`}
+                onPress={() => {
+                  setOrderSearchQuery('');
+                  setOrderFilter('all');
+                  setActiveTab('menu');
+                }}
+                activeOpacity={0.85}
               >
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>Browse Daily Menu</Text>
+                <Ionicons name="sparkles" size={14} color={COLORS.chocolateBrown} />
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  Explore Best Cream Menu 🍦
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            orders.map((order) => {
-              const isApproved = order.status === 'approved';
+            filteredOrders.map((order) => {
+              const statusInfo = getOrderStatusInfo(order.status);
+              const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
               return (
                 <View
                   key={order.id}
-                  style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}
+                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-vanillaCreamDark shadow-sm`}
                 >
-                  {/* Top Info */}
-                  <View style={tw`flex-row justify-between items-start border-b border-vanillaCreamDark pb-2.5`}>
+                  {/* Card Header: ID, Date & Status Badge */}
+                  <View style={tw`flex-row justify-between items-start pb-2.5 border-b border-vanillaCreamDark/60`}>
                     <View>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
-                      <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-                        {new Date(order.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}{' '}
-                        • {order.items.length} item(s)
+                      <View style={tw`flex-row items-center gap-1.5`}>
+                        <Text style={tw`text-xs text-strawberryPink`}>🧾</Text>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
+                      </View>
+                      <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                        {formatOrderDate(order.createdAt)} • {itemCount} item{itemCount > 1 ? 's' : ''}
                       </Text>
                     </View>
 
-                    {/* Status Badge + Delete */}
-                    <View style={tw`flex-row items-center gap-2`}>
+                    {/* Status Pill Badge */}
+                    <View
+                      style={[
+                        tw`flex-row items-center gap-1.5 px-3 py-1 rounded-xl border`,
+                        statusInfo.bg === 'bg-pistachioGreenLight' && tw`bg-pistachioGreenLight border-pistachioGreen`,
+                        statusInfo.bg === 'bg-blue-50' && tw`bg-blue-50 border-blue-300`,
+                        statusInfo.bg === 'bg-butterYellowLight' && tw`bg-butterYellowLight border-butterYellow`,
+                      ]}
+                    >
+                      <Ionicons name={statusInfo.icon} size={13} color={statusInfo.iconColor} />
+                      <Text
+                        style={[
+                          tw`text-[11px] font-black`,
+                          statusInfo.text === 'text-chocolateBrown' && tw`text-chocolateBrown`,
+                          statusInfo.text === 'text-blue-800' && tw`text-blue-800`,
+                          statusInfo.text === 'text-amber-800' && tw`text-amber-800`,
+                        ]}
+                      >
+                        {statusInfo.label}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Visual 3-Stage Progress Timeline */}
+                  <View style={tw`flex-row items-center justify-between bg-vanillaCream/50 rounded-2xl px-3 py-2 mt-2.5 mb-2`}>
+                    {/* Step 1: Placed */}
+                    <View style={tw`flex-row items-center gap-1`}>
                       <View
                         style={[
-                          tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border`,
-                          isApproved
-                            ? tw`bg-pistachioGreenLight border-pistachioGreen`
-                            : tw`bg-butterYellowLight border-butterYellow`,
+                          tw`w-4 h-4 rounded-full items-center justify-center`,
+                          statusInfo.step >= 1 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons name="checkmark" size={10} color={COLORS.white} />
+                      </View>
+                      <Text
+                        style={[
+                          tw`text-[10px] font-bold`,
+                          statusInfo.step >= 1 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                        ]}
+                      >
+                        Placed
+                      </Text>
+                    </View>
+
+                    {/* Connector */}
+                    <View
+                      style={[
+                        tw`flex-1 h-0.5 mx-1.5`,
+                        statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
+                      ]}
+                    />
+
+                    {/* Step 2: Kitchen */}
+                    <View style={tw`flex-row items-center gap-1`}>
+                      <View
+                        style={[
+                          tw`w-4 h-4 rounded-full items-center justify-center`,
+                          statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
                         ]}
                       >
                         <Ionicons
-                          name={isApproved ? 'checkmark-circle-sharp' : 'time-outline'}
-                          size={14}
-                          color={isApproved ? COLORS.chocolateBrown : '#854D0E'}
+                          name={statusInfo.step >= 2 ? 'checkmark' : 'restaurant-outline'}
+                          size={10}
+                          color={COLORS.white}
                         />
-                        <Text
-                          style={[
-                            tw`text-xs font-black`,
-                            isApproved ? tw`text-chocolateBrown` : tw`text-amber-800`,
-                          ]}
-                        >
-                          {isApproved ? 'Approved / Received' : 'Pending Approval'}
-                        </Text>
                       </View>
-
-                      {/* Delete button */}
-                      <TouchableOpacity
-                        style={tw`w-7 h-7 rounded-lg bg-red-100 items-center justify-center border border-red-300`}
-                        onPress={() => deleteOrder(order.id)}
-                        activeOpacity={0.7}
+                      <Text
+                        style={[
+                          tw`text-[10px] font-bold`,
+                          statusInfo.step >= 2 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                        ]}
                       >
-                        <Ionicons name="trash-outline" size={14} color="#DC2626" />
-                      </TouchableOpacity>
+                        Kitchen
+                      </Text>
+                    </View>
+
+                    {/* Connector */}
+                    <View
+                      style={[
+                        tw`flex-1 h-0.5 mx-1.5`,
+                        statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-vanillaCreamDark`,
+                      ]}
+                    />
+
+                    {/* Step 3: Delivered */}
+                    <View style={tw`flex-row items-center gap-1`}>
+                      <View
+                        style={[
+                          tw`w-4 h-4 rounded-full items-center justify-center`,
+                          statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name={statusInfo.step >= 3 ? 'checkmark-done' : 'bicycle-outline'}
+                          size={10}
+                          color={COLORS.white}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          tw`text-[10px] font-bold`,
+                          statusInfo.step >= 3 ? tw`text-blue-800` : tw`text-chocolateBrownMuted`,
+                        ]}
+                      >
+                        Delivered
+                      </Text>
                     </View>
                   </View>
 
-                  {/* Order Items */}
-                  <View style={tw`py-2.5 gap-2`}>
-                    {order.items.map((item, idx) => (
-                      <View key={idx} style={tw`flex-row items-center`}>
-                        <Text style={tw`text-xs font-black text-strawberryPink w-6`}>
-                          {item.quantity}x
-                        </Text>
-                        <View style={tw`flex-1`}>
-                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
-                          {item.flavor ? (
-                            <Text style={tw`text-xs text-chocolateBrownLight`}>{item.flavor}</Text>
-                          ) : null}
+                  {/* Items List */}
+                  <View style={tw`py-1.5 gap-1.5`}>
+                    {order.items.map((item, idx) => {
+                      const isPancake = item.category === 'pancake';
+                      const isIceCream = item.category === 'ice-cream';
+                      const emoji = isPancake ? '🥞' : isIceCream ? '🍦' : '✨';
+
+                      return (
+                        <View
+                          key={idx}
+                          style={tw`flex-row items-center bg-vanillaCream/40 px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark/40`}
+                        >
+                          <Text style={tw`text-sm mr-2`}>{emoji}</Text>
+                          <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
+                            {item.quantity}×
+                          </Text>
+                          <View style={tw`flex-1`}>
+                            <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+                            {item.flavor ? (
+                              <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>
+                                {item.flavor}
+                              </Text>
+                            ) : null}
+                          </View>
+                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                            {(item.price * item.quantity).toLocaleString()} XAF
+                          </Text>
                         </View>
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                          {(item.price * item.quantity).toLocaleString()} XAF
-                        </Text>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
 
-                  {/* Delivery Location if available */}
+                  {/* Delivery Address Pill (if destination specified) */}
                   {order.deliveryAddress ? (
-                    <View style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-2.5 py-1.5 rounded-xl mb-2.5 border border-vanillaCreamDark`}>
-                      <Ionicons name="location-sharp" size={13} color={COLORS.strawberryPink} />
-                      <Text style={tw`text-[11px] font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
-                        {order.deliveryAddress}
-                      </Text>
-                      {order.distanceKm ? (
-                        <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
-                          {order.distanceKm.toFixed(1)} km
+                    <View style={tw`flex-row items-center justify-between bg-vanillaCream/60 px-3 py-2 rounded-xl mt-1 border border-vanillaCreamDark/60`}>
+                      <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+                        <Ionicons name="location-sharp" size={13} color={COLORS.strawberryPink} />
+                        <Text style={tw`text-[11px] font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
+                          {order.deliveryAddress}
                         </Text>
+                      </View>
+                      {order.distanceKm ? (
+                        <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                          <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                            {order.distanceKm.toFixed(1)} km
+                          </Text>
+                        </View>
                       ) : null}
                     </View>
                   ) : null}
 
-                  {/* Footer with Track button */}
-                  <View style={tw`flex-row justify-between items-center border-t border-vanillaCreamDark pt-2.5`}>
-                    <View style={tw`flex-row items-center gap-1.5`}>
-                      <View style={tw`bg-vanillaCream px-2 py-1 rounded-lg`}>
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                          {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
+                  {/* Card Footer: Total Paid & Action Buttons */}
+                  <View style={tw`border-t border-vanillaCreamDark pt-2.5 mt-2`}>
+                    <View style={tw`flex-row justify-between items-center mb-2.5`}>
+                      <View style={tw`flex-row items-center gap-2`}>
+                        <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-lg border border-vanillaCreamDark`}>
+                          <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                            {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
+                          </Text>
+                        </View>
+                        {order.deliveryFee ? (
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            + {formatXAF(order.deliveryFee)} deliv.
+                          </Text>
+                        ) : null}
+                      </View>
+
+                      <View style={tw`items-end`}>
+                        <Text style={tw`text-[10px] uppercase font-bold text-chocolateBrownMuted`}>
+                          Total Paid
+                        </Text>
+                        <Text style={tw`text-base font-black text-chocolateBrown`}>
+                          {order.totalAmount.toLocaleString()} XAF
                         </Text>
                       </View>
-                      <TouchableOpacity
-                        style={tw`flex-row items-center gap-1 bg-strawberryPinkLight px-2 py-1 rounded-lg border border-strawberryPink/30`}
-                        onPress={() => setSelectedOrderForTracking(order)}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="map-outline" size={12} color={COLORS.strawberryPink} />
-                        <Text style={tw`text-[11px] font-black text-strawberryPink`}>Track 🛵</Text>
-                      </TouchableOpacity>
                     </View>
 
-                    <View style={tw`flex-row items-center gap-1.5`}>
-                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Total Paid:</Text>
-                      <Text style={tw`text-base font-black text-chocolateBrown`}>
-                        {order.totalAmount.toLocaleString()} XAF
-                      </Text>
+                    {/* Action Buttons Row */}
+                    <View style={tw`flex-row items-center gap-2`}>
+                      {/* Live Track Button */}
+                      <TouchableOpacity
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-strawberryPink py-2.5 rounded-xl shadow-sm`}
+                        onPress={() => setSelectedOrderForTracking(order)}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="map" size={14} color={COLORS.chocolateBrown} />
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Track Live 🛵</Text>
+                      </TouchableOpacity>
+
+                      {/* Reorder Button */}
+                      <TouchableOpacity
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-vanillaCream py-2.5 rounded-xl border border-vanillaCreamDark`}
+                        onPress={() => handleReorder(order)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="repeat" size={14} color={COLORS.chocolateBrown} />
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Reorder 🔁</Text>
+                      </TouchableOpacity>
+
+                      {/* Delete Button */}
+                      <TouchableOpacity
+                        style={tw`w-9 h-9 rounded-xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}
+                        onPress={() => deleteOrder(order.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="trash-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
