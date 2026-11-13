@@ -343,7 +343,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
                 ) : null}
               </View>
               <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                ${(item.price * item.quantity).toFixed(2)}
+                {(item.price * item.quantity).toLocaleString()} XAF
               </Text>
             </View>
           ))}
@@ -354,7 +354,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
           <View>
             <Text style={tw`text-xs text-chocolateBrownMuted`}>Total</Text>
             <Text style={tw`text-lg font-black text-chocolateBrown`}>
-              ${order.totalAmount.toFixed(2)}
+              {order.totalAmount.toLocaleString()} XAF
             </Text>
           </View>
 

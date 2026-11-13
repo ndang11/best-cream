@@ -75,16 +75,16 @@ export default function ProductDetailsScreen({
 
     // Ice cream scoops upgrade
     if (isIceCream || isCombo) {
-      if (iceCreamScoopCount === 'double') price += 1.5;
-      if (iceCreamScoopCount === 'triple') price += 2.5;
+      if (iceCreamScoopCount === 'double') price += 1000;
+      if (iceCreamScoopCount === 'triple') price += 1500;
     }
 
     // Pancake upgrades
     if (isPancake || isCombo) {
       if (pancakeStyle === 'chocolate' && !product.name.toLowerCase().includes('chocolate')) {
-        price += 1.0;
+        price += 500;
       }
-      if (pancakeStackSize === '3-stack') price += 1.5;
+      if (pancakeStackSize === '3-stack') price += 1000;
     }
 
     // Toppings pricing
@@ -192,7 +192,7 @@ export default function ProductDetailsScreen({
               </Text>
             </View>
             <Text style={tw`text-2xl font-black text-chocolateBrown`}>
-              ${unitPrice.toFixed(2)}
+              {unitPrice.toLocaleString()} XAF
             </Text>
           </View>
 
@@ -247,7 +247,7 @@ export default function ProductDetailsScreen({
                   onPress={() => setIceCreamScoopCount('double')}
                 >
                   <Text style={tw`text-xs font-bold text-chocolateBrown`}>Double Scoop</Text>
-                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+$1.50</Text>
+                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 000 XAF</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -258,7 +258,7 @@ export default function ProductDetailsScreen({
                   onPress={() => setIceCreamScoopCount('triple')}
                 >
                   <Text style={tw`text-xs font-bold text-chocolateBrown`}>Triple Scoop</Text>
-                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+$2.50</Text>
+                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 500 XAF</Text>
                 </TouchableOpacity>
               </View>
 
@@ -355,7 +355,7 @@ export default function ProductDetailsScreen({
                   onPress={() => setPancakeStackSize('3-stack')}
                 >
                   <Text style={tw`text-xs font-bold text-chocolateBrown`}>3-Stack Giant</Text>
-                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+$1.50</Text>
+                  <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 000 XAF</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -397,7 +397,7 @@ export default function ProductDetailsScreen({
 
                     <View style={tw`flex-row items-center gap-2`}>
                       <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                        +${topping.price.toFixed(2)}
+                        +{topping.price.toLocaleString()} XAF
                       </Text>
                       <View
                         style={[
@@ -466,7 +466,7 @@ export default function ProductDetailsScreen({
           >
             <Ionicons name="cart" size={20} color={COLORS.chocolateBrown} />
             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-              Add to Cart • ${totalPrice.toFixed(2)}
+              Add to Cart • {totalPrice.toLocaleString()} XAF
             </Text>
           </TouchableOpacity>
         </View>
@@ -482,35 +482,35 @@ const AVAILABLE_TOPPINGS = [
     name: 'Warm Belgian Chocolate Ganache',
     tag: 'Hot liquid cocoa drizzle',
     emoji: '🍫',
-    price: 0.75,
+    price: 500,
   },
   {
     id: 'pistachio-crunch',
     name: 'Roasted Sicilian Pistachio Bits',
     tag: 'Salted & crunchy crushed nuts',
     emoji: '🥜',
-    price: 0.75,
+    price: 500,
   },
   {
     id: 'fresh-berries',
     name: 'Fresh Strawberries & Blueberries',
     tag: 'Hand-picked daily berries',
     emoji: '🍓',
-    price: 1.0,
+    price: 600,
   },
   {
     id: 'whipped-cream',
     name: 'Sweet Whipped Cream Cloud',
     tag: 'Light & fluffy dairy cream',
     emoji: '☁️',
-    price: 0.5,
+    price: 300,
   },
   {
     id: 'rainbow-sprinkles',
     name: 'Confetti Rainbow Sprinkles',
     tag: 'Crisp festive sweetness',
     emoji: '🎉',
-    price: 0.4,
+    price: 250,
   },
 ];
 

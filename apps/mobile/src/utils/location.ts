@@ -16,23 +16,21 @@ export const STORE_LOCATION = {
   longitude: 11.5167,
 };
 
-// ─── Delivery fee tiers ───────────────────────────────────────────────────────
-// Adjust these to match your actual pricing
+// ─── Delivery fee tiers (in XAF / FCFA) ──────────────────────────────────────
 export interface DeliveryTier {
   label: string;
   maxKm: number;        // upper bound (exclusive)
   fee: number;          // in XAF (CFA Francs)
-  feeUsd: number;       // in USD
   emoji: string;
   estimatedMinutes: string;
 }
 
 export const DELIVERY_TIERS: DeliveryTier[] = [
-  { label: 'Walking distance (<1 km)', maxKm: 1,    fee: 0,    feeUsd: 0.0, emoji: '🚶', estimatedMinutes: '5–10 min' },
-  { label: 'Nearby (<3 km)',           maxKm: 3,    fee: 500,  feeUsd: 1.0, emoji: '🛵', estimatedMinutes: '10–20 min' },
-  { label: 'City zone (<7 km)',        maxKm: 7,    fee: 1000, feeUsd: 2.0, emoji: '🛵', estimatedMinutes: '20–35 min' },
-  { label: 'Extended zone (<15 km)',   maxKm: 15,   fee: 2000, feeUsd: 3.5, emoji: '🚗', estimatedMinutes: '35–55 min' },
-  { label: 'Far zone (>15 km)',        maxKm: 9999, fee: 3500, feeUsd: 5.0, emoji: '🚗', estimatedMinutes: '55–90 min' },
+  { label: 'Walking distance (<1 km)', maxKm: 1,    fee: 0,    emoji: '🚶', estimatedMinutes: '5–10 min' },
+  { label: 'Nearby (<3 km)',           maxKm: 3,    fee: 500,  emoji: '🛵', estimatedMinutes: '10–20 min' },
+  { label: 'City zone (<7 km)',        maxKm: 7,    fee: 1000, emoji: '🛵', estimatedMinutes: '20–35 min' },
+  { label: 'Extended zone (<15 km)',   maxKm: 15,   fee: 2000, emoji: '🚗', estimatedMinutes: '35–55 min' },
+  { label: 'Far zone (>15 km)',        maxKm: 9999, fee: 3500, emoji: '🚗', estimatedMinutes: '55–90 min' },
 ];
 
 export function getDeliveryTier(distanceKm: number): DeliveryTier {
@@ -127,6 +125,11 @@ export function formatDistance(km: number): string {
 // ─── Format XAF fee ───────────────────────────────────────────────────────────
 export function formatXAF(amount: number): string {
   if (amount === 0) return 'FREE';
+  return `${amount.toLocaleString()} XAF`;
+}
+
+// ─── Format Currency (XAF) ───────────────────────────────────────────────────
+export function formatCurrency(amount: number): string {
   return `${amount.toLocaleString()} XAF`;
 }
 

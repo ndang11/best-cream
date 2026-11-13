@@ -265,7 +265,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                     </View>
                   </View>
                   <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {(item.price * item.quantity).toLocaleString()} XAF
                   </Text>
                 </View>
               ))}
@@ -276,7 +276,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                   <View style={tw`flex-row justify-between mb-1`}>
                     <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery Fee</Text>
                     <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                      ${order.deliveryFee.toFixed(2)} ({formatXAF(order.deliveryFee * 600)})
+                      {formatXAF(order.deliveryFee)}
                     </Text>
                   </View>
                 ) : null}
@@ -290,7 +290,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                     </View>
                   </View>
                   <Text style={tw`text-base font-black text-chocolateBrown`}>
-                    ${order.totalAmount.toFixed(2)}
+                    {order.totalAmount.toLocaleString()} XAF
                   </Text>
                 </View>
               </View>

@@ -73,6 +73,7 @@ export default function DashboardScreen({
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [locationLoading, setLocationLoading] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [isMapExpanded, setIsMapExpanded] = useState(true);
   const [locationResult, setLocationResult] = useState<{
     distanceKm: number;
     tier: DeliveryTier;
@@ -312,7 +313,7 @@ export default function DashboardScreen({
     if (totalCartCount === 0) return;
     setPlacingOrder(true);
 
-    const deliveryFee = locationResult?.tier.feeUsd ?? 0;
+    const deliveryFee = locationResult?.tier.fee ?? 0;
     const grandTotal = totalCartPrice + deliveryFee;
 
     const orderItems = Object.entries(cart).map(([id, qty]) => {
@@ -496,7 +497,7 @@ export default function DashboardScreen({
             </Text>
             {locationResult && (
               <Text style={tw`text-[10px] font-bold text-pistachioGreen mt-0.5`}>
-                {formatDistance(locationResult.distanceKm)} from Centre-ville • {locationResult.tier.feeUsd === 0 ? 'FREE delivery' : `${formatXAF(locationResult.tier.fee)} fee`} • {locationResult.tier.estimatedMinutes}
+                {formatDistance(locationResult.distanceKm)} from Centre-ville • {locationResult.tier.fee === 0 ? 'FREE delivery' : `${formatXAF(locationResult.tier.fee)} fee`} • {locationResult.tier.estimatedMinutes}
               </Text>
             )}
           </View>
@@ -530,6 +531,105 @@ export default function DashboardScreen({
               <TouchableOpacity onPress={() => setSearchQuery('')}>
                 <Ionicons name="close-circle" size={18} color={COLORS.chocolateBrownMuted} />
               </TouchableOpacity>
+            )}
+          </View>
+
+          {/* ── Interactive Yaoundé Map Card on Main Dashboard ── */}
+          <View style={tw`bg-white rounded-3xl p-3.5 my-2 border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center mb-2.5 px-0.5`}>
+              <View style={tw`flex-row items-center gap-2`}>
+                <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
+                  <Ionicons name="map" size={15} color={COLORS.strawberryPink} />
+                </View>
+                <View>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Yaoundé Delivery Map</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted font-semibold`}>
+                    Best Cream Centre-ville • Delivering Across Yaoundé
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={tw`flex-row items-center gap-1 bg-vanillaCream px-2.5 py-1 rounded-xl border border-vanillaCreamDark`}
+                onPress={() => setIsMapExpanded(!isMapExpanded)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name={isMapExpanded ? 'chevron-up' : 'chevron-down'} size={13} color={COLORS.chocolateBrown} />
+                <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                  {isMapExpanded ? 'Hide' : 'View Map'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {isMapExpanded && (
+              <>
+                <YaoundeMapView
+                  userLatitude={locationResult?.latitude}
+                  userLongitude={locationResult?.longitude}
+                  userAddress={locationResult?.displayName || 'Delivery Destination'}
+                  onSelectCoordinates={handleMapSelectCoordinates}
+                  height={185}
+                />
+
+                {/* Status bar under map */}
+                {locationResult ? (
+                  <View style={tw`flex-row justify-between items-center bg-pistachioGreenLight mt-2.5 px-3 py-2 rounded-2xl border border-pistachioGreen/40`}>
+                    <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+                      <Text style={tw`text-sm`}>{locationResult.tier.emoji}</Text>
+                      <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
+                        {locationResult.displayName}
+                      </Text>
+                    </View>
+                    <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                      {formatDistance(locationResult.distanceKm)} • {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={tw`text-[11px] text-chocolateBrownMuted mt-2 px-1`}>
+                    💡 Tap anywhere on the map or select a quarter below:
+                  </Text>
+                )}
+
+                {/* Quick Yaoundé Quarter Chips directly under map */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-2`}>
+                  <TouchableOpacity
+                    style={[
+                      tw`flex-row items-center gap-1 bg-strawberryPinkLight border border-strawberryPink/30 px-2.5 py-1 rounded-xl mr-1.5`,
+                      locationLoading && tw`opacity-70`,
+                    ]}
+                    onPress={detectGPSLocation}
+                    disabled={locationLoading}
+                  >
+                    <Ionicons name="navigate" size={11} color={COLORS.strawberryPink} />
+                    <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                      {locationLoading ? 'GPS...' : 'My GPS'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {Object.keys(YAOUNDE_LANDMARKS).slice(0, 6).map((quarter) => {
+                    const isSel = locationResult?.displayName.toLowerCase().includes(quarter.toLowerCase());
+                    return (
+                      <TouchableOpacity
+                        key={quarter}
+                        style={[
+                          tw`px-2.5 py-1 rounded-xl border border-vanillaCreamDark bg-vanillaCream mr-1.5`,
+                          isSel && tw`bg-strawberryPink border-strawberryPink`,
+                        ]}
+                        onPress={() => selectQuarter(quarter)}
+                      >
+                        <Text
+                          style={[
+                            tw`text-[10px] font-bold text-chocolateBrown`,
+                            isSel && tw`text-white font-black`,
+                          ]}
+                        >
+                          📍 {quarter}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </>
             )}
           </View>
 
@@ -731,8 +831,8 @@ export default function DashboardScreen({
                       {/* Price & Stock Row */}
                       <View style={tw`flex-row justify-between items-center mt-1`}>
                         <View>
-                          <Text style={tw`text-lg font-black text-chocolateBrown`}>
-                            ${product.price.toFixed(2)}
+                          <Text style={tw`text-base font-black text-chocolateBrown`}>
+                            {product.price.toLocaleString()} XAF
                           </Text>
                           <View
                             style={[
@@ -905,7 +1005,7 @@ export default function DashboardScreen({
                           ) : null}
                         </View>
                         <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {(item.price * item.quantity).toLocaleString()} XAF
                         </Text>
                       </View>
                     ))}
@@ -947,7 +1047,7 @@ export default function DashboardScreen({
                     <View style={tw`flex-row items-center gap-1.5`}>
                       <Text style={tw`text-xs text-chocolateBrownMuted`}>Total Paid:</Text>
                       <Text style={tw`text-base font-black text-chocolateBrown`}>
-                        ${order.totalAmount.toFixed(2)}
+                        {order.totalAmount.toLocaleString()} XAF
                       </Text>
                     </View>
                   </View>
@@ -1097,7 +1197,7 @@ export default function DashboardScreen({
               {totalCartCount} item{totalCartCount > 1 ? 's' : ''} in cart
             </Text>
             <Text style={tw`text-base font-black text-white`}>
-              Total: ${totalCartPrice.toFixed(2)}
+              Total: {totalCartPrice.toLocaleString()} XAF
             </Text>
           </View>
           <TouchableOpacity
@@ -1242,7 +1342,7 @@ export default function DashboardScreen({
                           Flavor: {item.flavor}
                         </Text>
                         <Text style={tw`text-xs font-bold text-chocolateBrown mt-0.5`}>
-                          ${item.price.toFixed(2)} each
+                          {item.price.toLocaleString()} XAF each
                         </Text>
                       </View>
                       <View style={tw`flex-row items-center bg-vanillaCream rounded-xl border border-vanillaCreamDark p-1 gap-2`}>
@@ -1404,7 +1504,7 @@ export default function DashboardScreen({
                             ⏱️ Est. arrival: <Text style={tw`font-bold text-chocolateBrown`}>{locationResult.tier.estimatedMinutes}</Text>
                           </Text>
                           <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                            Fee: {locationResult.tier.feeUsd === 0 ? 'FREE' : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`}
+                            Fee: {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
                           </Text>
                         </View>
 
@@ -1432,7 +1532,7 @@ export default function DashboardScreen({
                     <View style={tw`flex-row justify-between`}>
                       <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
                       <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                        ${totalCartPrice.toFixed(2)}
+                        {totalCartPrice.toLocaleString()} XAF
                       </Text>
                     </View>
                     <View style={tw`flex-row justify-between items-center`}>
@@ -1447,13 +1547,13 @@ export default function DashboardScreen({
                       <Text
                         style={[
                           tw`text-xs font-bold`,
-                          (locationResult?.tier.feeUsd ?? 0) === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
+                          (locationResult?.tier.fee ?? 0) === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
                         ]}
                       >
                         {locationResult
-                          ? locationResult.tier.feeUsd === 0
+                          ? locationResult.tier.fee === 0
                             ? 'FREE'
-                            : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`
+                            : formatXAF(locationResult.tier.fee)
                           : 'FREE / Pickup'}
                       </Text>
                     </View>
@@ -1461,7 +1561,7 @@ export default function DashboardScreen({
                       <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
                       <View style={tw`items-end`}>
                         <Text style={tw`text-base font-black text-chocolateBrown`}>
-                          ${(totalCartPrice + (locationResult?.tier.feeUsd ?? 0)).toFixed(2)}
+                          {(totalCartPrice + (locationResult?.tier.fee ?? 0)).toLocaleString()} XAF
                         </Text>
                         {locationResult && locationResult.tier.fee > 0 && (
                           <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
@@ -1487,7 +1587,7 @@ export default function DashboardScreen({
                     ) : (
                       <>
                         <Text style={tw`text-sm font-black text-chocolateBrown`}>
-                          Pay ${(totalCartPrice + (locationResult?.tier.feeUsd ?? 0)).toFixed(2)} via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
+                          Pay {(totalCartPrice + (locationResult?.tier.fee ?? 0)).toLocaleString()} XAF via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
                         </Text>
                         <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
                       </>
@@ -1662,9 +1762,9 @@ export default function DashboardScreen({
                     <View style={tw`items-end`}>
                       <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Delivery Fee</Text>
                       <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                        {locationResult.tier.feeUsd === 0
+                        {locationResult.tier.fee === 0
                           ? 'FREE'
-                          : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`}
+                          : formatXAF(locationResult.tier.fee)}
                       </Text>
                     </View>
                   </View>
@@ -1704,7 +1804,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'ice-cream',
     flavor: 'Pure Madagascar Vanilla',
     description: 'Smooth, creamy, handcrafted churned fresh with real vanilla bean pods.',
-    price: 4.5,
+    price: 2500,
     inStock: true,
     rating: 4.9,
     imageUrl: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80',
@@ -1715,7 +1815,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'ice-cream',
     flavor: 'Rich Double Chocolate',
     description: 'Deep cocoa blend with warm decadent fudge ribbon ripples.',
-    price: 5.0,
+    price: 3000,
     inStock: true,
     rating: 5.0,
     imageUrl: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80',
@@ -1728,7 +1828,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'ice-cream',
     flavor: 'Wild Strawberry & Cream',
     description: 'Infused with ripe sun-kissed berries and gentle sweet cream.',
-    price: 4.75,
+    price: 2500,
     inStock: true,
     rating: 4.8,
     imageUrl: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&auto=format&fit=crop&q=80',
@@ -1739,7 +1839,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'ice-cream',
     flavor: 'Roasted Sicilian Pistachio',
     description: 'Creamy pistachio base folded with lightly salted roasted crushed nuts.',
-    price: 5.5,
+    price: 3500,
     inStock: true,
     rating: 4.9,
     imageUrl: 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?w=500&auto=format&fit=crop&q=80',
@@ -1752,7 +1852,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'pancake',
     flavor: 'Warm Chocolate Lava',
     description: 'Fluffy golden pancakes smothered in hot Belgian chocolate ganache.',
-    price: 6.5,
+    price: 3500,
     inStock: true,
     rating: 5.0,
     imageUrl: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=500&auto=format&fit=crop&q=80',
@@ -1765,7 +1865,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'pancake',
     flavor: 'Buttermilk & Honey Butter',
     description: 'Traditional light, fluffy pancakes served with real butter and maple syrup.',
-    price: 5.5,
+    price: 3000,
     inStock: true,
     rating: 4.7,
     imageUrl: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500&auto=format&fit=crop&q=80',
@@ -1776,7 +1876,7 @@ const FALLBACK_MENU: MenuItem[] = [
     category: 'combo',
     flavor: 'Pancake Stack + 2 Ice Cream Scoops',
     description: 'Hot fluffy pancakes paired with your choice of 2 chilled artisanal scoops.',
-    price: 8.5,
+    price: 5000,
     inStock: true,
     rating: 5.0,
     imageUrl: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=500&auto=format&fit=crop&q=80',
@@ -1793,7 +1893,7 @@ const FALLBACK_ORDERS: Order[] = [
         id: 'item-1',
         menuItemId: '5',
         name: 'Chocolate Drizzle Stack',
-        price: 6.5,
+        price: 3500,
         quantity: 1,
         flavor: 'Warm Chocolate Lava',
         category: 'pancake',
@@ -1802,13 +1902,13 @@ const FALLBACK_ORDERS: Order[] = [
         id: 'item-2',
         menuItemId: '1',
         name: 'Vanilla Bean Bliss',
-        price: 4.5,
+        price: 2500,
         quantity: 1,
         flavor: 'Pure Madagascar Vanilla',
         category: 'ice-cream',
       },
     ],
-    totalAmount: 11.0,
+    totalAmount: 6000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 670 123 456',
     status: 'pending',
