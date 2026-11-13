@@ -41,6 +41,8 @@ export interface Order {
   deliveryAddress?: string;
   deliveryFee?: number;
   distanceKm?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ApiResponse<T> {

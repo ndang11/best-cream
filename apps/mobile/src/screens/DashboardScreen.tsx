@@ -18,6 +18,7 @@ import * as ExpoLocation from 'expo-location';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
+import YaoundeMapView from '../components/YaoundeMapView';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import {
@@ -75,6 +76,8 @@ export default function DashboardScreen({
     tier: DeliveryTier;
     displayName: string;
     source: 'gps' | 'address';
+    latitude?: number;
+    longitude?: number;
   } | null>(null);
 
   // Fetch Menu from Server
@@ -182,7 +185,7 @@ export default function DashboardScreen({
         .join(', ') || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 
       setDeliveryAddress(displayName);
-      setLocationResult({ distanceKm, tier, displayName, source: 'gps' });
+      setLocationResult({ distanceKm, tier, displayName, source: 'gps', latitude, longitude });
     } catch {
       Alert.alert('GPS Error', 'Could not get your location. Please type your address instead.');
     } finally {
@@ -213,7 +216,14 @@ export default function DashboardScreen({
         STORE_LOCATION.latitude, STORE_LOCATION.longitude
       );
       const tier = getDeliveryTier(distanceKm);
-      setLocationResult({ distanceKm, tier, displayName: result.displayName, source: 'address' });
+      setLocationResult({
+        distanceKm,
+        tier,
+        displayName: result.displayName,
+        source: 'address',
+        latitude: result.latitude,
+        longitude: result.longitude,
+      });
     } catch {
       Alert.alert('Geocoding Error', 'Could not look up the address. Check your connection and try again.');
     } finally {
@@ -238,9 +248,53 @@ export default function DashboardScreen({
         STORE_LOCATION.longitude
       );
       const tier = getDeliveryTier(distanceKm);
-      setLocationResult({ distanceKm, tier, displayName: result.displayName, source: 'address' });
+      setLocationResult({
+        distanceKm,
+        tier,
+        displayName: result.displayName,
+        source: 'address',
+        latitude: result.latitude,
+        longitude: result.longitude,
+      });
     } catch {
       Alert.alert('Error', 'Could not compute distance.');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // ── Location: User taps directly on the interactive map ──────────────────
+  const handleMapSelectCoordinates = async (lat: number, lon: number) => {
+    setLocationLoading(true);
+    try {
+      const distanceKm = haversineDistanceKm(
+        lat, lon,
+        STORE_LOCATION.latitude, STORE_LOCATION.longitude
+      );
+      const tier = getDeliveryTier(distanceKm);
+
+      let displayName = `${lat.toFixed(4)}, ${lon.toFixed(4)} (Yaoundé)`;
+      try {
+        const [place] = await ExpoLocation.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+        if (place) {
+          const formatted = [place.street, place.district, place.city].filter(Boolean).join(', ');
+          if (formatted) displayName = formatted;
+        }
+      } catch {
+        // Fallback to formatted coordinates
+      }
+
+      setDeliveryAddress(displayName);
+      setLocationResult({
+        distanceKm,
+        tier,
+        displayName,
+        source: 'gps',
+        latitude: lat,
+        longitude: lon,
+      });
+    } catch {
+      Alert.alert('Map Error', 'Could not select this point on the map.');
     } finally {
       setLocationLoading(false);
     }
@@ -284,6 +338,8 @@ export default function DashboardScreen({
           deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
           deliveryFee,
           distanceKm: locationResult?.distanceKm ?? 0,
+          latitude: locationResult?.latitude,
+          longitude: locationResult?.longitude,
         }),
       });
 
@@ -312,6 +368,8 @@ export default function DashboardScreen({
         deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
         deliveryFee,
         distanceKm: locationResult?.distanceKm ?? 0,
+        latitude: locationResult?.latitude,
+        longitude: locationResult?.longitude,
       };
       setOrders((prev) => [fallbackNewOrder, ...prev]);
       clearCart();
@@ -1342,6 +1400,18 @@ export default function DashboardScreen({
                             Fee: {locationResult.tier.feeUsd === 0 ? 'FREE' : `$${locationResult.tier.feeUsd.toFixed(2)} (${formatXAF(locationResult.tier.fee)})`}
                           </Text>
                         </View>
+
+                        {/* Interactive Yaoundé Map Preview */}
+                        {locationResult.latitude && locationResult.longitude && (
+                          <View style={tw`mt-2.5 rounded-xl overflow-hidden`}>
+                            <YaoundeMapView
+                              userLatitude={locationResult.latitude}
+                              userLongitude={locationResult.longitude}
+                              userAddress={locationResult.displayName}
+                              height={130}
+                            />
+                          </View>
+                        )}
                       </View>
                     ) : (
                       <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1 ml-1`}>
@@ -1533,6 +1603,25 @@ export default function DashboardScreen({
                     </TouchableOpacity>
                   );
                 })}
+              </View>
+
+              {/* ── Interactive Map of Yaoundé ── */}
+              <View style={tw`mb-4`}>
+                <View style={tw`flex-row justify-between items-center mb-1.5`}>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    🗺️ Yaoundé Delivery Map
+                  </Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>
+                    Tap on map to pick location
+                  </Text>
+                </View>
+                <YaoundeMapView
+                  userLatitude={locationResult?.latitude}
+                  userLongitude={locationResult?.longitude}
+                  userAddress={locationResult?.displayName || 'Delivery Destination'}
+                  onSelectCoordinates={handleMapSelectCoordinates}
+                  height={210}
+                />
               </View>
 
               {/* 4. Result Preview Card */}

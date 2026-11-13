@@ -25,6 +25,7 @@ import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import { Order } from '@best-cream/shared';
+import YaoundeMapView from '../components/YaoundeMapView';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -218,6 +219,7 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: OrderCardProps) {
+  const [showMap, setShowMap] = useState(false);
   const sc = statusColor(order.status);
   const isPending = order.status === 'pending';
   const isApproved = order.status === 'approved';
@@ -291,20 +293,41 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
           </View>
         </View>
 
-        {/* ── Delivery Location if available ── */}
+        {/* ── Delivery Location with Map Toggle ── */}
         {order.deliveryAddress ? (
-          <View style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark mb-3`}>
-            <Ionicons name="location-sharp" size={14} color={COLORS.strawberryPink} />
-            <Text style={tw`text-xs font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
-              {order.deliveryAddress}
-            </Text>
-            {order.distanceKm ? (
-              <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
-                  {order.distanceKm.toFixed(1)} km
-                </Text>
+          <View style={tw`mb-3`}>
+            <TouchableOpacity
+              style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark`}
+              onPress={() => setShowMap(!showMap)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="location-sharp" size={14} color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
+                {order.deliveryAddress}
+              </Text>
+              {order.distanceKm ? (
+                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                  <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                    {order.distanceKm.toFixed(1)} km
+                  </Text>
+                </View>
+              ) : null}
+              <View style={tw`bg-white px-1.5 py-0.5 rounded-md border border-vanillaCreamDark ml-1 flex-row items-center gap-0.5`}>
+                <Ionicons name={showMap ? 'map' : 'map-outline'} size={11} color={COLORS.strawberryPink} />
+                <Text style={tw`text-[9px] font-bold text-strawberryPink`}>{showMap ? 'Hide' : 'Map'}</Text>
               </View>
-            ) : null}
+            </TouchableOpacity>
+
+            {showMap && (
+              <View style={tw`mt-2 rounded-xl overflow-hidden`}>
+                <YaoundeMapView
+                  userLatitude={order.latitude}
+                  userLongitude={order.longitude}
+                  userAddress={order.deliveryAddress}
+                  height={130}
+                />
+              </View>
+            )}
           </View>
         ) : null}
 
