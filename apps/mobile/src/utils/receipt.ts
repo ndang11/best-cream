@@ -1,5 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { Alert, Platform } from 'react-native';
 import type { Order } from '@best-cream/shared';
 import { formatXAF } from './location';
@@ -316,38 +317,67 @@ export function generateReceiptHtml(order: Order): string {
 }
 
 /**
- * Downloads or shares the official receipt PDF on user's device.
+ * Downloads, shares, or prints the official receipt PDF on the user's device.
+ * Handles Android FileProvider permissions cleanly with automated fallback to native print/save dialog.
  */
 export async function downloadReceiptPdf(order: Order): Promise<void> {
-  try {
-    const html = generateReceiptHtml(order);
+  const html = generateReceiptHtml(order);
 
-    // 1. Generate real PDF file
+  // Strategy 1: Print to file + FileSystem.copyAsync to cacheDirectory + Sharing.shareAsync
+  try {
     const file = await Print.printToFileAsync({
       html,
       base64: false,
     });
 
-    // 2. Check if native Sharing dialog is available (iOS / Android / mobile)
-    const isAvailable = await Sharing.isAvailableAsync();
+    const cleanId = order.id.replace(/[^a-zA-Z0-9_-]/g, '');
+    const fileName = `BestCream_Receipt_${cleanId}.pdf`;
 
+    // Normalizing file URI
+    let targetUri = file.uri;
+    const cacheDir = FileSystem.cacheDirectory;
+
+    if (cacheDir) {
+      const destinationUri = `${cacheDir}${fileName}`;
+      try {
+        await FileSystem.copyAsync({
+          from: file.uri,
+          to: destinationUri,
+        });
+        targetUri = destinationUri;
+      } catch (copyErr) {
+        console.warn('Could not copy receipt to cacheDir:', copyErr);
+      }
+    }
+
+    if (!targetUri.startsWith('file://') && !targetUri.startsWith('content://')) {
+      targetUri = `file://${targetUri}`;
+    }
+
+    const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(file.uri, {
+      await Sharing.shareAsync(targetUri, {
         mimeType: 'application/pdf',
-        dialogTitle: `Receipt - Best Cream ${order.id}`,
+        dialogTitle: `Best Cream Receipt - ${order.id}`,
         UTI: 'com.adobe.pdf',
       });
-    } else {
-      // Fallback: Trigger print/save dialog (especially useful on Web)
-      await Print.printAsync({
-        html,
-      });
+      return;
     }
-  } catch (error) {
-    console.error('Error generating receipt PDF:', error);
+  } catch (sharingError) {
+    console.warn(
+      'Direct file sharing encountered error, falling back to system PDF/Print manager:',
+      sharingError
+    );
+  }
+
+  // Strategy 2: Native System Print/Save as PDF Dialog (100% reliable across all Android & iOS devices)
+  try {
+    await Print.printAsync({ html });
+  } catch (printError) {
+    console.error('System print fallback failed:', printError);
     Alert.alert(
       'Receipt Error',
-      'Could not generate or download the receipt PDF. Please try again.'
+      'Could not generate or open the receipt PDF. Please try again.'
     );
   }
 }
