@@ -19,6 +19,7 @@ import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import YaoundeMapView from '../components/YaoundeMapView';
+import OrderTrackingModal from '../components/OrderTrackingModal';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import {
@@ -66,6 +67,7 @@ export default function DashboardScreen({
   const [paymentMethod, setPaymentMethod] = useState<'mtn-momo' | 'orange-money'>('mtn-momo');
   const [phoneNumber, setPhoneNumber] = useState('+237 670 123 456');
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
 
   // Location & Delivery State
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -349,10 +351,7 @@ export default function DashboardScreen({
         clearCart();
         closeCartModal();
         setActiveTab('orders');
-        Alert.alert(
-          '🎉 Order Placed!',
-          `Payment via ${paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'} is PENDING.\nOur team will approve and prepare your treat right away!`
-        );
+        setSelectedOrderForTracking(json.data);
       } else {
         throw new Error('Order submission failed');
       }
@@ -375,10 +374,7 @@ export default function DashboardScreen({
       clearCart();
       closeCartModal();
       setActiveTab('orders');
-      Alert.alert(
-        '🎉 Order Placed (Demo Mode)',
-        `Payment via ${paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'} is PENDING.\nIt will update to Approved shortly!`
-      );
+      setSelectedOrderForTracking(fallbackNewOrder);
     } finally {
       setPlacingOrder(false);
     }
@@ -930,13 +926,24 @@ export default function DashboardScreen({
                     </View>
                   ) : null}
 
-                  {/* Footer */}
+                  {/* Footer with Track button */}
                   <View style={tw`flex-row justify-between items-center border-t border-vanillaCreamDark pt-2.5`}>
-                    <View style={tw`bg-vanillaCream px-2 py-1 rounded-lg`}>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                        {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
-                      </Text>
+                    <View style={tw`flex-row items-center gap-1.5`}>
+                      <View style={tw`bg-vanillaCream px-2 py-1 rounded-lg`}>
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                          {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={tw`flex-row items-center gap-1 bg-strawberryPinkLight px-2 py-1 rounded-lg border border-strawberryPink/30`}
+                        onPress={() => setSelectedOrderForTracking(order)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="map-outline" size={12} color={COLORS.strawberryPink} />
+                        <Text style={tw`text-[11px] font-black text-strawberryPink`}>Track 🛵</Text>
+                      </TouchableOpacity>
                     </View>
+
                     <View style={tw`flex-row items-center gap-1.5`}>
                       <Text style={tw`text-xs text-chocolateBrownMuted`}>Total Paid:</Text>
                       <Text style={tw`text-base font-black text-chocolateBrown`}>
@@ -1678,6 +1685,13 @@ export default function DashboardScreen({
           </View>
         </View>
       </Modal>
+
+      {/* ── Customer Live Order Tracking & Receipt Modal ── */}
+      <OrderTrackingModal
+        order={selectedOrderForTracking}
+        visible={!!selectedOrderForTracking}
+        onClose={() => setSelectedOrderForTracking(null)}
+      />
     </SafeAreaView>
   );
 }
