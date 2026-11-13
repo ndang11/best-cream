@@ -1420,21 +1420,26 @@ export default function DashboardScreen({
                       </View>
                     </View>
 
-                    {/* Action Buttons Row */}
-                    <View style={tw`flex-row items-center gap-2`}>
-                      {/* Live Track Button */}
-                      <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-strawberryPink py-2.5 rounded-xl shadow-sm`}
-                        onPress={() => setSelectedOrderForTracking(order)}
-                        activeOpacity={0.85}
+                    {/* Primary Action Button: Track Live Order (Full width - no text overflow) */}
+                    <TouchableOpacity
+                      style={tw`w-full flex-row items-center justify-center gap-2 bg-strawberryPink py-3 rounded-2xl shadow-sm mb-2`}
+                      onPress={() => setSelectedOrderForTracking(order)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="map" size={15} color={COLORS.chocolateBrown} />
+                      <Text
+                        style={tw`text-xs font-black text-chocolateBrown tracking-wide`}
+                        numberOfLines={1}
                       >
-                        <Ionicons name="map" size={13} color={COLORS.chocolateBrown} />
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Track Live 🛵</Text>
-                      </TouchableOpacity>
+                        Track Live Order 🛵
+                      </Text>
+                    </TouchableOpacity>
 
+                    {/* Secondary Actions: Receipt, Reorder, Delete */}
+                    <View style={tw`flex-row items-center gap-2`}>
                       {/* Download Receipt Button */}
                       <TouchableOpacity
-                        style={tw`flex-row items-center justify-center gap-1 bg-white px-3 py-2.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
                         onPress={() => handleDownloadReceipt(order)}
                         disabled={downloadingOrderId === order.id}
                         activeOpacity={0.8}
@@ -1444,28 +1449,38 @@ export default function DashboardScreen({
                         ) : (
                           <>
                             <Ionicons name="document-text-outline" size={14} color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-xs font-bold text-chocolateBrown`}>Receipt</Text>
+                            <Text
+                              style={tw`text-xs font-bold text-chocolateBrown`}
+                              numberOfLines={1}
+                            >
+                              Receipt (PDF)
+                            </Text>
                           </>
                         )}
                       </TouchableOpacity>
 
                       {/* Reorder Button */}
                       <TouchableOpacity
-                        style={tw`flex-row items-center justify-center gap-1 bg-vanillaCream px-3 py-2.5 rounded-xl border border-vanillaCreamDark`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-vanillaCream py-2.5 rounded-xl border border-vanillaCreamDark`}
                         onPress={() => handleReorder(order)}
                         activeOpacity={0.8}
                       >
                         <Ionicons name="repeat" size={14} color={COLORS.chocolateBrown} />
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>Reorder</Text>
+                        <Text
+                          style={tw`text-xs font-bold text-chocolateBrown`}
+                          numberOfLines={1}
+                        >
+                          Reorder 🔁
+                        </Text>
                       </TouchableOpacity>
 
                       {/* Delete Button */}
                       <TouchableOpacity
-                        style={tw`w-9 h-9 rounded-xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}
+                        style={tw`w-10 h-10 rounded-xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}
                         onPress={() => deleteOrder(order.id)}
                         activeOpacity={0.7}
                       >
-                        <Ionicons name="trash-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                        <Ionicons name="trash-outline" size={15} color={COLORS.chocolateBrownMuted} />
                       </TouchableOpacity>
                     </View>
                   </View>
