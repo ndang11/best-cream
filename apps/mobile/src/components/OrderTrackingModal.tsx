@@ -29,6 +29,7 @@ import { COLORS } from '../theme/colors';
 import YaoundeMapView from './YaoundeMapView';
 import { STORE_LOCATION, formatDistance, formatXAF } from '../utils/location';
 import { downloadReceiptPdf } from '../utils/receipt';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OrderTrackingModalProps {
   order: Order | null;
@@ -39,6 +40,7 @@ interface OrderTrackingModalProps {
 export default function OrderTrackingModal({ order, visible, onClose }: OrderTrackingModalProps) {
   if (!order) return null;
 
+  const { t, language } = useLanguage();
   const [downloading, setDownloading] = useState(false);
 
   const isPending = order.status === 'pending';
@@ -51,7 +53,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
   const handleCallShop = () => {
     const phoneNumber = '+237670123456';
     Linking.openURL(`tel:${phoneNumber}`).catch(() => {
-      Alert.alert('Phone Call', `Best Cream Yaoundé: ${phoneNumber}`);
+      Alert.alert(t('callShop'), `Best Cream Yaoundé: ${phoneNumber}`);
     });
   };
 
@@ -63,37 +65,35 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
 
   const steps = [
     {
-      title: 'Order Placed',
-      desc: 'Received by Best Cream',
+      title: t('orderReceived'),
+      desc: t('orderReceivedDesc'),
       icon: 'receipt-outline',
       done: true,
       active: currentStep === 0,
     },
     {
-      title: 'Payment Status',
+      title: t('paymentStatus'),
       desc: isPending
-        ? `Pending ${order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'} approval`
-        : 'Payment Verified & Confirmed',
+        ? `${t('pendingPayment')} (${order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'})`
+        : t('paymentVerified'),
       icon: isPending ? 'time-outline' : 'checkmark-circle-outline',
       done: !isPending,
       active: currentStep === 1,
     },
     {
-      title: 'Preparing Treats',
-      desc: isPending
-        ? 'Awaiting order approval'
-        : 'Churning scoops & fresh pancake bake',
+      title: t('preparingTreats'),
+      desc: isPending ? t('pendingPayment') : t('preparingDesc'),
       icon: 'ice-cream-outline',
       done: isReceived || isApproved,
       active: currentStep === 2,
     },
     {
-      title: isReceived ? 'Delivered & Received' : 'Out for Delivery',
+      title: isReceived ? t('deliveredStatus') : t('outForDelivery'),
       desc: isReceived
-        ? 'Delivered to your destination'
+        ? t('deliveredToYou')
         : order.deliveryAddress
-        ? `Rider on the way to ${order.deliveryAddress}`
-        : 'Ready for pickup at Centre-ville',
+        ? `${t('outForDelivery')} ➔ ${order.deliveryAddress}`
+        : t('readyPickup'),
       icon: 'bicycle-outline',
       done: isReceived,
       active: currentStep === 3,
@@ -134,12 +134,12 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                         : tw`text-amber-800`,
                     ]}
                   >
-                    {isApproved ? 'Approved ✅' : isReceived ? 'Delivered 🎉' : 'Pending ⏳'}
+                    {isApproved ? t('approvedStatus') : isReceived ? t('deliveredStatus') : t('pendingStatus')}
                   </Text>
                 </View>
               </View>
               <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-                {new Date(order.createdAt).toLocaleDateString('en-GB', {
+                {new Date(order.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-GB', {
                   day: '2-digit',
                   month: 'short',
                   hour: '2-digit',
@@ -175,7 +175,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             {/* ── 4-Stage Live Delivery Progress Stepper ── */}
             <View style={tw`bg-vanillaCream rounded-2xl p-4 mb-4 border border-vanillaCreamDark`}>
               <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
-                Live Order Progress
+                {t('liveOrderProgress')}
               </Text>
 
               {steps.map((s, idx) => {
@@ -237,12 +237,12 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             <View style={tw`mb-4`}>
               <View style={tw`flex-row justify-between items-center mb-1.5`}>
                 <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                  Delivery Map • Yaoundé 🗺️
+                  {t('liveRiderMap')} 🗺️
                 </Text>
                 {order.distanceKm ? (
                   <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-full border border-pistachioGreen/40`}>
                     <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
-                      {formatDistance(order.distanceKm)} from Centre-ville
+                      {formatDistance(order.distanceKm)} {t('fromCenterVille')}
                     </Text>
                   </View>
                 ) : null}
@@ -251,7 +251,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               <YaoundeMapView
                 userLatitude={order.latitude}
                 userLongitude={order.longitude}
-                userAddress={order.deliveryAddress || 'Delivery Destination'}
+                userAddress={order.deliveryAddress || t('destination')}
                 height={160}
               />
             </View>
@@ -261,20 +261,20 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-vanillaCreamDark shadow-sm`}>
                 <View style={tw`flex-row items-center gap-2 mb-1`}>
                   <Ionicons name="location" size={16} color={COLORS.strawberryPink} />
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Destination</Text>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('destination')}</Text>
                 </View>
                 <Text style={tw`text-xs font-semibold text-chocolateBrownLight pl-6`}>
                   {order.deliveryAddress}
                 </Text>
                 <Text style={tw`text-[11px] text-chocolateBrownMuted pl-6 mt-1`}>
-                  Account: {order.phoneNumber}
+                  {t('accountLabel')}: {order.phoneNumber}
                 </Text>
               </View>
             ) : null}
 
             {/* ── Order Items Summary ── */}
             <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-vanillaCreamDark shadow-sm`}>
-              <Text style={tw`text-xs font-black text-chocolateBrown mb-2.5`}>Items in this Order</Text>
+              <Text style={tw`text-xs font-black text-chocolateBrown mb-2.5`}>{t('itemsInOrder')}</Text>
               {order.items.map((item, idx) => (
                 <View key={idx} style={tw`flex-row justify-between items-center py-1.5 border-b border-vanillaCreamDark/60`}>
                   <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
@@ -298,7 +298,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               <View style={tw`pt-2.5 mt-1`}>
                 {order.deliveryFee ? (
                   <View style={tw`flex-row justify-between mb-1`}>
-                    <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery Fee</Text>
+                    <Text style={tw`text-xs text-chocolateBrownMuted`}>{t('deliveryFeeLabel')}</Text>
                     <Text style={tw`text-xs font-bold text-chocolateBrown`}>
                       {formatXAF(order.deliveryFee)}
                     </Text>
@@ -306,7 +306,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                 ) : null}
                 <View style={tw`flex-row justify-between items-center pt-1 border-t border-vanillaCreamDark`}>
                   <View style={tw`flex-row items-center gap-1.5`}>
-                    <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Paid:</Text>
+                    <Text style={tw`text-sm font-black text-chocolateBrown`}>{t('totalPaidLabel')}</Text>
                     <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-lg border border-vanillaCreamDark`}>
                       <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
                         {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
@@ -334,14 +334,14 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                 <>
                   <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                   <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                    Generating PDF Receipt…
+                    {t('generatingPdfReceipt')}
                   </Text>
                 </>
               ) : (
                 <>
                   <Ionicons name="document-text" size={17} color={COLORS.chocolateBrown} />
                   <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                    Download Official Receipt (PDF) 📥
+                    {t('downloadOfficialReceipt')}
                   </Text>
                 </>
               )}
@@ -355,7 +355,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             >
               <Ionicons name="call" size={16} color={COLORS.chocolateBrown} />
               <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                Call Best Cream Shop (+237 670 123 456)
+                {t('callShopNumber')}
               </Text>
             </TouchableOpacity>
           </ScrollView>

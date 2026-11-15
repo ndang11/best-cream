@@ -22,6 +22,9 @@ import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScree
 import YaoundeMapView from '../components/YaoundeMapView';
 import OrderTrackingModal from '../components/OrderTrackingModal';
 import { downloadReceiptPdf } from '../utils/receipt';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
+import type { Language, TranslationKey } from '../utils/i18n';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import {
@@ -48,25 +51,25 @@ type TabType = 'menu' | 'orders' | 'deals' | 'profile';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
 type OrderFilterType = 'all' | 'active' | 'pending' | 'completed';
 
-function formatOrderDate(iso: string): string {
+function formatOrderDate(iso: string, lang: Language = 'en'): string {
   try {
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return 'Recent';
+    if (isNaN(d.getTime())) return lang === 'fr' ? 'Récent' : 'Recent';
     const now = new Date();
     const isToday = d.toDateString() === now.toDateString();
     const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (isToday) return `Today at ${time}`;
-    return `${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}, ${time}`;
+    if (isToday) return lang === 'fr' ? `Aujourd'hui à ${time}` : `Today at ${time}`;
+    return `${d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'short' })}, ${time}`;
   } catch {
-    return 'Recent';
+    return lang === 'fr' ? 'Récent' : 'Recent';
   }
 }
 
-function getOrderStatusInfo(status: Order['status']) {
+function getOrderStatusInfo(status: Order['status'], t: (key: TranslationKey) => string) {
   switch (status) {
     case 'approved':
       return {
-        label: 'Preparing & Delivery',
+        label: t('preparingStatus'),
         emoji: '🛵',
         step: 2,
         bg: 'bg-pistachioGreenLight',
@@ -77,7 +80,7 @@ function getOrderStatusInfo(status: Order['status']) {
       };
     case 'received':
       return {
-        label: 'Delivered',
+        label: t('delivered'),
         emoji: '🎉',
         step: 3,
         bg: 'bg-blue-50',
@@ -89,7 +92,7 @@ function getOrderStatusInfo(status: Order['status']) {
     case 'pending':
     default:
       return {
-        label: 'Pending Approval',
+        label: t('pendingStatus'),
         emoji: '⏳',
         step: 1,
         bg: 'bg-butterYellowLight',
@@ -109,6 +112,7 @@ export default function DashboardScreen({
   userName = 'Sweet Tooth',
   isNewUser = false,
 }: DashboardScreenProps) {
+  const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>('menu');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -558,10 +562,10 @@ export default function DashboardScreen({
           </View>
           <View style={tw`flex-1`}>
             <Text style={tw`text-lg font-black text-chocolateBrown tracking-wide`} numberOfLines={1}>
-              {isNewUser ? `Welcome ${userName}` : `Welcome back ${userName}`}
+              {isNewUser ? `${t('welcomeUser')} ${userName}` : `${t('welcomeBackUser')} ${userName}`}
             </Text>
             <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-0.5`} numberOfLines={1}>
-              Ready for today's fresh treats?
+              {t('readyForTreats')}
             </Text>
           </View>
         </View>
@@ -648,7 +652,7 @@ export default function DashboardScreen({
             <Ionicons name="search" size={18} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
             <TextInput
               style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
-              placeholder="Search daily scoops, pancakes..."
+              placeholder={t('searchPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -806,7 +810,7 @@ export default function DashboardScreen({
                   selectedCategory === 'all' && tw`text-chocolateBrown font-black`,
                 ]}
               >
-                All Flavors
+                {t('allTreats')}
               </Text>
             </TouchableOpacity>
 
@@ -828,7 +832,7 @@ export default function DashboardScreen({
                   selectedCategory === 'ice-cream' && tw`text-chocolateBrown font-black`,
                 ]}
               >
-                Ice Cream
+                {t('iceCream')}
               </Text>
             </TouchableOpacity>
 
@@ -850,7 +854,7 @@ export default function DashboardScreen({
                   selectedCategory === 'pancake' && tw`text-chocolateBrown font-black`,
                 ]}
               >
-                Pancakes
+                {t('pancakeCategory')}
               </Text>
             </TouchableOpacity>
 
@@ -872,7 +876,7 @@ export default function DashboardScreen({
                   selectedCategory === 'combo' && tw`text-chocolateBrown font-black`,
                 ]}
               >
-                Combos
+                {t('combosCategory')}
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -1042,9 +1046,9 @@ export default function DashboardScreen({
           {/* 1. Header & Title */}
           <View style={tw`flex-row justify-between items-center mb-3`}>
             <View>
-              <Text style={tw`text-2xl font-black text-chocolateBrown`}>My Orders</Text>
+              <Text style={tw`text-2xl font-black text-chocolateBrown`}>{t('myOrders')}</Text>
               <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-                Real-time tracking, live timeline & receipts
+                {t('ordersSubtitle')}
               </Text>
             </View>
             <TouchableOpacity
@@ -1066,36 +1070,36 @@ export default function DashboardScreen({
             <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
-                  Total
+                  {t('totalPlaced')}
                 </Text>
                 <Text style={tw`text-sm`}>🧾</Text>
               </View>
               <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.all}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Placed orders</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('placedOrders')}</Text>
             </View>
 
             {/* In Progress */}
             <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-pistachioGreen uppercase tracking-wider`}>
-                  Active
+                  {t('activeOrders')}
                 </Text>
                 <View style={tw`w-2 h-2 rounded-full bg-pistachioGreen`} />
               </View>
               <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.active}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>In kitchen / transit</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('inKitchenTransit')}</Text>
             </View>
 
             {/* Completed */}
             <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-blue-600 uppercase tracking-wider`}>
-                  Done
+                  {t('completedOrders')}
                 </Text>
                 <Text style={tw`text-sm`}>🎉</Text>
               </View>
               <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.completed}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Delivered</Text>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('delivered')}</Text>
             </View>
           </View>
 
@@ -1104,7 +1108,7 @@ export default function DashboardScreen({
             <Ionicons name="search-outline" size={17} color={COLORS.chocolateBrownMuted} />
             <TextInput
               style={tw`flex-1 text-xs text-chocolateBrown ml-2`}
-              placeholder="Search order ID, flavor, or destination…"
+              placeholder={t('searchOrdersPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={orderSearchQuery}
               onChangeText={setOrderSearchQuery}
@@ -1124,10 +1128,10 @@ export default function DashboardScreen({
             contentContainerStyle={tw`gap-2 pb-3`}
           >
             {[
-              { id: 'all', label: 'All Orders', count: orderCounts.all },
-              { id: 'active', label: 'Active 🛵', count: orderCounts.active },
-              { id: 'pending', label: 'Pending ⏳', count: orderCounts.pending },
-              { id: 'completed', label: 'Completed ✅', count: orderCounts.completed },
+              { id: 'all', label: t('allTab'), count: orderCounts.all },
+              { id: 'active', label: t('activeTab'), count: orderCounts.active },
+              { id: 'pending', label: t('pendingTab'), count: orderCounts.pending },
+              { id: 'completed', label: t('completedTab'), count: orderCounts.completed },
             ].map((tab) => {
               const active = orderFilter === tab.id;
               return (
@@ -1184,17 +1188,17 @@ export default function DashboardScreen({
               </Text>
               <Text style={tw`text-base font-black text-chocolateBrown text-center`}>
                 {orderSearchQuery
-                  ? `No orders matching "${orderSearchQuery}"`
+                  ? `${language === 'fr' ? 'Aucune commande correspondant à' : 'No orders matching'} "${orderSearchQuery}"`
                   : orderFilter === 'active'
-                  ? 'No active orders in progress'
+                  ? (language === 'fr' ? 'Aucune commande en cours' : 'No active orders in progress')
                   : orderFilter === 'completed'
-                  ? 'No completed orders yet'
-                  : 'No orders yet'}
+                  ? (language === 'fr' ? 'Aucune commande livrée' : 'No completed orders yet')
+                  : t('noOrdersTitle')}
               </Text>
               <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1.5 px-4 leading-4`}>
                 {orderSearchQuery
-                  ? 'Try searching by a different order number, ice cream flavor, or destination.'
-                  : 'Your delicious ice cream scoops and golden pancakes will appear here once placed!'}
+                  ? (language === 'fr' ? 'Essayez de chercher par numéro de commande, parfum ou quartier.' : 'Try searching by a different order number, ice cream flavor, or destination.')
+                  : t('noOrdersDesc')}
               </Text>
               <TouchableOpacity
                 style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-6 py-3 rounded-2xl mt-5 shadow-sm`}
@@ -1207,13 +1211,13 @@ export default function DashboardScreen({
               >
                 <Ionicons name="sparkles" size={14} color={COLORS.chocolateBrown} />
                 <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                  Explore Best Cream Menu 🍦
+                  {t('exploreMenu')}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
             filteredOrders.map((order) => {
-              const statusInfo = getOrderStatusInfo(order.status);
+              const statusInfo = getOrderStatusInfo(order.status, t);
               const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
               return (
@@ -1229,7 +1233,7 @@ export default function DashboardScreen({
                         <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
                       </View>
                       <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
-                        {formatOrderDate(order.createdAt)} • {itemCount} item{itemCount > 1 ? 's' : ''}
+                        {formatOrderDate(order.createdAt, language)} • {itemCount} {language === 'fr' ? 'article(s)' : `item${itemCount > 1 ? 's' : ''}`}
                       </Text>
                     </View>
 
@@ -1274,7 +1278,7 @@ export default function DashboardScreen({
                           statusInfo.step >= 1 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
-                        Placed
+                        {t('placedStep')}
                       </Text>
                     </View>
 
@@ -1306,7 +1310,7 @@ export default function DashboardScreen({
                           statusInfo.step >= 2 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
-                        Kitchen
+                        {t('kitchenStep')}
                       </Text>
                     </View>
 
@@ -1338,7 +1342,7 @@ export default function DashboardScreen({
                           statusInfo.step >= 3 ? tw`text-blue-800` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
-                        Delivered
+                        {t('deliveredStep')}
                       </Text>
                     </View>
                   </View>
@@ -1412,7 +1416,7 @@ export default function DashboardScreen({
 
                       <View style={tw`items-end`}>
                         <Text style={tw`text-[10px] uppercase font-bold text-chocolateBrownMuted`}>
-                          Total Paid
+                          {t('totalPaid')}
                         </Text>
                         <Text style={tw`text-base font-black text-chocolateBrown`}>
                           {order.totalAmount.toLocaleString()} XAF
@@ -1431,7 +1435,7 @@ export default function DashboardScreen({
                         style={tw`text-xs font-black text-chocolateBrown tracking-wide`}
                         numberOfLines={1}
                       >
-                        Track Live Order 🛵
+                        {t('trackLive')}
                       </Text>
                     </TouchableOpacity>
 
@@ -1453,7 +1457,7 @@ export default function DashboardScreen({
                               style={tw`text-xs font-bold text-chocolateBrown`}
                               numberOfLines={1}
                             >
-                              Receipt (PDF)
+                              {t('receiptPdf')}
                             </Text>
                           </>
                         )}
@@ -1470,7 +1474,7 @@ export default function DashboardScreen({
                           style={tw`text-xs font-bold text-chocolateBrown`}
                           numberOfLines={1}
                         >
-                          Reorder 🔁
+                          {t('reorder')}
                         </Text>
                       </TouchableOpacity>
 
@@ -1571,34 +1575,47 @@ export default function DashboardScreen({
             </Text>
             <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2.5`}>
               <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>
-                🍦 Verified Sweet Tooth
+                {t('verifiedSweetTooth')}
               </Text>
+            </View>
+          </View>
+
+          {/* Language Switcher Setting Card */}
+          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center`}>
+              <View style={tw`flex-row items-center gap-2.5`}>
+                <Ionicons name="language-outline" size={20} color={COLORS.chocolateBrown} />
+                <Text style={tw`text-sm font-extrabold text-chocolateBrown`}>
+                  {t('languageSetting')}
+                </Text>
+              </View>
+              <LanguageSelector />
             </View>
           </View>
 
           <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
-              Payment Preferences
+              {t('paymentPreferences')}
             </Text>
             <View style={tw`flex-row justify-between items-center py-2.5 border-b border-vanillaCreamDark`}>
               <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="phone-portrait-outline" size={20} color={COLORS.chocolateBrown} />
                 <Text style={tw`text-xs font-semibold text-chocolateBrown`}>MTN Mobile Money</Text>
               </View>
-              <Text style={tw`text-xs font-bold text-pistachioGreen`}>Linked ✅</Text>
+              <Text style={tw`text-xs font-bold text-pistachioGreen`}>{t('linked')}</Text>
             </View>
             <View style={tw`flex-row justify-between items-center py-2.5`}>
               <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="wallet-outline" size={20} color={COLORS.chocolateBrown} />
                 <Text style={tw`text-xs font-semibold text-chocolateBrown`}>Orange Money</Text>
               </View>
-              <Text style={tw`text-xs font-bold text-pistachioGreen`}>Linked ✅</Text>
+              <Text style={tw`text-xs font-bold text-pistachioGreen`}>{t('linked')}</Text>
             </View>
           </View>
 
           <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark shadow-sm`}>
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
-              Account Actions
+              {t('accountActions')}
             </Text>
             {/* Admin Panel shortcut */}
             {onGoToAdmin && (
@@ -1610,13 +1627,13 @@ export default function DashboardScreen({
                 <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
                   <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.strawberryPink} />
                 </View>
-                <Text style={tw`text-sm font-bold text-strawberryPink`}>Admin Order Panel</Text>
+                <Text style={tw`text-sm font-bold text-strawberryPink`}>{t('adminPanel')}</Text>
                 <Ionicons name="chevron-forward" size={16} color={COLORS.strawberryPink} style={tw`ml-auto`} />
               </TouchableOpacity>
             )}
             <TouchableOpacity style={tw`flex-row items-center gap-2 py-2`} onPress={onLogout} activeOpacity={0.8}>
               <Ionicons name="log-out-outline" size={20} color={COLORS.errorRed} />
-              <Text style={tw`text-sm font-bold text-errorRed`}>Log Out from Best Cream</Text>
+              <Text style={tw`text-sm font-bold text-errorRed`}>{t('logOut')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -1627,7 +1644,7 @@ export default function DashboardScreen({
         <View style={tw`absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-xl`}>
           <View>
             <Text style={tw`text-xs font-bold text-vanillaCreamDark uppercase tracking-wider`}>
-              {totalCartCount} item{totalCartCount > 1 ? 's' : ''} in cart
+              {totalCartCount} {t('itemsInCart')}
             </Text>
             <Text style={tw`text-base font-black text-white`}>
               Total: {totalCartPrice.toLocaleString()} XAF
@@ -1638,7 +1655,7 @@ export default function DashboardScreen({
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Text style={tw`text-xs font-black text-chocolateBrown`}>View Cart & Pay</Text>
+            <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('viewCartAndPay')}</Text>
             <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrown} />
           </TouchableOpacity>
         </View>
@@ -1663,7 +1680,7 @@ export default function DashboardScreen({
               activeTab === 'menu' && tw`text-strawberryPink font-black`,
             ]}
           >
-            Menu
+            {t('menuNav')}
           </Text>
         </TouchableOpacity>
 
@@ -1683,7 +1700,7 @@ export default function DashboardScreen({
               activeTab === 'orders' && tw`text-strawberryPink font-black`,
             ]}
           >
-            Orders
+            {t('ordersNav')}
           </Text>
         </TouchableOpacity>
 
@@ -1703,7 +1720,7 @@ export default function DashboardScreen({
               activeTab === 'deals' && tw`text-strawberryPink font-black`,
             ]}
           >
-            Offers
+            {t('dealsNav')}
           </Text>
         </TouchableOpacity>
 
@@ -1723,7 +1740,7 @@ export default function DashboardScreen({
               activeTab === 'profile' && tw`text-strawberryPink font-black`,
             ]}
           >
-            Profile
+            {t('profileNav')}
           </Text>
         </TouchableOpacity>
       </View>

@@ -12,6 +12,12 @@ export const translations = {
     langEnglish: 'English',
     langFrench: 'Français',
 
+    // Welcome Screen
+    getStarted: 'Get Started',
+    welcomeSubtitle: 'Create an account or log in to start ordering',
+    acceptedPayments: 'Accepted payments',
+    newMemberOffer: '🎉 New members get 10% off their first order!',
+
     // Login Screen
     welcomeBack: 'Welcome Back 👋',
     loginSubtitle: 'Log in to manage orders & treats',
@@ -62,6 +68,23 @@ export const translations = {
     valConfirmRequired: 'Please confirm your password',
     valPasswordsMatch: 'Passwords do not match',
 
+    // Dashboard Header & Menu
+    welcomeUser: 'Welcome',
+    welcomeBackUser: 'Welcome back',
+    readyForTreats: "Ready for today's fresh treats?",
+    searchPlaceholder: 'Search gelato, pancakes, toppings…',
+    allTreats: 'All Treats',
+    iceCream: 'Ice Cream 🍨',
+    pancakeCategory: 'Pancakes 🥞',
+    combosCategory: 'Combos ✨',
+    specialOffers: 'Special Offers & Combos',
+    artisanIceCream: 'Artisan Ice Cream & Gelato',
+    goldenPancakes: 'Golden Fluffy Pancakes',
+    deliveryInYaounde: 'Delivery in Yaoundé',
+    fromCenterVille: 'from Centre-ville store',
+    viewCartAndPay: 'View Cart & Pay',
+    itemsInCart: 'item(s) in cart',
+
     // Dashboard & Orders
     myOrders: 'My Orders',
     ordersSubtitle: 'Real-time tracking, live timeline & receipts',
@@ -87,11 +110,51 @@ export const translations = {
     reorder: 'Reorder 🔁',
     totalPaid: 'Total Paid',
 
+    // Order Status Badges
+    approvedStatus: 'Approved ✅',
+    deliveredStatus: 'Delivered 🎉',
+    pendingStatus: 'Pending Approval',
+    preparingStatus: 'Preparing & Delivery',
+
+    // Profile Screen
+    verifiedSweetTooth: '🍦 Verified Sweet Tooth',
+    paymentPreferences: 'Payment Preferences',
+    linked: 'Linked ✅',
+    accountActions: 'Account Actions',
+    adminPanel: 'Admin Order Panel',
+    logOut: 'Log Out from Best Cream',
+    languageSetting: 'Language / Langue',
+
     // Navigation Tabs
     menuNav: 'Menu',
     ordersNav: 'Orders',
-    dealsNav: 'Deals',
+    dealsNav: 'Offers',
     profileNav: 'Profile',
+
+    // Order Tracking Modal
+    orderTrackingTitle: 'Live Order Tracking',
+    callShop: 'Call Best Cream 📞',
+    callShopNumber: 'Call Best Cream Shop (+237 670 123 456)',
+    orderReceived: 'Order Placed',
+    orderReceivedDesc: 'Received by Best Cream',
+    paymentStatus: 'Payment Status',
+    paymentVerified: 'Payment Verified & Confirmed',
+    pendingPayment: 'Pending payment approval',
+    preparingTreats: 'Preparing Treats',
+    preparingDesc: 'Churning scoops & fresh pancake bake',
+    outForDelivery: 'Out for Delivery',
+    deliveredToYou: 'Delivered to your destination',
+    readyPickup: 'Ready for pickup at Centre-ville',
+    liveRiderMap: 'Live Delivery Map (Yaoundé)',
+    liveOrderProgress: 'Live Order Progress',
+    generatingPdfReceipt: 'Generating PDF Receipt…',
+    downloadOfficialReceipt: 'Download Official Receipt (PDF) 📥',
+    itemsInOrder: 'Items in this Order',
+    destination: 'Destination',
+    accountLabel: 'Account',
+    deliveryFeeLabel: 'Delivery Fee',
+    totalPaidLabel: 'Total Paid:',
+    close: 'Close',
   },
   fr: {
     // Brand
@@ -103,6 +166,12 @@ export const translations = {
     // Language Selector
     langEnglish: 'English',
     langFrench: 'Français',
+
+    // Welcome Screen
+    getStarted: 'Commencer',
+    welcomeSubtitle: 'Créez un compte ou connectez-vous pour commander',
+    acceptedPayments: 'Moyens de paiement acceptés',
+    newMemberOffer: '🎉 10% de réduction pour les nouveaux membres !',
 
     // Login Screen
     welcomeBack: 'Bon retour 👋',
@@ -154,6 +223,23 @@ export const translations = {
     valConfirmRequired: 'Veuillez confirmer votre mot de passe',
     valPasswordsMatch: 'Les mots de passe ne correspondent pas',
 
+    // Dashboard Header & Menu
+    welcomeUser: 'Bienvenue',
+    welcomeBackUser: 'Bon retour',
+    readyForTreats: "Prêt pour les délices du jour ?",
+    searchPlaceholder: 'Rechercher glaces, pancakes, garnitures…',
+    allTreats: 'Tout le Menu',
+    iceCream: 'Glaces 🍨',
+    pancakeCategory: 'Pancakes 🥞',
+    combosCategory: 'Combos ✨',
+    specialOffers: 'Offres Spéciales & Combos',
+    artisanIceCream: 'Glaces & Gelato Artisanaux',
+    goldenPancakes: 'Pancakes Moelleux & Dorés',
+    deliveryInYaounde: 'Livraison à Yaoundé',
+    fromCenterVille: 'depuis la boutique Centre-ville',
+    viewCartAndPay: 'Voir le Panier & Payer',
+    itemsInCart: 'article(s) au panier',
+
     // Dashboard & Orders
     myOrders: 'Mes Commandes',
     ordersSubtitle: 'Suivi en direct, étapes & reçus',
@@ -179,13 +265,52 @@ export const translations = {
     reorder: 'Commander à nouveau 🔁',
     totalPaid: 'Total Payé',
 
+    // Order Status Badges
+    approvedStatus: 'Confirmée ✅',
+    deliveredStatus: 'Livrée 🎉',
+    pendingStatus: 'En attente de validation',
+    preparingStatus: 'En cuisine & livraison',
+
+    // Profile Screen
+    verifiedSweetTooth: '🍦 Gourmand Certifié',
+    paymentPreferences: 'Préférences de Paiement',
+    linked: 'Associé ✅',
+    accountActions: 'Actions du Compte',
+    adminPanel: 'Panneau Administrateur',
+    logOut: 'Se déconnecter de Best Cream',
+    languageSetting: 'Langue / Language',
+
     // Navigation Tabs
     menuNav: 'Menu',
     ordersNav: 'Commandes',
     dealsNav: 'Offres',
     profileNav: 'Profil',
+
+    // Order Tracking Modal
+    orderTrackingTitle: 'Suivi de Commande en Direct',
+    callShop: 'Appeler Best Cream 📞',
+    callShopNumber: 'Appeler Best Cream (+237 670 123 456)',
+    orderReceived: 'Commande Reçue',
+    orderReceivedDesc: 'Reçue par Best Cream',
+    paymentStatus: 'Statut du Paiement',
+    paymentVerified: 'Paiement Vérifié & Confirmé',
+    pendingPayment: 'En attente de confirmation',
+    preparingTreats: 'Préparation en Cuisine',
+    preparingDesc: 'Préparation des glaces & cuisson des pancakes',
+    outForDelivery: 'En cours de livraison',
+    deliveredToYou: 'Livré à votre destination',
+    readyPickup: 'Prêt au comptoir Centre-ville',
+    liveRiderMap: 'Carte en Direct (Yaoundé)',
+    liveOrderProgress: 'Progression de la Commande',
+    generatingPdfReceipt: 'Génération du reçu PDF…',
+    downloadOfficialReceipt: 'Télécharger le Reçu Officiel (PDF) 📥',
+    itemsInOrder: 'Articles de la commande',
+    destination: 'Destination',
+    accountLabel: 'Compte',
+    deliveryFeeLabel: 'Frais de livraison',
+    totalPaidLabel: 'Total Payé :',
+    close: 'Fermer',
   },
 };
 
 export type TranslationKey = keyof typeof translations.en;
-

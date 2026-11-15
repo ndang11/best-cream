@@ -11,6 +11,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 interface WelcomeScreenProps {
   onGoToLogin: () => void;
@@ -18,6 +20,8 @@ interface WelcomeScreenProps {
 }
 
 export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScreenProps) {
+  const { t } = useLanguage();
+
   // Entrance animations
   const logoFade = useRef(new Animated.Value(0)).current;
   const logoSlide = useRef(new Animated.Value(-30)).current;
@@ -108,7 +112,12 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
       <View style={tw`absolute w-56 h-56 rounded-full bg-strawberryPinkLight -top-20 -right-20`} />
       <View style={tw`absolute w-44 h-44 rounded-full bg-butterYellowLight -bottom-16 -left-16`} />
 
-      <View style={tw`flex-1 items-center justify-center px-6 py-4`}>
+      {/* Language Switcher in top bar */}
+      <View style={tw`w-full flex-row justify-end px-5 pt-3 z-10`}>
+        <LanguageSelector />
+      </View>
+
+      <View style={tw`flex-1 items-center justify-center px-6 py-2`}>
         {/* ── Top: Emblem + Brand name ── */}
         <Animated.View
           style={[
@@ -134,10 +143,10 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
           ]}
         >
           <Text style={tw`text-4xl font-extrabold text-chocolateBrown tracking-wide`}>
-            Best Cream
+            {t('brandName')}
           </Text>
           <Text style={tw`text-sm font-semibold text-chocolateBrownLight mt-1 tracking-wider`}>
-            Ice Cream & Pancakes
+            {t('brandTagline')}
           </Text>
           <View style={tw`flex-row gap-2 my-2.5`}>
             <View style={tw`w-1.5 h-1.5 rounded-full bg-strawberryPink`} />
@@ -145,7 +154,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
             <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen`} />
           </View>
           <Text style={tw`text-sm font-medium text-chocolateBrownMuted text-center leading-5`}>
-            Fresh flavors made daily.{'\n'}Order easily, pay instantly.
+            {t('gelato')} • {t('pancakes')}
           </Text>
         </Animated.View>
 
@@ -157,10 +166,10 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
           ]}
         >
           <Text style={tw`text-xl font-extrabold text-chocolateBrown text-center mb-1`}>
-            Get Started
+            {t('getStarted')}
           </Text>
           <Text style={tw`text-xs font-medium text-chocolateBrownLight text-center mb-5`}>
-            Create an account or log in to start ordering
+            {t('welcomeSubtitle')}
           </Text>
 
           {/* Sign Up — Primary Button */}
@@ -170,7 +179,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
             activeOpacity={0.85}
           >
             <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
-              Create Account
+              {t('createAccountBtn')}
             </Text>
           </TouchableOpacity>
 
@@ -181,7 +190,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
             activeOpacity={0.85}
           >
             <Text style={tw`text-base font-extrabold text-strawberryPink tracking-wide`}>
-              Log In
+              {t('logIn')}
             </Text>
           </TouchableOpacity>
 
@@ -189,7 +198,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
           <View style={tw`flex-row items-center my-4`}>
             <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
             <Text style={tw`mx-2.5 text-xs font-semibold text-chocolateBrownMuted`}>
-              Accepted payments
+              {t('acceptedPayments')}
             </Text>
             <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
           </View>
@@ -211,7 +220,7 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
         {/* ── Bottom Offer Pill ── */}
         <Animated.View style={[tw`mt-5 bg-butterYellow px-5 py-2.5 rounded-full shadow`, { opacity: badgeFade }]}>
           <Text style={tw`text-xs font-extrabold text-chocolateBrown text-center`}>
-            🎉 New members get 10% off their first order!
+            {t('newMemberOffer')}
           </Text>
         </Animated.View>
       </View>
