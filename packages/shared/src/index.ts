@@ -28,6 +28,11 @@ export interface OrderItem {
   quantity: number;
   flavor?: string;
   category: 'ice-cream' | 'pancake' | 'combo';
+  specialNotes?: string;
+  servingStyle?: string;
+  sizeOption?: string;
+  pancakeStyle?: string;
+  selectedToppings?: { name: string; price: number }[];
 }
 
 export interface Order {

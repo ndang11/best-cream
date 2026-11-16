@@ -50,6 +50,7 @@ export default function ProductDetailsScreen({
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [specialNotes, setSpecialNotes] = useState('');
+  const [specialNotesConfirmed, setSpecialNotesConfirmed] = useState(false);
 
   // Ice Cream options
   const [servingStyle, setServingStyle] = useState<'cone' | 'cup'>('cone');
@@ -116,7 +117,7 @@ export default function ProductDetailsScreen({
         : `${pancakeStackSize.replace('-', ' ').toUpperCase()}`,
       pancakeStyle: isPancake || isCombo ? (pancakeStyle === 'chocolate' ? 'Chocolate Lava Drizzle' : 'Normal Golden Buttermilk') : undefined,
       selectedToppings: activeToppingsList,
-      specialNotes: specialNotes.trim() || undefined,
+      specialNotes: specialNotesConfirmed && specialNotes.trim() ? specialNotes.trim() : undefined,
       unitPrice,
       quantity,
     };
@@ -429,8 +430,42 @@ export default function ProductDetailsScreen({
               placeholderTextColor={COLORS.chocolateBrownMuted}
               multiline
               value={specialNotes}
-              onChangeText={setSpecialNotes}
+              onChangeText={(text) => {
+                setSpecialNotes(text);
+                setSpecialNotesConfirmed(false);
+              }}
             />
+            {specialNotes.trim() && (
+              <TouchableOpacity
+                style={tw`mt-2 flex-row items-center justify-center gap-1.5 bg-strawberryPink py-2 rounded-xl`}
+                onPress={() => setSpecialNotesConfirmed(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="checkmark-circle" size={14} color={COLORS.white} />
+                <Text style={tw`text-xs font-bold text-white`}>
+                  Add to Order
+                </Text>
+              </TouchableOpacity>
+            )}
+            {specialNotesConfirmed && (
+              <View style={tw`mt-2 flex-row items-center justify-between bg-pistachioGreenLight border border-pistachioGreen px-3 py-2 rounded-xl`}>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <Ionicons name="checkmark-done" size={14} color={COLORS.pistachioGreen} />
+                  <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+                    📝 {specialNotes.trim()}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSpecialNotes('');
+                    setSpecialNotesConfirmed(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close-circle" size={14} color={COLORS.chocolateBrownMuted} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>

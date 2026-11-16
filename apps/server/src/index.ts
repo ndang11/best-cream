@@ -217,6 +217,84 @@ app.patch('/api/orders/:id/approve', (req: Request, res: Response<ApiResponse<Or
   });
 });
 
+app.patch('/api/orders/:id/receive', (req: Request, res: Response<ApiResponse<Order>>) => {
+  const orderId = req.params.id;
+  const order = orders.find((o) => o.id === orderId);
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      data: null as unknown as Order,
+      message: 'Order not found',
+      timestamp: new Date().toISOString(),
+    });
+  }
+  order.status = 'received';
+  res.json({
+    success: true,
+    data: order,
+    message: 'Order marked as delivered / received!',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.delete('/api/orders/:id', (req: Request, res: Response<ApiResponse<{ id: string }>>) => {
+  const orderId = req.params.id;
+  const index = orders.findIndex((o) => o.id === orderId);
+  if (index === -1) {
+    return res.status(404).json({
+      success: false,
+      data: { id: orderId },
+      message: 'Order not found',
+      timestamp: new Date().toISOString(),
+    });
+  }
+  orders.splice(index, 1);
+  res.json({
+    success: true,
+    data: { id: orderId },
+    message: 'Order deleted successfully',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Admin Authentication Login
+app.post('/api/admin/login', (req: Request, res: Response) => {
+  const { email, password, pin } = req.body;
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanPassword = (password || '').trim();
+  const cleanPin = (pin || '').trim();
+
+  // Allow admin email (alex@bestcream.com or admin@bestcream.com or containing 'admin')
+  // with master password 'admin123' or master PIN '1234'
+  const isMasterPin = cleanPin === '1234' || cleanPassword === '1234' || cleanPassword === 'admin123';
+  const isValidAdminIdentifier = !cleanEmail || cleanEmail.includes('admin') || cleanEmail === 'alex@bestcream.com';
+
+  if (isMasterPin && isValidAdminIdentifier) {
+    const adminUser: User = {
+      id: 'admin-1',
+      name: 'Alex Johnson',
+      email: cleanEmail || 'admin@bestcream.com',
+      role: 'admin',
+    };
+
+    return res.json({
+      success: true,
+      data: {
+        token: 'bestcream-admin-session-token',
+        user: adminUser,
+      },
+      message: 'Admin authentication successful',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: 'Invalid admin credentials or PIN. Default PIN is 1234.',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/api/users', (_req: Request, res: Response<ApiResponse<User[]>>) => {
   res.json({
     success: true,

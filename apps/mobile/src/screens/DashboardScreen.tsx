@@ -38,10 +38,24 @@ import {
   type DeliveryTier,
 } from '../utils/location';
 
+// Cart item type — preserves full customization
+interface CartItem {
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  flavor: string;
+  category: 'ice-cream' | 'pancake' | 'combo';
+  specialNotes?: string;
+  servingStyle?: string;
+  sizeOption?: string;
+  pancakeStyle?: string;
+  selectedToppings: { name: string; price: number }[];
+}
+
 interface DashboardScreenProps {
   apiUrl: string;
   onLogout: () => void;
-  onGoToAdmin?: () => void;
   userEmail?: string;
   userName?: string;
   isNewUser?: boolean;
@@ -107,7 +121,6 @@ function getOrderStatusInfo(status: Order['status'], t: (key: TranslationKey) =>
 export default function DashboardScreen({
   apiUrl,
   onLogout,
-  onGoToAdmin,
   userEmail,
   userName = 'Sweet Tooth',
   isNewUser = false,
@@ -122,7 +135,7 @@ export default function DashboardScreen({
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<MenuItem | null>(null);
 
   // Cart & Order State
-  const [cart, setCart] = useState<{ [id: string]: number }>({});
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartModalVisible, setIsCartModalVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mtn-momo' | 'orange-money'>('mtn-momo');
   const [phoneNumber, setPhoneNumber] = useState('+237 670 123 456');
@@ -185,9 +198,22 @@ export default function DashboardScreen({
 
   const handleReorder = (order: Order) => {
     setCart((prev) => {
-      const next = { ...prev };
+      const next = [...prev];
       order.items.forEach((item) => {
-        next[item.menuItemId] = (next[item.menuItemId] || 0) + item.quantity;
+        const existing = next.find((ci) => ci.menuItemId === item.menuItemId);
+        if (existing) {
+          existing.quantity += item.quantity;
+        } else {
+          next.push({
+            menuItemId: item.menuItemId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            flavor: item.flavor || '',
+            category: item.category,
+            selectedToppings: item.selectedToppings || [],
+          });
+        }
       });
       return next;
     });
@@ -247,33 +273,62 @@ export default function DashboardScreen({
     fetchOrders();
   }, []);
 
-  const totalCartCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const totalCartPrice = Object.entries(cart).reduce((total, [id, qty]) => {
+  const totalCartPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  // Simple add (from menu list, without customization)
+  const addToCartSimple = (id: string) => {
     const item = menuItems.find((m) => m.id === id);
-    return total + (item ? item.price * qty : 0);
-  }, 0);
-
-  const addToCart = (id: string) => {
-    setCart((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
-  };
-
-  const removeFromCart = (id: string) => {
+    if (!item) return;
     setCart((prev) => {
-      const next = { ...prev };
-      if (next[id] > 1) {
-        next[id] -= 1;
-      } else {
-        delete next[id];
+      const existing = prev.find((ci) => ci.menuItemId === id);
+      if (existing) {
+        return prev.map((ci) =>
+          ci.menuItemId === id ? { ...ci, quantity: ci.quantity + 1 } : ci
+        );
       }
-      return next;
+      return [
+        ...prev,
+        {
+          menuItemId: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+          flavor: item.flavor,
+          category: item.category,
+          selectedToppings: [],
+        },
+      ];
     });
   };
 
-  const clearCart = () => setCart({});
+  const removeFromCartSimple = (id: string) => {
+    setCart((prev) => {
+      const existing = prev.find((ci) => ci.menuItemId === id);
+      if (!existing) return prev;
+      if (existing.quantity > 1) {
+        return prev.map((ci) =>
+          ci.menuItemId === id ? { ...ci, quantity: ci.quantity - 1 } : ci
+        );
+      }
+      return prev.filter((ci) => ci.menuItemId !== id);
+    });
+  };
+
+  // Remove a specific cart item by index
+  const removeFromCartByIndex = (index: number) => {
+    setCart((prev) => {
+      if (prev[index].quantity > 1) {
+        return prev.map((ci, i) =>
+          i === index ? { ...ci, quantity: ci.quantity - 1 } : ci
+        );
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const clearCart = () => setCart([]);
 
   // Delete an order with confirmation
   const deleteOrder = (orderId: string) => {
@@ -446,18 +501,20 @@ export default function DashboardScreen({
     const deliveryFee = locationResult?.tier.fee ?? 0;
     const grandTotal = totalCartPrice + deliveryFee;
 
-    const orderItems = Object.entries(cart).map(([id, qty]) => {
-      const item = menuItems.find((m) => m.id === id);
-      return {
-        id: `item-${Date.now()}-${id}`,
-        menuItemId: id,
-        name: item?.name || 'Item',
-        price: item?.price || 0,
-        quantity: qty,
-        flavor: item?.flavor || '',
-        category: item?.category || 'ice-cream',
-      };
-    });
+    const orderItems = cart.map((ci, idx) => ({
+      id: `item-${Date.now()}-${idx}`,
+      menuItemId: ci.menuItemId,
+      name: ci.name,
+      price: ci.price,
+      quantity: ci.quantity,
+      flavor: ci.flavor,
+      category: ci.category,
+      specialNotes: ci.specialNotes,
+      servingStyle: ci.servingStyle,
+      sizeOption: ci.sizeOption,
+      pancakeStyle: ci.pancakeStyle,
+      selectedToppings: ci.selectedToppings.length > 0 ? ci.selectedToppings : undefined,
+    }));
 
     try {
       const res = await fetch(`${apiUrl}/api/orders`, {
@@ -527,11 +584,40 @@ export default function DashboardScreen({
         product={selectedProductForDetails}
         onBack={() => setSelectedProductForDetails(null)}
         onAddToCart={(customizedItem: CustomizedOrderItem) => {
-          setCart((prev) => ({
-            ...prev,
-            [customizedItem.product.id]:
-              (prev[customizedItem.product.id] || 0) + customizedItem.quantity,
-          }));
+          setCart((prev) => {
+            const existing = prev.find(
+              (ci) =>
+                ci.menuItemId === customizedItem.product.id &&
+                ci.specialNotes === customizedItem.specialNotes &&
+                ci.servingStyle === customizedItem.servingStyle &&
+                ci.sizeOption === customizedItem.sizeOption &&
+                ci.pancakeStyle === customizedItem.pancakeStyle &&
+                JSON.stringify(ci.selectedToppings) === JSON.stringify(customizedItem.selectedToppings)
+            );
+            if (existing) {
+              return prev.map((ci) =>
+                ci === existing
+                  ? { ...ci, quantity: ci.quantity + customizedItem.quantity }
+                  : ci
+              );
+            }
+            return [
+              ...prev,
+              {
+                menuItemId: customizedItem.product.id,
+                name: customizedItem.product.name,
+                price: customizedItem.unitPrice,
+                quantity: customizedItem.quantity,
+                flavor: customizedItem.product.flavor,
+                category: customizedItem.product.category,
+                specialNotes: customizedItem.specialNotes,
+                servingStyle: customizedItem.servingStyle,
+                sizeOption: customizedItem.sizeOption,
+                pancakeStyle: customizedItem.pancakeStyle,
+                selectedToppings: customizedItem.selectedToppings,
+              },
+            ];
+          });
           setSelectedProductForDetails(null);
           Alert.alert(
             '✨ Added to Cart!',
@@ -906,7 +992,9 @@ export default function DashboardScreen({
           ) : (
             <View style={tw`gap-4 mt-2`}>
               {filteredProducts.map((product) => {
-                const qtyInCart = cart[product.id] || 0;
+                const qtyInCart = cart
+                  .filter((ci) => ci.menuItemId === product.id)
+                  .reduce((sum, ci) => sum + ci.quantity, 0);
                 return (
                   <View
                     key={product.id}
@@ -991,7 +1079,7 @@ export default function DashboardScreen({
                           <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark p-1 gap-2`}>
                             <TouchableOpacity
                               style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
-                              onPress={() => removeFromCart(product.id)}
+                              onPress={() => removeFromCartSimple(product.id)}
                             >
                               <Feather name="minus" size={14} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
@@ -1000,7 +1088,7 @@ export default function DashboardScreen({
                             </Text>
                             <TouchableOpacity
                               style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
-                              onPress={() => addToCart(product.id)}
+                              onPress={() => addToCartSimple(product.id)}
                             >
                               <Feather name="plus" size={14} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
@@ -1012,7 +1100,7 @@ export default function DashboardScreen({
                               !product.inStock && tw`bg-vanillaCreamDark opacity-60`,
                             ]}
                             disabled={!product.inStock}
-                            onPress={() => addToCart(product.id)}
+                            onPress={() => addToCartSimple(product.id)}
                             activeOpacity={0.85}
                           >
                             <Ionicons name="add" size={18} color={COLORS.chocolateBrown} />
@@ -1357,23 +1445,66 @@ export default function DashboardScreen({
                       return (
                         <View
                           key={idx}
-                          style={tw`flex-row items-center bg-vanillaCream/40 px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark/40`}
+                          style={tw`bg-vanillaCream/40 px-2.5 py-2 rounded-xl border border-vanillaCreamDark/40`}
                         >
-                          <Text style={tw`text-sm mr-2`}>{emoji}</Text>
-                          <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
-                            {item.quantity}×
-                          </Text>
-                          <View style={tw`flex-1`}>
-                            <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
-                            {item.flavor ? (
-                              <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>
-                                {item.flavor}
-                              </Text>
-                            ) : null}
+                          <View style={tw`flex-row items-center`}>
+                            <Text style={tw`text-sm mr-2`}>{emoji}</Text>
+                            <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
+                              {item.quantity}×
+                            </Text>
+                            <View style={tw`flex-1`}>
+                              <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+                              {item.flavor ? (
+                                <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>
+                                  {item.flavor}
+                                </Text>
+                              ) : null}
+                            </View>
+                            <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                              {(item.price * item.quantity).toLocaleString()} XAF
+                            </Text>
                           </View>
-                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                            {(item.price * item.quantity).toLocaleString()} XAF
-                          </Text>
+                          {/* Customization tags */}
+                          {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
+                            <View style={tw`ml-6 flex-row flex-wrap gap-1 mt-1`}>
+                              {item.servingStyle && (
+                                <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
+                                  <Text style={tw`text-[9px] font-bold text-strawberryPink`}>
+                                    {item.servingStyle}
+                                  </Text>
+                                </View>
+                              )}
+                              {item.sizeOption && (
+                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                                  <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                                    {item.sizeOption}
+                                  </Text>
+                                </View>
+                              )}
+                              {item.pancakeStyle && (
+                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                                  <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                                    {item.pancakeStyle}
+                                  </Text>
+                                </View>
+                              )}
+                              {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
+                                <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
+                                  <Text style={tw`text-[9px] text-amber-800`}>
+                                    + {topping.name}
+                                  </Text>
+                                </View>
+                              ))}
+                            </View>
+                          )}
+                          {/* Special notes */}
+                          {item.specialNotes && (
+                            <View style={tw`ml-6 mt-1 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
+                              <Text style={tw`text-[10px] font-bold text-red-700`}>
+                                📝 {item.specialNotes}
+                              </Text>
+                            </View>
+                          )}
                         </View>
                       );
                     })}
@@ -1617,20 +1748,6 @@ export default function DashboardScreen({
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
               {t('accountActions')}
             </Text>
-            {/* Admin Panel shortcut */}
-            {onGoToAdmin && (
-              <TouchableOpacity
-                style={tw`flex-row items-center gap-2 py-2 mb-1`}
-                onPress={onGoToAdmin}
-                activeOpacity={0.8}
-              >
-                <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
-                  <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.strawberryPink} />
-                </View>
-                <Text style={tw`text-sm font-bold text-strawberryPink`}>{t('adminPanel')}</Text>
-                <Ionicons name="chevron-forward" size={16} color={COLORS.strawberryPink} style={tw`ml-auto`} />
-              </TouchableOpacity>
-            )}
             <TouchableOpacity style={tw`flex-row items-center gap-2 py-2`} onPress={onLogout} activeOpacity={0.8}>
               <Ionicons name="log-out-outline" size={20} color={COLORS.errorRed} />
               <Text style={tw`text-sm font-bold text-errorRed`}>{t('logOut')}</Text>
@@ -1772,7 +1889,7 @@ export default function DashboardScreen({
 
             {/* Cart Items List */}
             <ScrollView style={tw`px-5 pt-3`}>
-              {Object.keys(cart).length === 0 ? (
+              {cart.length === 0 ? (
                 <View style={tw`items-center py-10`}>
                   <Text style={tw`text-4xl mb-2`}>🍨</Text>
                   <Text style={tw`text-base font-black text-chocolateBrown`}>Your cart is empty</Text>
@@ -1781,40 +1898,70 @@ export default function DashboardScreen({
                   </Text>
                 </View>
               ) : (
-                Object.entries(cart).map(([id, qty]) => {
-                  const item = menuItems.find((m) => m.id === id);
-                  if (!item) return null;
-                  return (
-                    <View key={id} style={tw`flex-row items-center py-3 border-b border-vanillaCreamDark`}>
-                      <View style={tw`flex-1`}>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.name}</Text>
+                cart.map((ci, idx) => (
+                  <View key={idx} style={tw`flex-row items-center py-3 border-b border-vanillaCreamDark`}>
+                    <View style={tw`flex-1`}>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{ci.name}</Text>
+                      {ci.flavor && (
                         <Text style={tw`text-xs text-chocolateBrownLight mt-0.5`}>
-                          Flavor: {item.flavor}
+                          {ci.flavor}
                         </Text>
-                        <Text style={tw`text-xs font-bold text-chocolateBrown mt-0.5`}>
-                          {item.price.toLocaleString()} XAF each
+                      )}
+                      {/* Customization tags */}
+                      {ci.servingStyle && (
+                        <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                          {ci.servingStyle}
                         </Text>
-                      </View>
-                      <View style={tw`flex-row items-center bg-vanillaCream rounded-xl border border-vanillaCreamDark p-1 gap-2`}>
-                        <TouchableOpacity
-                          style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
-                          onPress={() => removeFromCart(id)}
-                        >
-                          <Feather name="minus" size={12} color={COLORS.chocolateBrown} />
-                        </TouchableOpacity>
-                        <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
-                          {qty}
+                      )}
+                      {ci.sizeOption && (
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          {ci.sizeOption}
                         </Text>
-                        <TouchableOpacity
-                          style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
-                          onPress={() => addToCart(id)}
-                        >
-                          <Feather name="plus" size={12} color={COLORS.chocolateBrown} />
-                        </TouchableOpacity>
-                      </View>
+                      )}
+                      {ci.pancakeStyle && (
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          {ci.pancakeStyle}
+                        </Text>
+                      )}
+                      {ci.selectedToppings.length > 0 && (
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          + {ci.selectedToppings.map((t) => t.name).join(', ')}
+                        </Text>
+                      )}
+                      {ci.specialNotes && (
+                        <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>
+                          📝 {ci.specialNotes}
+                        </Text>
+                      )}
+                      <Text style={tw`text-xs font-bold text-chocolateBrown mt-1`}>
+                        {ci.price.toLocaleString()} XAF each
+                      </Text>
                     </View>
-                  );
-                })
+                    <View style={tw`flex-row items-center bg-vanillaCream rounded-xl border border-vanillaCreamDark p-1 gap-2`}>
+                      <TouchableOpacity
+                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
+                        onPress={() => removeFromCartByIndex(idx)}
+                      >
+                        <Feather name="minus" size={12} color={COLORS.chocolateBrown} />
+                      </TouchableOpacity>
+                      <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
+                        {ci.quantity}
+                      </Text>
+                      <TouchableOpacity
+                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
+                        onPress={() =>
+                          setCart((prev) =>
+                            prev.map((c, i) =>
+                              i === idx ? { ...c, quantity: c.quantity + 1 } : c
+                            )
+                          )
+                        }
+                      >
+                        <Feather name="plus" size={12} color={COLORS.chocolateBrown} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
               )}
 
               {/* Payment Section */}

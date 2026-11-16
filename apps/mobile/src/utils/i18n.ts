@@ -175,6 +175,23 @@ export const translations = {
     specialInstructions: 'Special Instructions',
     specialInstructionsPlaceholder: 'e.g. Extra napkins, syrup on the side, extra warm...',
     addToCartBtn: 'Add to Cart',
+
+    // Admin & Staff Authentication Portal
+    adminPortal: 'Admin Portal',
+    adminLoginTitle: 'Staff & Admin Login 🛡️',
+    adminLoginSubtitle: 'Secure access for store management & live orders',
+    adminEmailLabel: 'Admin Email / Username',
+    adminEmailPlaceholder: 'e.g. alex@bestcream.com',
+    adminPinLabel: 'Admin PIN / Password',
+    adminPinPlaceholder: 'Enter 4-digit PIN or password (default: 1234)',
+    valAdminEmailRequired: 'Admin email or username is required',
+    valAdminPinRequired: 'Admin PIN or password is required',
+    staffPortalLink: 'Staff or Store Manager? Admin Portal 🛡️',
+    adminQuickDemo: 'Quick Admin Fill',
+    accessAdminDashboard: 'Access Admin Dashboard 🛡️',
+    authenticatingAdmin: 'Authenticating…',
+    invalidAdminCredentials: 'Invalid admin credentials or PIN. Try PIN: 1234',
+    backToWelcome: 'Back to Welcome',
   },
   fr: {
     // Brand
@@ -350,6 +367,23 @@ export const translations = {
     specialInstructions: 'Instructions Spéciales',
     specialInstructionsPlaceholder: 'ex: Serviettes en plus, sirop à part, bien chaud...',
     addToCartBtn: 'Ajouter au Panier',
+
+    // Admin & Staff Authentication Portal
+    adminPortal: 'Portail Admin',
+    adminLoginTitle: 'Connexion Admin & Équipe 🛡️',
+    adminLoginSubtitle: 'Accès sécurisé pour la gestion des commandes en direct',
+    adminEmailLabel: 'Email ou Identifiant Admin',
+    adminEmailPlaceholder: 'ex: alex@bestcream.com',
+    adminPinLabel: 'Code PIN / Mot de passe Admin',
+    adminPinPlaceholder: 'Entrez le PIN à 4 chiffres ou mot de passe (défaut: 1234)',
+    valAdminEmailRequired: "L'email ou identifiant admin est requis",
+    valAdminPinRequired: 'Le code PIN ou mot de passe admin est requis',
+    staffPortalLink: 'Personnel ou Gérant ? Portail Admin 🛡️',
+    adminQuickDemo: 'Remplissage Démo Admin',
+    accessAdminDashboard: 'Accéder au Tableau de Bord 🛡️',
+    authenticatingAdmin: 'Authentification en cours…',
+    invalidAdminCredentials: 'Identifiants ou PIN admin incorrects. Essayez PIN: 1234',
+    backToWelcome: "Retour à l'accueil",
   },
 };
 

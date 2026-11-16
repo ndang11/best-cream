@@ -45,6 +45,31 @@ export function generateReceiptHtml(order: Order, lang: 'en' | 'fr' = 'en'): str
               ? `<div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Parfum' : 'Flavor'}: ${item.flavor}</div>`
               : ''
           }
+          ${
+            item.servingStyle
+              ? `<div style="font-size: 11px; color: #FF6584; font-weight: 600;">${isFr ? 'Service' : 'Serving'}: ${item.servingStyle}</div>`
+              : ''
+          }
+          ${
+            item.sizeOption
+              ? `<div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Taille' : 'Size'}: ${item.sizeOption}</div>`
+              : ''
+          }
+          ${
+            item.pancakeStyle
+              ? `<div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Style' : 'Style'}: ${item.pancakeStyle}</div>`
+              : ''
+          }
+          ${
+            item.selectedToppings && item.selectedToppings.length > 0
+              ? `<div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Garnitures' : 'Toppings'}: ${item.selectedToppings.map((t) => t.name).join(', ')}</div>`
+              : ''
+          }
+          ${
+            item.specialNotes
+              ? `<div style="font-size: 11px; color: #FF6584; font-weight: 700; margin-top: 4px; padding: 6px 8px; background: #FFF2F4; border-radius: 6px;">📝 ${isFr ? 'Note' : 'Note'}: ${item.specialNotes}</div>`
+              : ''
+          }
           <div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Prix unitaire' : 'Unit'}: ${item.price.toLocaleString()} XAF</div>
         </td>
         <td style="padding: 10px 0; text-align: center; border-bottom: 1px dashed #E2D9D2; font-weight: 700; color: #FF6584; font-size: 13px;">

@@ -9,6 +9,7 @@ import {
   Easing,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,9 +18,10 @@ import LanguageSelector from '../components/LanguageSelector';
 interface WelcomeScreenProps {
   onGoToLogin: () => void;
   onGoToSignUp: () => void;
+  onGoToAdminLogin: () => void;
 }
 
-export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScreenProps) {
+export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLogin }: WelcomeScreenProps) {
   const { t } = useLanguage();
 
   // Entrance animations
@@ -215,6 +217,20 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp }: WelcomeScre
               <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>Orange Money</Text>
             </View>
           </View>
+        </Animated.View>
+
+        {/* ── Staff/Admin Portal Link ── */}
+        <Animated.View style={[tw`mt-4`, { opacity: badgeFade }]}>
+          <TouchableOpacity
+            style={tw`flex-row items-center justify-center gap-1.5 bg-white/80 px-4 py-2 rounded-full border border-vanillaCreamDark shadow-sm`}
+            onPress={onGoToAdminLogin}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="shield-checkmark" size={16} color={COLORS.chocolateBrown} />
+            <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+              {t('staffPortalLink')}
+            </Text>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* ── Bottom Offer Pill ── */}

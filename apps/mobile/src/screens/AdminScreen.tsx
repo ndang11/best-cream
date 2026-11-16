@@ -26,6 +26,8 @@ import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import { Order } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -90,122 +92,6 @@ function statusColor(status: Order['status']): {
         label: 'Pending',
       };
   }
-}
-
-// ─── PIN Gate ─────────────────────────────────────────────────────────────────
-
-function PinGate({ onUnlock }: { onUnlock: () => void }) {
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState(false);
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-
-  const shake = () => {
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 8, duration: 60, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const handleDigit = (digit: string) => {
-    if (pin.length >= 4) return;
-    const next = pin + digit;
-    setPin(next);
-    setError(false);
-    if (next.length === 4) {
-      setTimeout(() => {
-        if (next === ADMIN_PIN) {
-          onUnlock();
-        } else {
-          setError(true);
-          shake();
-          setTimeout(() => setPin(''), 600);
-        }
-      }, 150);
-    }
-  };
-
-  const handleDelete = () => {
-    setPin((p) => p.slice(0, -1));
-    setError(false);
-  };
-
-  const dots = Array.from({ length: 4 }, (_, i) => i < pin.length);
-
-  return (
-    <View style={[tw`flex-1 items-center justify-center bg-vanillaCream px-8`]}>
-      {/* Lock icon */}
-      <View style={tw`w-20 h-20 rounded-full bg-strawberryPink items-center justify-center mb-6 shadow-md`}>
-        <Ionicons name="lock-closed" size={36} color={COLORS.white} />
-      </View>
-
-      <Text style={tw`text-2xl font-black text-chocolateBrown mb-1`}>Admin Access</Text>
-      <Text style={tw`text-sm text-chocolateBrownMuted mb-10 text-center`}>
-        Enter your 4-digit PIN to manage orders
-      </Text>
-
-      {/* PIN dots */}
-      <Animated.View
-        style={[tw`flex-row gap-4 mb-10`, { transform: [{ translateX: shakeAnim }] }]}
-      >
-        {dots.map((filled, i) => (
-          <View
-            key={i}
-            style={[
-              tw`w-4 h-4 rounded-full border-2`,
-              filled
-                ? tw`bg-strawberryPink border-strawberryPink`
-                : error
-                ? tw`border-red-400 bg-red-100`
-                : tw`border-chocolateBrownMuted bg-transparent`,
-            ]}
-          />
-        ))}
-      </Animated.View>
-
-      {error && (
-        <Text style={tw`text-xs text-red-500 font-bold mb-4 -mt-6`}>
-          Incorrect PIN. Try again.
-        </Text>
-      )}
-
-      {/* Numpad */}
-      <View style={tw`w-full max-w-xs`}>
-        {[
-          ['1', '2', '3'],
-          ['4', '5', '6'],
-          ['7', '8', '9'],
-          ['', '0', 'del'],
-        ].map((row, ri) => (
-          <View key={ri} style={tw`flex-row justify-between mb-3`}>
-            {row.map((key) => (
-              <TouchableOpacity
-                key={key}
-                style={[
-                  tw`w-20 h-14 rounded-2xl items-center justify-center`,
-                  key === ''
-                    ? tw`bg-transparent`
-                    : key === 'del'
-                    ? tw`bg-vanillaCreamDark`
-                    : tw`bg-white border border-vanillaCreamDark shadow-sm`,
-                ]}
-                onPress={() => (key === 'del' ? handleDelete() : key !== '' ? handleDigit(key) : null)}
-                activeOpacity={key === '' ? 1 : 0.7}
-              >
-                {key === 'del' ? (
-                  <Ionicons name="backspace-outline" size={22} color={COLORS.chocolateBrown} />
-                ) : key !== '' ? (
-                  <Text style={tw`text-xl font-black text-chocolateBrown`}>{key}</Text>
-                ) : null}
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
 }
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
@@ -332,19 +218,62 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
         ) : null}
 
         {/* ── Order items ── */}
-        <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-1.5 mb-3`}>
+        <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-3`}>
           {order.items.map((item, idx) => (
-            <View key={idx} style={tw`flex-row items-center`}>
-              <Text style={tw`text-xs font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
-              <View style={tw`flex-1`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
-                {item.flavor ? (
-                  <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.flavor}</Text>
-                ) : null}
+            <View key={idx} style={tw``}>
+              <View style={tw`flex-row items-center`}>
+                <Text style={tw`text-xs font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+                  {item.flavor ? (
+                    <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.flavor}</Text>
+                  ) : null}
+                </View>
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  {(item.price * item.quantity).toLocaleString()} XAF
+                </Text>
               </View>
-              <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                {(item.price * item.quantity).toLocaleString()} XAF
-              </Text>
+              {/* Customization tags */}
+              {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
+                <View style={tw`ml-7 flex-row flex-wrap gap-1 mt-0.5`}>
+                  {item.servingStyle && (
+                    <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
+                      <Text style={tw`text-[9px] font-bold text-strawberryPink`}>
+                        {item.servingStyle}
+                      </Text>
+                    </View>
+                  )}
+                  {item.sizeOption && (
+                    <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                        {item.sizeOption}
+                      </Text>
+                    </View>
+                  )}
+                  {item.pancakeStyle && (
+                    <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                        {item.pancakeStyle}
+                      </Text>
+                    </View>
+                  )}
+                  {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
+                    <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
+                      <Text style={tw`text-[9px] text-amber-800`}>
+                        + {topping.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {/* Special notes */}
+              {item.specialNotes && (
+                <View style={tw`ml-7 mt-1 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg`}>
+                  <Text style={tw`text-[10px] font-bold text-red-700`}>
+                    📝 {item.specialNotes}
+                  </Text>
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -410,7 +339,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
 // ─── Main AdminScreen ─────────────────────────────────────────────────────────
 
 export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreenProps) {
-  const [unlocked, setUnlocked] = useState(false);
+  const { t, language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -447,11 +376,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // Auto-poll every 15 seconds
   useEffect(() => {
-    if (!unlocked) return;
     fetchOrders();
     const interval = setInterval(() => fetchOrders(true), 15000);
     return () => clearInterval(interval);
-  }, [unlocked, fetchOrders]);
+  }, [fetchOrders]);
 
   // ── Approve ─────────────────────────────────────────────────────────────────
   const handleApprove = async (orderId: string) => {
@@ -483,10 +411,23 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes, Received',
-          onPress: () => {
-            setOrders((prev) =>
-              prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
-            );
+          onPress: async () => {
+            setActionLoading(orderId);
+            try {
+              const res = await fetch(`${apiUrl}/api/orders/${orderId}/receive`, { method: 'PATCH' });
+              const json = await res.json();
+              if (json.success) {
+                setOrders((prev) =>
+                  prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
+                );
+              }
+            } catch {
+              setOrders((prev) =>
+                prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
+              );
+            } finally {
+              setActionLoading(null);
+            }
           },
         },
       ]
@@ -503,7 +444,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setOrders((prev) => prev.filter((o) => o.id !== orderId)),
+          onPress: async () => {
+            setActionLoading(orderId);
+            try {
+              await fetch(`${apiUrl}/api/orders/${orderId}`, { method: 'DELETE' });
+            } catch {}
+            setOrders((prev) => prev.filter((o) => o.id !== orderId));
+            setActionLoading(null);
+          },
         },
       ],
       { cancelable: true }
@@ -512,9 +460,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // ── Logout ───────────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    Alert.alert('Exit Admin Panel', 'Go back to the main app?', [
+    Alert.alert('Exit Admin Panel', 'Log out and return to the main app?', [
       { text: 'Stay', style: 'cancel' },
-      { text: 'Exit', style: 'destructive', onPress: onLogout },
+      { text: 'Log Out', style: 'destructive', onPress: onLogout },
     ]);
   };
 
@@ -537,11 +485,6 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     received: orders.filter((o) => o.status === 'received').length,
   };
 
-  // ── PIN Gate ─────────────────────────────────────────────────────────────────
-  if (!unlocked) {
-    return <PinGate onUnlock={() => setUnlocked(true)} />;
-  }
-
   // ── Admin Panel ───────────────────────────────────────────────────────────────
   return (
     <View style={[tw`flex-1 bg-vanillaCream`]}>
@@ -560,14 +503,17 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               <View style={tw`w-7 h-7 rounded-lg bg-strawberryPink items-center justify-center`}>
                 <Ionicons name="shield-checkmark" size={16} color={COLORS.white} />
               </View>
-              <Text style={tw`text-lg font-black text-chocolateBrown`}>Admin Panel</Text>
+              <Text style={tw`text-lg font-black text-chocolateBrown`}>{t('adminPortal')}</Text>
             </View>
             <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-              Logged in as <Text style={tw`font-bold text-chocolateBrown`}>{adminName}</Text>
+              {adminName} · Manager
             </Text>
           </View>
 
           <View style={tw`flex-row items-center gap-2`}>
+            {/* Language Switcher */}
+            <LanguageSelector />
+
             {/* Refresh button */}
             <TouchableOpacity
               style={tw`w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center`}
@@ -577,7 +523,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               <Ionicons name="refresh-outline" size={18} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
 
-            {/* Exit */}
+            {/* Exit / Log out */}
             <TouchableOpacity
               style={tw`w-9 h-9 rounded-xl bg-red-50 border border-red-200 items-center justify-center`}
               onPress={handleLogout}

@@ -276,21 +276,53 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-vanillaCreamDark shadow-sm`}>
               <Text style={tw`text-xs font-black text-chocolateBrown mb-2.5`}>{t('itemsInOrder')}</Text>
               {order.items.map((item, idx) => (
-                <View key={idx} style={tw`flex-row justify-between items-center py-1.5 border-b border-vanillaCreamDark/60`}>
-                  <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                    <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
-                      {item.quantity}×
-                    </Text>
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
-                      {item.flavor ? (
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.flavor}</Text>
-                      ) : null}
+                <View key={idx} style={tw`py-2 border-b border-vanillaCreamDark/60`}>
+                  <View style={tw`flex-row justify-between items-center`}>
+                    <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
+                      <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
+                        {item.quantity}×
+                      </Text>
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+                        {item.flavor && (
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.flavor}</Text>
+                        )}
+                      </View>
                     </View>
+                    <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                      {(item.price * item.quantity).toLocaleString()} XAF
+                    </Text>
                   </View>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                    {(item.price * item.quantity).toLocaleString()} XAF
-                  </Text>
+                  {/* Customization details */}
+                  {item.servingStyle && (
+                    <View style={tw`flex-row items-center gap-1.5 ml-7 mt-1`}>
+                      <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                        {item.servingStyle}
+                      </Text>
+                    </View>
+                  )}
+                  {item.sizeOption && (
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
+                      {item.sizeOption}
+                    </Text>
+                  )}
+                  {item.pancakeStyle && (
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
+                      {item.pancakeStyle}
+                    </Text>
+                  )}
+                  {item.selectedToppings && item.selectedToppings.length > 0 && (
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
+                      + {item.selectedToppings.map((t) => t.name).join(', ')}
+                    </Text>
+                  )}
+                  {item.specialNotes && (
+                    <View style={tw`ml-7 mt-1 bg-strawberryPinkLight px-2.5 py-1.5 rounded-lg border border-strawberryPink/30`}>
+                      <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                        📝 {item.specialNotes}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               ))}
 
