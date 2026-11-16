@@ -14,6 +14,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem } from '@best-cream/shared';
+import { useLanguage } from '../context/LanguageContext';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 
@@ -41,6 +42,7 @@ export default function ProductDetailsScreen({
   onBack,
   onAddToCart,
 }: ProductDetailsScreenProps) {
+  const { t } = useLanguage();
   const isIceCream = product.category === 'ice-cream';
   const isPancake = product.category === 'pancake';
   const isCombo = product.category === 'combo';
@@ -225,7 +227,7 @@ export default function ProductDetailsScreen({
           {(isIceCream || isCombo) && (
             <View style={tw`mb-5 border-t border-vanillaCreamDark pt-4`}>
               <Text style={tw`text-sm font-black text-chocolateBrown mb-2.5`}>
-                Choose Scoop Size
+                {t('scoopCount')}
               </Text>
               <View style={tw`flex-row gap-2.5 mb-4`}>
                 <TouchableOpacity
@@ -235,8 +237,8 @@ export default function ProductDetailsScreen({
                   ]}
                   onPress={() => setIceCreamScoopCount('single')}
                 >
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>Single Scoop</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Included</Text>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('singleScoop')}</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('standard')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -246,7 +248,7 @@ export default function ProductDetailsScreen({
                   ]}
                   onPress={() => setIceCreamScoopCount('double')}
                 >
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>Double Scoop</Text>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('doubleScoop')}</Text>
                   <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 000 XAF</Text>
                 </TouchableOpacity>
 
@@ -257,14 +259,14 @@ export default function ProductDetailsScreen({
                   ]}
                   onPress={() => setIceCreamScoopCount('triple')}
                 >
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>Triple Scoop</Text>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('tripleScoop')}</Text>
                   <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 500 XAF</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Serving Container: Waffle Cone vs Cup */}
               <Text style={tw`text-sm font-black text-chocolateBrown mb-2.5`}>
-                Serving Style
+                {t('servingStyle')}
               </Text>
               <View style={tw`flex-row gap-3`}>
                 <TouchableOpacity
@@ -276,8 +278,8 @@ export default function ProductDetailsScreen({
                 >
                   <Text style={tw`text-2xl`}>🧇</Text>
                   <View>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown`}>Crispy Waffle Cone</Text>
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Freshly baked</Text>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('waffleCone')}</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{t('waffleConeDesc')}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -290,8 +292,8 @@ export default function ProductDetailsScreen({
                 >
                   <Text style={tw`text-2xl`}>🍨</Text>
                   <View>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown`}>Classic Cup</Text>
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>With eco spoon</Text>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('cupAndSpoon')}</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{t('cupAndSpoonDesc')}</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -333,7 +335,7 @@ export default function ProductDetailsScreen({
               </View>
 
               <Text style={tw`text-sm font-black text-chocolateBrown mb-2.5`}>
-                Stack Size
+                {t('stackSize')}
               </Text>
               <View style={tw`flex-row gap-3`}>
                 <TouchableOpacity
@@ -343,8 +345,8 @@ export default function ProductDetailsScreen({
                   ]}
                   onPress={() => setPancakeStackSize('2-stack')}
                 >
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>2 Pancakes</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>Standard</Text>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('twoPancakes')}</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('standard')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -354,7 +356,7 @@ export default function ProductDetailsScreen({
                   ]}
                   onPress={() => setPancakeStackSize('3-stack')}
                 >
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>3-Stack Giant</Text>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('threePancakes')}</Text>
                   <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>+1 000 XAF</Text>
                 </TouchableOpacity>
               </View>
@@ -364,10 +366,10 @@ export default function ProductDetailsScreen({
           {/* 3. Extra Toppings (Multi-select) */}
           <View style={tw`mb-5 border-t border-vanillaCreamDark pt-4`}>
             <Text style={tw`text-sm font-black text-chocolateBrown mb-1`}>
-              Add Extra Toppings & Drizzles
+              {t('extraToppings')}
             </Text>
             <Text style={tw`text-xs text-chocolateBrownMuted mb-3`}>
-              Personalize your sweet delight with rich toppings
+              {t('extraToppingsDesc')}
             </Text>
 
             <View style={tw`gap-2.5`}>
@@ -419,11 +421,11 @@ export default function ProductDetailsScreen({
           {/* 4. Special Instructions Note */}
           <View style={tw`border-t border-vanillaCreamDark pt-4 mb-2`}>
             <Text style={tw`text-sm font-black text-chocolateBrown mb-2`}>
-              Special Instructions
+              {t('specialInstructions')}
             </Text>
             <TextInput
               style={tw`bg-vanillaCream rounded-2xl p-3 text-xs text-chocolateBrown border border-vanillaCreamDark h-20 text-start`}
-              placeholder="e.g. Extra napkins, syrup on the side, extra warm..."
+              placeholder={t('specialInstructionsPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               multiline
               value={specialNotes}
@@ -466,7 +468,7 @@ export default function ProductDetailsScreen({
           >
             <Ionicons name="cart" size={20} color={COLORS.chocolateBrown} />
             <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-              Add to Cart • {totalPrice.toLocaleString()} XAF
+              {t('addToCartBtn')} • {totalPrice.toLocaleString()} XAF
             </Text>
           </TouchableOpacity>
         </View>

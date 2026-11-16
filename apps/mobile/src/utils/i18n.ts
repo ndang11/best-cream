@@ -155,6 +155,26 @@ export const translations = {
     deliveryFeeLabel: 'Delivery Fee',
     totalPaidLabel: 'Total Paid:',
     close: 'Close',
+
+    // Product Customization
+    servingStyle: 'Serving Style',
+    waffleCone: 'Crisp Waffle Cone',
+    waffleConeDesc: 'Freshly baked daily',
+    cupAndSpoon: 'Eco Cup & Spoon',
+    cupAndSpoonDesc: 'Mess-free treat',
+    scoopCount: 'Number of Scoops',
+    singleScoop: 'Single Scoop',
+    doubleScoop: 'Double Scoop',
+    tripleScoop: 'Triple Scoop',
+    stackSize: 'Stack Size',
+    twoPancakes: '2 Pancakes',
+    threePancakes: '3-Stack Giant',
+    standard: 'Standard',
+    extraToppings: 'Add Extra Toppings & Drizzles',
+    extraToppingsDesc: 'Personalize your sweet delight with rich toppings',
+    specialInstructions: 'Special Instructions',
+    specialInstructionsPlaceholder: 'e.g. Extra napkins, syrup on the side, extra warm...',
+    addToCartBtn: 'Add to Cart',
   },
   fr: {
     // Brand
@@ -310,6 +330,26 @@ export const translations = {
     deliveryFeeLabel: 'Frais de livraison',
     totalPaidLabel: 'Total Payé :',
     close: 'Fermer',
+
+    // Product Customization
+    servingStyle: 'Mode de Service',
+    waffleCone: 'Cornet Gaufrette Croustillant',
+    waffleConeDesc: 'Cuit chaque matin',
+    cupAndSpoon: 'Pot Éco & Cuillère',
+    cupAndSpoonDesc: 'Pratique & sans dégât',
+    scoopCount: 'Nombre de Boules',
+    singleScoop: '1 Boule',
+    doubleScoop: '2 Boules',
+    tripleScoop: '3 Boules',
+    stackSize: 'Taille de la Portion',
+    twoPancakes: '2 Pancakes',
+    threePancakes: '3 Pancakes Géants',
+    standard: 'Standard',
+    extraToppings: 'Ajouter des Garnitures & Nappages',
+    extraToppingsDesc: 'Personnalisez votre délice avec nos garnitures gourmandes',
+    specialInstructions: 'Instructions Spéciales',
+    specialInstructionsPlaceholder: 'ex: Serviettes en plus, sirop à part, bien chaud...',
+    addToCartBtn: 'Ajouter au Panier',
   },
 };
 

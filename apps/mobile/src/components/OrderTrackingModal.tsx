@@ -59,7 +59,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
 
   const handleDownloadReceipt = async () => {
     setDownloading(true);
-    await downloadReceiptPdf(order);
+    await downloadReceiptPdf(order, language);
     setDownloading(false);
   };
 

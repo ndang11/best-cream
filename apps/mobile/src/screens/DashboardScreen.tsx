@@ -209,7 +209,7 @@ export default function DashboardScreen({
 
   const handleDownloadReceipt = async (order: Order) => {
     setDownloadingOrderId(order.id);
-    await downloadReceiptPdf(order);
+    await downloadReceiptPdf(order, language);
     setDownloadingOrderId(null);
   };
 

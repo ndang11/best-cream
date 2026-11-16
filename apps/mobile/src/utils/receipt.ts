@@ -6,10 +6,12 @@ import type { Order } from '@best-cream/shared';
 import { formatXAF } from './location';
 
 /**
- * Generates an elegant HTML receipt for Best Cream orders.
+ * Generates an elegant HTML receipt for Best Cream orders with EN/FR bilingual support.
  */
-export function generateReceiptHtml(order: Order): string {
-  const formattedDate = new Date(order.createdAt).toLocaleDateString('en-GB', {
+export function generateReceiptHtml(order: Order, lang: 'en' | 'fr' = 'en'): string {
+  const isFr = lang === 'fr';
+
+  const formattedDate = new Date(order.createdAt).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -25,6 +27,13 @@ export function generateReceiptHtml(order: Order): string {
   const paymentLabel =
     order.paymentMethod === 'mtn-momo' ? 'MTN Mobile Money' : 'Orange Money';
 
+  const statusLabel =
+    order.status === 'approved'
+      ? (isFr ? 'APPROUVÉE' : 'APPROVED')
+      : order.status === 'received'
+      ? (isFr ? 'LIVRÉE' : 'DELIVERED')
+      : (isFr ? 'EN ATTENTE' : 'PENDING');
+
   const itemsHtml = order.items
     .map(
       (item) => `
@@ -33,10 +42,10 @@ export function generateReceiptHtml(order: Order): string {
           <div style="font-weight: 700; color: #3C2218; font-size: 13px;">${item.name}</div>
           ${
             item.flavor
-              ? `<div style="font-size: 11px; color: #8A6E63;">Flavor: ${item.flavor}</div>`
+              ? `<div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Parfum' : 'Flavor'}: ${item.flavor}</div>`
               : ''
           }
-          <div style="font-size: 11px; color: #8A6E63;">Unit: ${item.price.toLocaleString()} XAF</div>
+          <div style="font-size: 11px; color: #8A6E63;">${isFr ? 'Prix unitaire' : 'Unit'}: ${item.price.toLocaleString()} XAF</div>
         </td>
         <td style="padding: 10px 0; text-align: center; border-bottom: 1px dashed #E2D9D2; font-weight: 700; color: #FF6584; font-size: 13px;">
           ${item.quantity}×
@@ -55,7 +64,7 @@ export function generateReceiptHtml(order: Order): string {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Receipt - ${order.id}</title>
+        <title>${isFr ? 'Reçu' : 'Receipt'} - ${order.id}</title>
         <style>
           @page {
             size: auto;
@@ -122,27 +131,26 @@ export function generateReceiptHtml(order: Order): string {
           .meta-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-          }
-          .meta-row:last-child {
-            margin-bottom: 0;
+            align-items: center;
+            padding: 4px 0;
           }
           .meta-label {
             color: #8A6E63;
-            font-weight: 500;
+            font-weight: 600;
           }
           .meta-value {
-            color: #3C2218;
             font-weight: 700;
+            color: #3C2218;
+            text-align: right;
           }
           .status-pill {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
+            background: #D8F3DC;
+            color: #2D6A4F;
             font-weight: 800;
-            background: #E8F5E9;
-            color: #2E7D32;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
             text-transform: uppercase;
           }
           table {
@@ -151,46 +159,46 @@ export function generateReceiptHtml(order: Order): string {
             margin-bottom: 20px;
           }
           th {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #8A6E63;
+            border-bottom: 2px solid #FAF6F0;
             padding-bottom: 8px;
-            border-bottom: 2px solid #3C2218;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8A6E63;
           }
           .summary-box {
-            border-top: 2px solid #FAF6F0;
-            padding-top: 14px;
-            margin-bottom: 24px;
+            background: #FAF6F0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
           }
           .summary-row {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            margin-bottom: 6px;
-            color: #6B4E43;
+            font-size: 12px;
+            color: #8A6E63;
+            padding: 4px 0;
           }
           .grand-total {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 900;
             color: #3C2218;
-            margin-top: 10px;
-            padding-top: 10px;
             border-top: 2px dashed #E2D9D2;
+            padding-top: 10px;
+            margin-top: 6px;
           }
           .paid-badge {
-            background: #EBF8EE;
-            border: 1px solid #A6E3B3;
-            border-radius: 10px;
-            padding: 10px;
             text-align: center;
+            padding: 12px;
+            background: #FFF2F4;
+            border: 1px dashed #FF6584;
+            border-radius: 12px;
             margin-bottom: 20px;
           }
           .paid-text {
-            color: #1E662D;
+            color: #FF6584;
             font-weight: 800;
             font-size: 12px;
             letter-spacing: 0.5px;
@@ -216,9 +224,9 @@ export function generateReceiptHtml(order: Order): string {
           <div class="header">
             <div class="logo-badge">🍦</div>
             <h1 class="shop-title">BEST CREAM</h1>
-            <p class="shop-sub">Artisanal Gelato & Fresh Golden Pancakes</p>
+            <p class="shop-sub">${isFr ? 'Glaces & Gelato Artisanaux • Pancakes Dorés' : 'Artisanal Gelato & Fresh Golden Pancakes'}</p>
             <div class="shop-contact">
-              📍 Centre-ville, Yaoundé, Cameroon<br/>
+              📍 Centre-ville, Yaoundé, Cameroun<br/>
               📞 (+237) 670 123 456 • 🕒 09:00 - 22:00
             </div>
           </div>
@@ -226,22 +234,22 @@ export function generateReceiptHtml(order: Order): string {
           <!-- Metadata -->
           <div class="meta-box">
             <div class="meta-row">
-              <span class="meta-label">Receipt No:</span>
+              <span class="meta-label">${isFr ? 'N° de Reçu :' : 'Receipt No:'}</span>
               <span class="meta-value">REC-${order.id}</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">Date & Time:</span>
+              <span class="meta-label">${isFr ? 'Date & Heure :' : 'Date & Time:'}</span>
               <span class="meta-value">${formattedDate}</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">Payment Method:</span>
+              <span class="meta-label">${isFr ? 'Paiement :' : 'Payment Method:'}</span>
               <span class="meta-value">${paymentLabel}</span>
             </div>
             ${
               order.phoneNumber
                 ? `
             <div class="meta-row">
-              <span class="meta-label">Account Phone:</span>
+              <span class="meta-label">${isFr ? 'N° Téléphone :' : 'Account Phone:'}</span>
               <span class="meta-value">${order.phoneNumber}</span>
             </div>`
                 : ''
@@ -250,20 +258,20 @@ export function generateReceiptHtml(order: Order): string {
               order.deliveryAddress
                 ? `
             <div class="meta-row">
-              <span class="meta-label">Delivery Destination:</span>
+              <span class="meta-label">${isFr ? 'Adresse de Livraison :' : 'Delivery Destination:'}</span>
               <span class="meta-value">${order.deliveryAddress} ${
                     order.distanceKm ? `(${order.distanceKm.toFixed(1)} km)` : ''
                   }</span>
             </div>`
                 : `
             <div class="meta-row">
-              <span class="meta-label">Order Type:</span>
-              <span class="meta-value">Store Pickup (Centre-ville)</span>
+              <span class="meta-label">${isFr ? 'Type de Commande :' : 'Order Type:'}</span>
+              <span class="meta-value">${isFr ? 'Retrait en boutique (Centre-ville)' : 'Store Pickup (Centre-ville)'}</span>
             </div>`
             }
             <div class="meta-row">
-              <span class="meta-label">Order Status:</span>
-              <span class="status-pill">${order.status}</span>
+              <span class="meta-label">${isFr ? 'Statut :' : 'Order Status:'}</span>
+              <span class="status-pill">${statusLabel}</span>
             </div>
           </div>
 
@@ -271,8 +279,8 @@ export function generateReceiptHtml(order: Order): string {
           <table>
             <thead>
               <tr>
-                <th style="text-align: left;">Item Description</th>
-                <th style="text-align: center; width: 45px;">Qty</th>
+                <th style="text-align: left;">${isFr ? 'Désignation' : 'Item Description'}</th>
+                <th style="text-align: center; width: 45px;">${isFr ? 'Qté' : 'Qty'}</th>
                 <th style="text-align: right; width: 90px;">Total</th>
               </tr>
             </thead>
@@ -284,30 +292,30 @@ export function generateReceiptHtml(order: Order): string {
           <!-- Financial Summary -->
           <div class="summary-box">
             <div class="summary-row">
-              <span>Subtotal</span>
+              <span>${isFr ? 'Sous-total' : 'Subtotal'}</span>
               <span>${subtotal.toLocaleString()} XAF</span>
             </div>
             <div class="summary-row">
-              <span>Delivery Fee</span>
+              <span>${isFr ? 'Frais de livraison' : 'Delivery Fee'}</span>
               <span>${
-                deliveryFee === 0 ? 'FREE' : `${deliveryFee.toLocaleString()} XAF`
+                deliveryFee === 0 ? (isFr ? 'GRATUIT' : 'FREE') : `${deliveryFee.toLocaleString()} XAF`
               }</span>
             </div>
             <div class="grand-total">
-              <span>TOTAL PAID</span>
+              <span>${isFr ? 'TOTAL PAYÉ' : 'TOTAL PAID'}</span>
               <span>${order.totalAmount.toLocaleString()} XAF</span>
             </div>
           </div>
 
           <!-- Verified Payment Banner -->
           <div class="paid-badge">
-            <div class="paid-text">✓ VERIFIED & PAID VIA ${paymentLabel.toUpperCase()}</div>
+            <div class="paid-text">✓ ${isFr ? 'VÉRIFIÉ & PAYÉ VIA' : 'VERIFIED & PAID VIA'} ${paymentLabel.toUpperCase()}</div>
           </div>
 
           <!-- Footer -->
           <div class="footer">
-            <p style="margin: 0 0 4px 0; font-weight: 600;">Merci pour votre gourmandise! 🥞✨</p>
-            <p style="margin: 0;">Keep this receipt for order pickup or customer support inquiries.</p>
+            <p style="margin: 0 0 4px 0; font-weight: 600;">${isFr ? 'Merci pour votre gourmandise ! 🥞✨' : 'Thank you for your sweet order! 🥞✨'}</p>
+            <p style="margin: 0;">${isFr ? 'Conservez ce reçu pour le retrait de votre commande ou pour toute demande.' : 'Keep this receipt for order pickup or customer support inquiries.'}</p>
             <div class="barcode">*${order.id}*</div>
           </div>
         </div>
@@ -317,11 +325,10 @@ export function generateReceiptHtml(order: Order): string {
 }
 
 /**
- * Downloads, shares, or prints the official receipt PDF on the user's device.
- * Handles Android FileProvider permissions cleanly with automated fallback to native print/save dialog.
+ * Downloads, shares, or prints the official receipt PDF on the user's device in their chosen language.
  */
-export async function downloadReceiptPdf(order: Order): Promise<void> {
-  const html = generateReceiptHtml(order);
+export async function downloadReceiptPdf(order: Order, lang: 'en' | 'fr' = 'en'): Promise<void> {
+  const html = generateReceiptHtml(order, lang);
 
   // Strategy 1: Print to file + FileSystem.copyAsync to cacheDirectory + Sharing.shareAsync
   try {
@@ -358,7 +365,7 @@ export async function downloadReceiptPdf(order: Order): Promise<void> {
     if (isAvailable) {
       await Sharing.shareAsync(targetUri, {
         mimeType: 'application/pdf',
-        dialogTitle: `Best Cream Receipt - ${order.id}`,
+        dialogTitle: `${lang === 'fr' ? 'Reçu Best Cream' : 'Best Cream Receipt'} - ${order.id}`,
         UTI: 'com.adobe.pdf',
       });
       return;
@@ -376,9 +383,10 @@ export async function downloadReceiptPdf(order: Order): Promise<void> {
   } catch (printError) {
     console.error('System print fallback failed:', printError);
     Alert.alert(
-      'Receipt Error',
-      'Could not generate or open the receipt PDF. Please try again.'
+      lang === 'fr' ? 'Erreur de Reçu' : 'Receipt Error',
+      lang === 'fr'
+        ? 'Impossible de générer ou d’ouvrir le reçu PDF. Veuillez réessayer.'
+        : 'Could not generate or open the receipt PDF. Please try again.'
     );
   }
 }
-
