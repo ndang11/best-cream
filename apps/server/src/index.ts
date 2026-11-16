@@ -238,7 +238,7 @@ app.patch('/api/orders/:id/receive', (req: Request, res: Response<ApiResponse<Or
 });
 
 app.delete('/api/orders/:id', (req: Request, res: Response<ApiResponse<{ id: string }>>) => {
-  const orderId = req.params.id;
+  const orderId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const index = orders.findIndex((o) => o.id === orderId);
   if (index === -1) {
     return res.status(404).json({
