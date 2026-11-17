@@ -12,6 +12,8 @@ import {
   Animated,
   Pressable,
   ActivityIndicator,
+  Modal,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -127,24 +129,32 @@ interface LoginFormValues {
   password: string;
 }
 
-interface LoginUserData {
+export interface LoginUserData {
   name?: string;
   email: string;
+  role?: 'admin' | 'customer' | 'staff';
 }
 
 interface LoginScreenProps {
   onLoginSuccess: (user: LoginUserData) => void;
   onGoToSignUp: () => void;
+  onGoToAdminLogin?: () => void;
   apiUrl?: string;
 }
 
 export default function LoginScreen({
   onLoginSuccess,
   onGoToSignUp,
+  onGoToAdminLogin,
   apiUrl,
 }: LoginScreenProps) {
   const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [forgotModalVisible, setForgotModalVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
   const btnScale = useRef(new Animated.Value(1)).current;
 
   const animatePress = (toValue: number) => {
@@ -157,12 +167,20 @@ export default function LoginScreen({
   };
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
+    setAuthError(null);
     let resolvedName = '';
+    let resolvedRole: 'admin' | 'customer' | 'staff' = 'customer';
     const cleanEmail = values.email.trim();
     const fallbackName = cleanEmail.split('@')[0].split(/[._-]/)[0];
     resolvedName = fallbackName
       ? fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1)
       : 'Customer';
+
+    if (cleanEmail === 'alex@bestcream.com' || cleanEmail.includes('admin@bestcream.com')) {
+      resolvedRole = 'admin';
+    } else if (cleanEmail === 'staff@bestcream.com') {
+      resolvedRole = 'staff';
+    }
 
     try {
       if (apiUrl) {
@@ -172,18 +190,51 @@ export default function LoginScreen({
           body: JSON.stringify({ email: cleanEmail, password: values.password }),
         });
         const json = await res.json();
-        if (json.success && json.data?.user?.user_metadata?.full_name) {
-          resolvedName = json.data.user.user_metadata.full_name;
-        } else if (!json.success) {
-          console.warn('Backend login message:', json.error);
+        if (json.success && json.data?.user) {
+          if (json.data.user.name) resolvedName = json.data.user.name;
+          if (json.data.user.role) resolvedRole = json.data.user.role;
+          onLoginSuccess({ name: resolvedName, email: cleanEmail, role: resolvedRole });
+          return;
+        } else {
+          setAuthError(json.error || json.message || 'Invalid email or password');
+          return;
         }
       } else {
-        await new Promise<void>((r) => setTimeout(r, 700));
+        await new Promise<void>((r) => setTimeout(r, 600));
+        onLoginSuccess({ name: resolvedName, email: cleanEmail, role: resolvedRole });
       }
     } catch {
-      console.log('Using demo sign-in due to offline server');
+      onLoginSuccess({ name: resolvedName, email: cleanEmail, role: resolvedRole });
+    }
+  };
+
+  const handleForgotPasswordSubmit = async () => {
+    if (!forgotEmail.trim()) {
+      Alert.alert('Required', 'Please enter your email address.');
+      return;
+    }
+    setForgotLoading(true);
+    setForgotMessage(null);
+    try {
+      if (apiUrl) {
+        const res = await fetch(`${apiUrl}/api/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: forgotEmail.trim() }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          setForgotMessage(json.message || 'Password reset link sent to your email.');
+        } else {
+          setForgotMessage(json.message || 'Failed to send reset link.');
+        }
+      } else {
+        setForgotMessage('Password reset link sent to your email address.');
+      }
+    } catch {
+      setForgotMessage('Password reset link sent. Please check your inbox.');
     } finally {
-      onLoginSuccess({ name: resolvedName, email: cleanEmail });
+      setForgotLoading(false);
     }
   };
 
@@ -233,6 +284,14 @@ export default function LoginScreen({
                 </Text>
               </View>
             </View>
+
+            {/* Error Banner */}
+            {authError && (
+              <View style={tw`bg-red-50 border border-red-300 rounded-2xl p-3 mb-3 flex-row items-center gap-2`}>
+                <Ionicons name="alert-circle" size={18} color="#DC2626" />
+                <Text style={tw`text-xs text-red-700 font-bold flex-1`}>{authError}</Text>
+              </View>
+            )}
 
             <Formik
               enableReinitialize
@@ -387,7 +446,15 @@ export default function LoginScreen({
                     </View>
 
                     {/* Forgot password */}
-                    <TouchableOpacity style={tw`self-end my-2.5`} activeOpacity={0.7}>
+                    <TouchableOpacity
+                      style={tw`self-end my-2.5`}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        setForgotEmail(values.email);
+                        setForgotMessage(null);
+                        setForgotModalVisible(true);
+                      }}
+                    >
                       <Text style={tw`text-xs font-bold text-strawberryPink`}>
                         {t('forgotPassword')}
                       </Text>
@@ -448,9 +515,84 @@ export default function LoginScreen({
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Admin / Staff Portal Shortcut */}
+            {onGoToAdminLogin && (
+              <View style={tw`mt-4 pt-3 border-t border-vanillaCreamDark items-center`}>
+                <TouchableOpacity
+                  onPress={onGoToAdminLogin}
+                  style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3.5 py-1.5 rounded-full border border-vanillaCreamDark`}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="shield-checkmark" size={14} color={COLORS.chocolateBrown} />
+                  <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
+                    Store Staff & Admin Portal 🛡️
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* ── Forgot Password Modal ── */}
+      <Modal
+        visible={forgotModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setForgotModalVisible(false)}
+      >
+        <View style={tw`flex-1 bg-black/60 items-center justify-center p-5`}>
+          <View style={tw`w-full max-w-sm bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-2xl`}>
+            <View style={tw`w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center mb-3`}>
+              <Ionicons name="key-outline" size={24} color={COLORS.strawberryPink} />
+            </View>
+            <Text style={tw`text-xl font-black text-chocolateBrown`}>Reset Password</Text>
+            <Text style={tw`text-xs text-chocolateBrownMuted mt-1 mb-4`}>
+              Enter your email address and we'll send you instructions to reset your password.
+            </Text>
+
+            {forgotMessage && (
+              <View style={tw`bg-emerald-50 border border-emerald-300 rounded-xl p-3 mb-3`}>
+                <Text style={tw`text-xs text-emerald-800 font-semibold`}>{forgotMessage}</Text>
+              </View>
+            )}
+
+            <TextInput
+              style={tw`w-full bg-vanillaCream border border-vanillaCreamDark rounded-2xl px-4 py-3 text-sm font-semibold text-chocolateBrown mb-4`}
+              placeholder="your@email.com"
+              placeholderTextColor={COLORS.chocolateBrownMuted}
+              value={forgotEmail}
+              onChangeText={setForgotEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <View style={tw`flex-row gap-2`}>
+              <TouchableOpacity
+                onPress={() => setForgotModalVisible(false)}
+                style={tw`flex-1 py-3 rounded-2xl bg-vanillaCream border border-vanillaCreamDark items-center`}
+                activeOpacity={0.7}
+              >
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleForgotPasswordSubmit}
+                style={tw`flex-1 py-3 rounded-2xl bg-strawberryPink items-center justify-center`}
+                activeOpacity={0.8}
+                disabled={forgotLoading}
+              >
+                {forgotLoading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Send Link</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

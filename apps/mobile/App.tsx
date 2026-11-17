@@ -8,19 +8,28 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
+import StaffScreen from './src/screens/StaffScreen';
 
 // Automatically resolve backend host IP from the Expo development server
 const hostUri = Constants.expoConfig?.hostUri;
 const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
 const API_URL = `http://${hostIp}:5000`;
 
-export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin' | 'admin-login';
+export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin' | 'admin-login' | 'staff';
 
 function MainApp() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('splash');
   const [userEmail, setUserEmail] = useState<string>('customer@bestcream.com');
   const [userName, setUserName] = useState<string>('Sweet Tooth');
+  const [userRole, setUserRole] = useState<'admin' | 'staff' | 'customer'>('customer');
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
+
+  const handleGlobalLogout = () => {
+    setUserRole('customer');
+    setUserEmail('customer@bestcream.com');
+    setUserName('Sweet Tooth');
+    setCurrentScreen('welcome');
+  };
 
   // 1. Splash Screen (8-second branded entrance)
   if (currentScreen === 'splash') {
@@ -38,7 +47,7 @@ function MainApp() {
     );
   }
 
-  // 3. Login Screen -> Routes straight to Dashboard with "Welcome back [user name]"
+  // 3. Login Screen -> Automatically routes based on user's authorized role
   if (currentScreen === 'login') {
     return (
       <LoginScreen
@@ -46,10 +55,20 @@ function MainApp() {
         onLoginSuccess={(user) => {
           if (user.email) setUserEmail(user.email);
           if (user.name) setUserName(user.name);
+          const role = user.role || 'customer';
+          setUserRole(role);
           setIsNewUser(false);
-          setCurrentScreen('dashboard');
+
+          if (role === 'admin') {
+            setCurrentScreen('admin');
+          } else if (role === 'staff') {
+            setCurrentScreen('staff');
+          } else {
+            setCurrentScreen('dashboard');
+          }
         }}
         onGoToSignUp={() => setCurrentScreen('signup')}
+        onGoToAdminLogin={() => setCurrentScreen('admin-login')}
       />
     );
   }
@@ -62,6 +81,7 @@ function MainApp() {
         onSignUpSuccess={(user) => {
           if (user.email) setUserEmail(user.email);
           if (user.name) setUserName(user.name);
+          setUserRole('customer');
           setIsNewUser(true);
           setCurrentScreen('dashboard');
         }}
@@ -70,7 +90,7 @@ function MainApp() {
     );
   }
 
-  // 5. Admin Login Screen — Staff/Manager PIN entry
+  // 5. Admin Login Screen — Staff/Manager PIN & Supabase Authentication
   if (currentScreen === 'admin-login') {
     return (
       <AdminLoginScreen
@@ -78,6 +98,7 @@ function MainApp() {
         onAdminLoginSuccess={(admin) => {
           if (admin.name) setUserName(admin.name);
           if (admin.email) setUserEmail(admin.email);
+          setUserRole('admin');
           setCurrentScreen('admin');
         }}
         onBack={() => setCurrentScreen('welcome')}
@@ -85,25 +106,51 @@ function MainApp() {
     );
   }
 
-  // 6. Admin Screen — PIN-protected order management panel
+  // 6. Admin Screen — Protected route for authorized store administrators
   if (currentScreen === 'admin') {
+    if (userRole !== 'admin') {
+      // Guard: non-admins cannot access admin dashboard
+      return (
+        <AdminLoginScreen
+          apiUrl={API_URL}
+          onAdminLoginSuccess={(admin) => {
+            if (admin.name) setUserName(admin.name);
+            if (admin.email) setUserEmail(admin.email);
+            setUserRole('admin');
+            setCurrentScreen('admin');
+          }}
+          onBack={() => setCurrentScreen('welcome')}
+        />
+      );
+    }
     return (
       <AdminScreen
         apiUrl={API_URL}
         adminName={userName}
-        onLogout={() => setCurrentScreen('dashboard')}
+        onLogout={handleGlobalLogout}
       />
     );
   }
 
-  // 6. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
+  // 7. Staff Screen — Kitchen & fulfillment tickets
+  if (currentScreen === 'staff') {
+    return (
+      <StaffScreen
+        apiUrl={API_URL}
+        staffName={userName}
+        onLogout={handleGlobalLogout}
+      />
+    );
+  }
+
+  // 8. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
   return (
     <DashboardScreen
       apiUrl={API_URL}
       userName={userName}
       userEmail={userEmail}
       isNewUser={isNewUser}
-      onLogout={() => setCurrentScreen('welcome')}
+      onLogout={handleGlobalLogout}
     />
   );
 }

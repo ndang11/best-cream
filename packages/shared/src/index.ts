@@ -56,3 +56,8 @@ export interface ApiResponse<T> {
   message?: string;
   timestamp: string;
 }
+
+export interface AuthData {
+  access_token: string;
+  user: User;
+}
