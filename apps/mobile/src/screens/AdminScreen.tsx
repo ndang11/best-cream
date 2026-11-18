@@ -32,7 +32,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord } from '@best-cream/shared';
+import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord, BusinessSettings } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -46,7 +46,7 @@ interface AdminScreenProps {
 }
 
 type FilterTab = 'all' | 'pending' | 'accepted' | 'preparing' | 'ready' | 'out-for-delivery' | 'completed' | 'rejected';
-type AdminTab = 'overview' | 'orders' | 'products' | 'daily-menu' | 'payments' | 'customers';
+type AdminTab = 'overview' | 'orders' | 'products' | 'daily-menu' | 'payments' | 'customers' | 'settings';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'topping' | 'drink' | 'special-offer' | 'combo';
 type ProductStatusFilter = 'all' | 'active' | 'inactive' | 'archived';
 
@@ -1931,6 +1931,96 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     );
   }, [customers, customerSearch]);
 
+  // ── Business Settings state ────────────────────────────────────────────────
+  const [settings, setSettings] = useState<BusinessSettings>({
+    businessName: 'Best Cream',
+    logoUrl: '',
+    phone: '+237 670 123 456',
+    email: 'contact@bestcream.cm',
+    address: 'Centre-ville, Yaoundé, Cameroon',
+    openingTime: '08:00',
+    closingTime: '22:00',
+    operatingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    isDeliveryAvailable: true,
+    baseDeliveryFee: 1000,
+    minOrderAmount: 2000,
+    isPickupAvailable: true,
+    currency: 'XAF',
+    tagline: 'Handcrafted Ice Creams & Hot Fluffy Pancakes',
+  });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+
+  const fetchSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/settings`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setSettings(json.data);
+      }
+    } catch (_) {}
+    setSettingsLoading(false);
+  }, [apiUrl]);
+
+  const handleSaveSettings = async () => {
+    setSettingsSaving(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      const json = await res.json();
+      if (json.success) {
+        Alert.alert('Saved!', 'Business settings have been updated successfully.');
+        setSettings(json.data);
+      } else {
+        Alert.alert('Error', json.message || 'Failed to update settings.');
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Network error.');
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const handleUploadLogo = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        setLogoUploading(true);
+        const base64Data = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+
+        const res = await fetch(`${apiUrl}/api/admin/upload-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Data }),
+        });
+        const json = await res.json();
+        if (json.success && json.url) {
+          setSettings((prev) => ({ ...prev, logoUrl: json.url }));
+          Alert.alert('Logo Uploaded', 'New business logo uploaded to Cloudinary! Tap "Save Changes" to apply.');
+        } else {
+          Alert.alert('Error', json.message || 'Upload failed.');
+        }
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not pick image.');
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
   const topInset = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
 
   // ── Fetch notifications ────────────────────────────────────────────────────
@@ -2111,6 +2201,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   useEffect(() => {
     if (adminTab === 'customers') fetchCustomers();
   }, [adminTab, fetchCustomers]);
+
+  // Fetch settings when tab opens
+  useEffect(() => {
+    if (adminTab === 'settings') fetchSettings();
+  }, [adminTab, fetchSettings]);
 
   // Fallback stats computed from current orders
   const computedStats = useMemo(() => {
@@ -2601,7 +2696,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       {/* ══════════════════ TAB SWITCHER ══════════════════ */}
       <View style={tw`bg-white border-b border-vanillaCreamDark`}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row px-1`}>
-          {(['overview', 'orders', 'products', 'daily-menu', 'payments', 'customers'] as AdminTab[]).map((tab) => {
+          {(['overview', 'orders', 'products', 'daily-menu', 'payments', 'customers', 'settings'] as AdminTab[]).map((tab) => {
             const active = adminTab === tab;
             const iconName =
               tab === 'overview'
@@ -2614,7 +2709,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 ? 'calendar-outline'
                 : tab === 'payments'
                 ? 'card-outline'
-                : 'people-outline';
+                : tab === 'customers'
+                ? 'people-outline'
+                : 'settings-outline';
             const tabLabel =
               tab === 'overview'
                 ? t('adminOverviewTab')
@@ -2626,7 +2723,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 ? 'Daily Menu'
                 : tab === 'payments'
                 ? 'Payments'
-                : 'Customers';
+                : tab === 'customers'
+                ? 'Customers'
+                : 'Settings';
             return (
               <TouchableOpacity
                 key={tab}
@@ -4414,7 +4513,6 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </Modal>
         </View>
       )}
-
       {/* ══════════════════ CUSTOMERS TAB ══════════════════ */}
       {adminTab === 'customers' && (
         <View style={tw`flex-1 bg-vanillaCream`}>
@@ -4742,6 +4840,284 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             )}
           </Modal>
         </View>
+      )}
+
+      {/* ══════════════════ SETTINGS TAB ══════════════════ */}
+      {adminTab === 'settings' && (
+        <ScrollView style={tw`flex-1 bg-vanillaCream`} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row items-center justify-between`}>
+              <View>
+                <Text style={tw`text-xl font-black text-chocolateBrown`}>⚙️ Business Settings</Text>
+                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                  Configure store info, hours, delivery & ordering rules
+                </Text>
+              </View>
+              <TouchableOpacity onPress={fetchSettings} style={tw`p-2`} disabled={settingsLoading}>
+                {settingsLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                ) : (
+                  <Ionicons name="refresh-outline" size={20} color={COLORS.strawberryPink} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={tw`p-5 gap-4`}>
+            {/* 1. Identity & Branding */}
+            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>🏢 Identity & Branding</Text>
+
+              {/* Logo Upload Section */}
+              <View style={tw`flex-row items-center gap-4 mb-4 pb-4 border-b border-vanillaCreamDark/60`}>
+                <View style={tw`relative`}>
+                  {settings.logoUrl ? (
+                    <Image source={{ uri: settings.logoUrl }} style={tw`w-20 h-20 rounded-2xl`} resizeMode="cover" />
+                  ) : (
+                    <View style={tw`w-20 h-20 rounded-2xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}>
+                      <Ionicons name="image-outline" size={32} color={COLORS.chocolateBrownMuted} />
+                    </View>
+                  )}
+                  {logoUploading && (
+                    <View style={tw`absolute inset-0 bg-black/40 rounded-2xl items-center justify-center`}>
+                      <ActivityIndicator size="small" color="#fff" />
+                    </View>
+                  )}
+                </View>
+
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-xs font-black text-chocolateBrown mb-1`}>Business Logo</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted mb-2`}>
+                    Uploaded directly to Cloudinary and displayed across the customer app.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleUploadLogo}
+                    disabled={logoUploading}
+                    style={tw`self-start bg-strawberryPink/10 border border-strawberryPink/30 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5`}
+                  >
+                    <Ionicons name="cloud-upload-outline" size={13} color={COLORS.strawberryPink} />
+                    <Text style={tw`text-xs font-bold text-strawberryPink`}>
+                      {logoUploading ? 'Uploading…' : 'Upload New Logo'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Business Name */}
+              <View style={tw`mb-3`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS NAME</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-sm font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  value={settings.businessName}
+                  onChangeText={(text) => setSettings((prev) => ({ ...prev, businessName: text }))}
+                  placeholder="e.g. Best Cream"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+
+              {/* Tagline */}
+              <View>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>TAGLINE / SLOGAN</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  value={settings.tagline || ''}
+                  onChangeText={(text) => setSettings((prev) => ({ ...prev, tagline: text }))}
+                  placeholder="e.g. Handcrafted Ice Creams & Hot Fluffy Pancakes"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+            </View>
+
+            {/* 2. Contact & Address */}
+            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>📍 Contact & Address</Text>
+
+              {/* Phone */}
+              <View style={tw`mb-3`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS PHONE NUMBER</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  value={settings.phone}
+                  onChangeText={(text) => setSettings((prev) => ({ ...prev, phone: text }))}
+                  placeholder="+237 6XX XXX XXX"
+                  keyboardType="phone-pad"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+
+              {/* Email */}
+              <View style={tw`mb-3`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS EMAIL</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  value={settings.email}
+                  onChangeText={(text) => setSettings((prev) => ({ ...prev, email: text }))}
+                  placeholder="contact@bestcream.cm"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+
+              {/* Physical Address */}
+              <View>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>PHYSICAL STORE ADDRESS</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  value={settings.address}
+                  onChangeText={(text) => setSettings((prev) => ({ ...prev, address: text }))}
+                  placeholder="Store location in Yaoundé"
+                  multiline
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+            </View>
+
+            {/* 3. Opening Hours & Operating Days */}
+            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>⏰ Hours & Operating Days</Text>
+
+              {/* Hours row */}
+              <View style={tw`flex-row gap-3 mb-4`}>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>OPENING TIME</Text>
+                  <TextInput
+                    style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center`}
+                    value={settings.openingTime}
+                    onChangeText={(text) => setSettings((prev) => ({ ...prev, openingTime: text }))}
+                    placeholder="08:00"
+                    placeholderTextColor={COLORS.chocolateBrownMuted}
+                  />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>CLOSING TIME</Text>
+                  <TextInput
+                    style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center`}
+                    value={settings.closingTime}
+                    onChangeText={(text) => setSettings((prev) => ({ ...prev, closingTime: text }))}
+                    placeholder="22:00"
+                    placeholderTextColor={COLORS.chocolateBrownMuted}
+                  />
+                </View>
+              </View>
+
+              {/* Operating Days */}
+              <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-2`}>OPERATING DAYS</Text>
+              <View style={tw`flex-row flex-wrap gap-2`}>
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                  const isSelected = settings.operatingDays.includes(day);
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      onPress={() => {
+                        const updated = isSelected
+                          ? settings.operatingDays.filter((d) => d !== day)
+                          : [...settings.operatingDays, day];
+                        setSettings((prev) => ({ ...prev, operatingDays: updated }));
+                      }}
+                      style={[
+                        tw`px-3 py-2 rounded-2xl border items-center min-w-[42px]`,
+                        isSelected ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-vanillaCream border-vanillaCreamDark`,
+                      ]}
+                    >
+                      <Text style={[tw`text-xs font-bold`, isSelected ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                        {day}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-2`}>
+                Open {settings.operatingDays.length} day{settings.operatingDays.length !== 1 ? 's' : ''} a week ({settings.operatingDays.join(', ') || 'None'})
+              </Text>
+            </View>
+
+            {/* 4. Delivery & Order Rules */}
+            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>🚚 Delivery & Order Rules</Text>
+
+              {/* Delivery Availability Toggle */}
+              <View style={tw`flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60`}>
+                <View style={tw`flex-1 mr-3`}>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Home Delivery Availability</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+                    When turned on, customers can place delivery orders.
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.isDeliveryAvailable}
+                  onValueChange={(val) => setSettings((prev) => ({ ...prev, isDeliveryAvailable: val }))}
+                  trackColor={{ false: '#D1C4B0', true: COLORS.pistachioGreen }}
+                />
+              </View>
+
+              {/* In-Store Pickup Toggle */}
+              <View style={tw`flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60`}>
+                <View style={tw`flex-1 mr-3`}>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Store Pickup Availability</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+                    Allow customers to order ahead and pick up in store.
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.isPickupAvailable}
+                  onValueChange={(val) => setSettings((prev) => ({ ...prev, isPickupAvailable: val }))}
+                  trackColor={{ false: '#D1C4B0', true: COLORS.pistachioGreen }}
+                />
+              </View>
+
+              {/* Base Delivery Fee */}
+              <View style={tw`mt-3 mb-3`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BASE DELIVERY CHARGE (XAF)</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  value={String(settings.baseDeliveryFee ?? 1000)}
+                  onChangeText={(text) => {
+                    const parsed = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+                    setSettings((prev) => ({ ...prev, baseDeliveryFee: parsed }));
+                  }}
+                  keyboardType="numeric"
+                  placeholder="1000"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+
+              {/* Minimum Order Amount */}
+              <View>
+                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>MINIMUM ORDER AMOUNT (XAF)</Text>
+                <TextInput
+                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  value={String(settings.minOrderAmount ?? 2000)}
+                  onChangeText={(text) => {
+                    const parsed = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+                    setSettings((prev) => ({ ...prev, minOrderAmount: parsed }));
+                  }}
+                  keyboardType="numeric"
+                  placeholder="2000"
+                  placeholderTextColor={COLORS.chocolateBrownMuted}
+                />
+              </View>
+            </View>
+
+            {/* Save Button */}
+            <TouchableOpacity
+              onPress={handleSaveSettings}
+              disabled={settingsSaving}
+              style={tw`bg-strawberryPink py-4 rounded-3xl items-center flex-row justify-center gap-2 shadow-md mb-8`}
+              activeOpacity={0.8}
+            >
+              {settingsSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                  <Text style={tw`text-white text-sm font-black`}>Save Changes</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       )}
 
       {/* ══ Order Details Modal ══ */}

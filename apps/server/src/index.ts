@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
-import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord, BusinessSettings } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -1703,6 +1703,102 @@ app.get('/api/admin/customers', async (_req: Request, res: Response) => {
     data: customerList,
     total: customerList.length,
     timestamp: new Date().toISOString(),
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BUSINESS SETTINGS
+// ══════════════════════════════════════════════════════════════════════════════
+
+let businessSettings: BusinessSettings = {
+  businessName: 'Best Cream',
+  logoUrl: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80',
+  phone: '+237 670 123 456',
+  email: 'contact@bestcream.cm',
+  address: 'Centre-ville, Yaoundé, Cameroon',
+  openingTime: '08:00',
+  closingTime: '22:00',
+  operatingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  isDeliveryAvailable: true,
+  baseDeliveryFee: 1000,
+  minOrderAmount: 2000,
+  isPickupAvailable: true,
+  currency: 'XAF',
+  tagline: 'Handcrafted Ice Creams & Hot Fluffy Pancakes',
+  updatedAt: new Date().toISOString(),
+};
+
+// GET /api/settings — public & admin endpoint
+app.get('/api/settings', async (_req: Request, res: Response) => {
+  // Try loading from Supabase if table exists
+  try {
+    const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+    if (!error && data) {
+      businessSettings = {
+        ...businessSettings,
+        businessName: data.business_name || businessSettings.businessName,
+        logoUrl: data.logo_url || businessSettings.logoUrl,
+        phone: data.phone || businessSettings.phone,
+        email: data.email || businessSettings.email,
+        address: data.address || businessSettings.address,
+        openingTime: data.opening_time || businessSettings.openingTime,
+        closingTime: data.closing_time || businessSettings.closingTime,
+        operatingDays: data.operating_days || businessSettings.operatingDays,
+        isDeliveryAvailable: data.is_delivery_available ?? businessSettings.isDeliveryAvailable,
+        baseDeliveryFee: data.base_delivery_fee ?? businessSettings.baseDeliveryFee,
+        minOrderAmount: data.min_order_amount ?? businessSettings.minOrderAmount,
+        isPickupAvailable: data.is_pickup_available ?? businessSettings.isPickupAvailable,
+        tagline: data.tagline || businessSettings.tagline,
+        updatedAt: data.updated_at || businessSettings.updatedAt,
+      };
+    }
+  } catch (_) { }
+
+  return res.json({
+    success: true,
+    data: businessSettings,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// PUT /api/admin/settings — update business settings
+app.put('/api/admin/settings', async (req: Request, res: Response) => {
+  const incoming = req.body as Partial<BusinessSettings>;
+  const now = new Date().toISOString();
+
+  businessSettings = {
+    ...businessSettings,
+    ...incoming,
+    operatingDays: incoming.operatingDays || businessSettings.operatingDays,
+    updatedAt: now,
+  };
+
+  // Best-effort sync to Supabase
+  try {
+    await supabase.from('settings').upsert({
+      id: 'default',
+      business_name: businessSettings.businessName,
+      logo_url: businessSettings.logoUrl,
+      phone: businessSettings.phone,
+      email: businessSettings.email,
+      address: businessSettings.address,
+      opening_time: businessSettings.openingTime,
+      closing_time: businessSettings.closingTime,
+      operating_days: businessSettings.operatingDays,
+      is_delivery_available: businessSettings.isDeliveryAvailable,
+      base_delivery_fee: businessSettings.baseDeliveryFee,
+      min_order_amount: businessSettings.minOrderAmount,
+      is_pickup_available: businessSettings.isPickupAvailable,
+      tagline: businessSettings.tagline,
+      updated_at: now,
+    });
+  } catch (_) { }
+
+  return res.json({
+    success: true,
+    data: businessSettings,
+    message: 'Business settings updated successfully',
+    timestamp: now,
   });
 });
 

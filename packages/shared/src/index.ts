@@ -182,3 +182,22 @@ export interface CustomerRecord {
   registeredAt?: string;
   deliveryAddress?: string;
 }
+
+// ── Business Settings ────────────────────────────────────────────────────────
+export interface BusinessSettings {
+  businessName: string;
+  logoUrl?: string;
+  phone: string;
+  email: string;
+  address: string;
+  openingTime: string;      // e.g. "08:00"
+  closingTime: string;      // e.g. "22:00"
+  operatingDays: string[];  // e.g. ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  isDeliveryAvailable: boolean;
+  baseDeliveryFee: number;  // in XAF
+  minOrderAmount: number;   // in XAF
+  isPickupAvailable: boolean;
+  currency: string;         // "XAF"
+  tagline?: string;
+  updatedAt?: string;
+}

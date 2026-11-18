@@ -17,7 +17,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import type { MenuItem, ApiResponse, Order, ProductCategory, DailyMenu } from '@best-cream/shared';
+import type { MenuItem, ApiResponse, Order, ProductCategory, DailyMenu, BusinessSettings } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import YaoundeMapView from '../components/YaoundeMapView';
 import OrderTrackingModal from '../components/OrderTrackingModal';
@@ -181,6 +181,7 @@ export default function DashboardScreen({
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<MenuItem | null>(null);
   const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(null);
+  const [businessSettings, setBusinessSettings] = useState<BusinessSettings | null>(null);
 
   // Cart & Order State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -252,6 +253,17 @@ export default function DashboardScreen({
     } finally {
       setRefreshingOrders(false);
     }
+  };
+
+  // Fetch Business Settings
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/settings`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setBusinessSettings(json.data);
+      }
+    } catch {}
   };
 
   const handleRefreshOrders = () => {
@@ -334,6 +346,7 @@ export default function DashboardScreen({
   useEffect(() => {
     fetchMenu();
     fetchOrders();
+    fetchSettings();
   }, []);
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -1916,6 +1929,64 @@ export default function DashboardScreen({
               <Text style={tw`text-xs font-bold text-pistachioGreen`}>{t('linked')}</Text>
             </View>
           </View>
+
+          {/* ── Business & Store Information Card ── */}
+          {businessSettings && (
+            <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
+              <View style={tw`flex-row items-center gap-3 mb-3 pb-3 border-b border-vanillaCreamDark/60`}>
+                {businessSettings.logoUrl ? (
+                  <Image source={{ uri: businessSettings.logoUrl }} style={tw`w-12 h-12 rounded-xl`} resizeMode="cover" />
+                ) : (
+                  <View style={tw`w-12 h-12 rounded-xl bg-vanillaCream items-center justify-center`}>
+                    <Text style={tw`text-2xl`}>🍦</Text>
+                  </View>
+                )}
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-sm font-black text-chocolateBrown`}>{businessSettings.businessName}</Text>
+                  {businessSettings.tagline && (
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>{businessSettings.tagline}</Text>
+                  )}
+                </View>
+              </View>
+
+              <View style={tw`gap-2`}>
+                <View style={tw`flex-row items-center gap-2`}>
+                  <Ionicons name="location-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                  <Text style={tw`text-xs text-chocolateBrown flex-1`} numberOfLines={1}>{businessSettings.address}</Text>
+                </View>
+
+                <View style={tw`flex-row items-center gap-2`}>
+                  <Ionicons name="time-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                  <Text style={tw`text-xs text-chocolateBrown`}>
+                    {businessSettings.openingTime} – {businessSettings.closingTime} ({businessSettings.operatingDays.join(', ')})
+                  </Text>
+                </View>
+
+                <View style={tw`flex-row items-center gap-2`}>
+                  <Ionicons name="call-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                  <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.phone}</Text>
+                </View>
+
+                <View style={tw`flex-row items-center gap-2`}>
+                  <Ionicons name="mail-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                  <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.email}</Text>
+                </View>
+              </View>
+
+              <View style={tw`flex-row gap-2 mt-3 pt-3 border-t border-vanillaCreamDark/60`}>
+                <View style={[tw`flex-1 py-1.5 px-2 rounded-xl items-center`, businessSettings.isDeliveryAvailable ? tw`bg-pistachioGreen/15 border border-pistachioGreen/30` : tw`bg-gray-100`]}>
+                  <Text style={[tw`text-[10px] font-bold`, businessSettings.isDeliveryAvailable ? tw`text-green-800` : tw`text-gray-500`]}>
+                    {businessSettings.isDeliveryAvailable ? '🛵 Delivery Open' : 'Delivery Closed'}
+                  </Text>
+                </View>
+                <View style={[tw`flex-1 py-1.5 px-2 rounded-xl items-center`, businessSettings.isPickupAvailable ? tw`bg-blue-50 border border-blue-200` : tw`bg-gray-100`]}>
+                  <Text style={[tw`text-[10px] font-bold`, businessSettings.isPickupAvailable ? tw`text-blue-800` : tw`text-gray-500`]}>
+                    {businessSettings.isPickupAvailable ? '🏬 Store Pickup' : 'No Pickup'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark shadow-sm`}>
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
