@@ -24,6 +24,7 @@ import {
   Modal,
   Switch,
   Platform,
+  Linking,
   StatusBar as RNStatusBar,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -106,6 +107,26 @@ function categoryEmoji(category: MenuItem['category']): string {
   if (category === 'drink') return '🥤';
   if (category === 'special-offer') return '⭐';
   return '✨';
+}
+
+// ─── External Maps Helper ─────────────────────────────────────────────────────
+
+function openExternalMaps(lat?: number, lon?: number, address?: string) {
+  if (lat && lon) {
+    const url = Platform.select({
+      ios: `maps:0,0?q=${encodeURIComponent(address || 'Customer Location')}&ll=${lat},${lon}`,
+      android: `geo:${lat},${lon}?q=${lat},${lon}(${encodeURIComponent(address || 'Customer Location')})`,
+      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
+    });
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`);
+    });
+  } else if (address) {
+    const encoded = encodeURIComponent(`${address}, Yaoundé, Cameroon`);
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encoded}`);
+  } else {
+    Linking.openURL('https://www.google.com/maps/search/?api=1&query=Yaounde+Cameroon');
+  }
 }
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
@@ -232,43 +253,76 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
           </View>
         </View>
 
-        {/* ── Delivery Location with Map Toggle ── */}
-        {order.deliveryAddress ? (
-          <View style={tw`mb-3`}>
+        {/* ── Customer Location Banner & Map ── */}
+        <View style={tw`mb-3 bg-vanillaCream/70 rounded-2xl p-2.5 border border-vanillaCreamDark`}>
+          <View style={tw`flex-row items-center justify-between mb-1.5`}>
+            <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+              <View style={tw`w-6 h-6 rounded-full bg-strawberryPink/15 items-center justify-center`}>
+                <Ionicons name="location" size={13} color={COLORS.strawberryPink} />
+              </View>
+              <Text style={tw`text-[11px] font-black text-chocolateBrown uppercase tracking-wider`}>
+                {order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? 'Customer Location' : 'Fulfillment'}
+              </Text>
+            </View>
+            {order.distanceKm !== undefined && order.distanceKm > 0 ? (
+              <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-full border border-strawberryPink/30`}>
+                <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                  📍 {order.distanceKm.toFixed(1)} km away
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          {/* Address Text */}
+          <Text style={tw`text-xs font-bold text-chocolateBrown pl-7 pr-1 mb-2`} numberOfLines={2}>
+            {order.deliveryAddress || 'Pickup in-store (Yaoundé Centre-ville, Main Store)'}
+          </Text>
+
+          {/* Action buttons row: View Map + Open GPS Navigation */}
+          <View style={tw`flex-row items-center gap-2 pl-7`}>
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark`}
+              style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
               onPress={() => setShowMap(!showMap)}
               activeOpacity={0.8}
             >
-              <Ionicons name="location-sharp" size={14} color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
-                {order.deliveryAddress}
+              <Ionicons name={showMap ? 'chevron-up' : 'map-outline'} size={12} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+                {showMap ? 'Hide Map' : 'View Map'}
               </Text>
-              {order.distanceKm ? (
-                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
-                  <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
-                    {order.distanceKm.toFixed(1)} km
-                  </Text>
-                </View>
-              ) : null}
-              <View style={tw`bg-white px-1.5 py-0.5 rounded-md border border-vanillaCreamDark ml-1 flex-row items-center gap-0.5`}>
-                <Ionicons name={showMap ? 'map' : 'map-outline'} size={11} color={COLORS.strawberryPink} />
-                <Text style={tw`text-[9px] font-bold text-strawberryPink`}>{showMap ? 'Hide' : 'Map'}</Text>
-              </View>
             </TouchableOpacity>
 
-            {showMap && (
-              <View style={tw`mt-2 rounded-xl overflow-hidden`}>
-                <YaoundeMapView
-                  userLatitude={order.latitude}
-                  userLongitude={order.longitude}
-                  userAddress={order.deliveryAddress}
-                  height={130}
-                />
+            <TouchableOpacity
+              style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+              onPress={() => openExternalMaps(order.latitude, order.longitude, order.deliveryAddress)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="navigate-outline" size={12} color={COLORS.strawberryPink} />
+              <Text style={tw`text-[11px] font-black text-strawberryPink`}>
+                Open GPS
+              </Text>
+            </TouchableOpacity>
+
+            {order.latitude && order.longitude ? (
+              <View style={tw`bg-white/80 px-2 py-1 rounded-lg border border-vanillaCreamDark/60`}>
+                <Text style={tw`text-[9px] font-semibold text-chocolateBrownMuted`}>
+                  {order.latitude.toFixed(3)}, {order.longitude.toFixed(3)}
+                </Text>
               </View>
-            )}
+            ) : null}
           </View>
-        ) : null}
+
+          {/* Interactive Yaounde Map */}
+          {showMap && (
+            <View style={tw`mt-2.5 rounded-xl overflow-hidden border border-vanillaCreamDark`}>
+              <YaoundeMapView
+                userLatitude={order.latitude}
+                userLongitude={order.longitude}
+                userAddress={order.deliveryAddress || 'Customer Location'}
+                height={140}
+              />
+            </View>
+          )}
+        </View>
 
         {/* ── Order items ── */}
         <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-2`}>
@@ -1425,6 +1479,17 @@ function OrderDetailsModal({
               <Text style={tw`text-sm font-semibold text-chocolateBrown`}>{order.phoneNumber}</Text>
             </View>
             <View style={tw`flex-row items-center gap-2`}>
+              <Ionicons name="location-outline" size={16} color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs font-bold text-chocolateBrown flex-1`}>
+                {order.deliveryAddress || 'Store Pickup (Yaoundé Centre-ville)'}
+              </Text>
+              {order.distanceKm ? (
+                <Text style={tw`text-xs font-black text-strawberryPink`}>
+                  {order.distanceKm.toFixed(1)} km
+                </Text>
+              ) : null}
+            </View>
+            <View style={tw`flex-row items-center gap-2`}>
               <Ionicons name="time-outline" size={16} color={COLORS.chocolateBrownMuted} />
               <Text style={tw`text-xs text-chocolateBrownMuted`}>
                 Ordered: {formatDate(order.createdAt)} at {formatTime(order.createdAt)}
@@ -1448,13 +1513,13 @@ function OrderDetailsModal({
                 </View>
               </View>
               <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark`}>
-                <Text style={tw`text-sm`}>{order.deliveryAddress ? '🛵' : '🏬'}</Text>
+                <Text style={tw`text-sm`}>{order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? '🛵' : '🏬'}</Text>
                 <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                  {order.deliveryAddress ? 'Home Delivery' : 'Store Pickup'}
+                  {order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? 'Home Delivery' : 'Store Pickup'}
                 </Text>
               </View>
             </View>
-            {!order.deliveryAddress && (
+            {(!order.deliveryAddress || order.deliveryAddress.toLowerCase().includes('pickup')) && (
               <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl`}>
                 <Ionicons name="timer-outline" size={15} color={COLORS.chocolateBrownMuted} />
                 <Text style={tw`text-xs text-chocolateBrownMuted`}>Estimated pickup: <Text style={tw`font-black text-chocolateBrown`}>15–25 min</Text></Text>
@@ -1462,34 +1527,81 @@ function OrderDetailsModal({
             )}
           </View>
 
-          {/* ── Delivery Address + Map ── */}
-          {order.deliveryAddress && (
-            <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2`}>
-              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>📍 Delivery Address</Text>
-              <TouchableOpacity
-                style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl border border-vanillaCreamDark`}
-                onPress={() => setShowMap(!showMap)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="location-sharp" size={15} color={COLORS.strawberryPink} />
-                <Text style={tw`text-sm font-semibold text-chocolateBrown flex-1`}>{order.deliveryAddress}</Text>
-                {order.distanceKm ? (
-                  <Text style={tw`text-xs font-black text-strawberryPink`}>{order.distanceKm.toFixed(1)} km</Text>
-                ) : null}
-                <Ionicons name={showMap ? 'chevron-up' : 'map-outline'} size={14} color={COLORS.chocolateBrownMuted} />
-              </TouchableOpacity>
-              {showMap && (
-                <View style={tw`rounded-xl overflow-hidden mt-1`}>
-                  <YaoundeMapView
-                    userLatitude={order.latitude}
-                    userLongitude={order.longitude}
-                    userAddress={order.deliveryAddress}
-                    height={160}
-                  />
+          {/* ── Customer Delivery Location & GPS Navigation ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2.5`}>
+            <View style={tw`flex-row items-center justify-between`}>
+              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+                📍 Customer Delivery Location
+              </Text>
+              {order.distanceKm ? (
+                <View style={tw`bg-strawberryPinkLight px-2.5 py-0.5 rounded-full border border-strawberryPink/30`}>
+                  <Text style={tw`text-xs font-black text-strawberryPink`}>
+                    {order.distanceKm.toFixed(1)} km away
+                  </Text>
                 </View>
-              )}
+              ) : null}
             </View>
-          )}
+
+            {/* Address Banner */}
+            <View style={tw`bg-vanillaCream p-3 rounded-xl border border-vanillaCreamDark gap-1`}>
+              <View style={tw`flex-row items-start gap-2`}>
+                <Ionicons name="location-sharp" size={16} color={COLORS.strawberryPink} style={tw`mt-0.5`} />
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-sm font-bold text-chocolateBrown`}>
+                    {order.deliveryAddress || 'Store Pickup (Yaoundé Centre-ville, Main Store)'}
+                  </Text>
+                  {order.deliveryFee !== undefined && order.deliveryFee > 0 ? (
+                    <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5`}>
+                      Delivery fee: <Text style={tw`font-bold text-chocolateBrown`}>{order.deliveryFee.toLocaleString()} XAF</Text>
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Coordinates & External Navigation button */}
+              <View style={tw`flex-row items-center justify-between pt-2 mt-1 border-t border-vanillaCreamDark/60`}>
+                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted`}>
+                  {order.latitude && order.longitude
+                    ? `GPS: ${order.latitude.toFixed(4)}, ${order.longitude.toFixed(4)}`
+                    : 'GPS: Yaoundé Zone'}
+                </Text>
+                <TouchableOpacity
+                  style={tw`flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-1.5 rounded-xl`}
+                  onPress={() => openExternalMaps(order.latitude, order.longitude, order.deliveryAddress)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="navigate-outline" size={13} color={COLORS.white} />
+                  <Text style={tw`text-xs font-black text-white`}>Navigate GPS</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Map Preview Toggle Button */}
+            <TouchableOpacity
+              style={tw`flex-row items-center justify-between bg-vanillaCream px-3 py-2 rounded-xl border border-vanillaCreamDark`}
+              onPress={() => setShowMap(!showMap)}
+              activeOpacity={0.8}
+            >
+              <View style={tw`flex-row items-center gap-2`}>
+                <Ionicons name="map-outline" size={15} color={COLORS.strawberryPink} />
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  {showMap ? 'Hide In-App Map' : 'View In-App Interactive Map'}
+                </Text>
+              </View>
+              <Ionicons name={showMap ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.chocolateBrownMuted} />
+            </TouchableOpacity>
+
+            {showMap && (
+              <View style={tw`rounded-xl overflow-hidden mt-1 border border-vanillaCreamDark`}>
+                <YaoundeMapView
+                  userLatitude={order.latitude}
+                  userLongitude={order.longitude}
+                  userAddress={order.deliveryAddress || 'Customer Location'}
+                  height={170}
+                />
+              </View>
+            )}
+          </View>
 
           {/* ── Ordered Products ── */}
           <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>

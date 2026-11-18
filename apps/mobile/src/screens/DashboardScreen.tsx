@@ -572,6 +572,7 @@ export default function DashboardScreen({
           totalAmount: grandTotal,
           paymentMethod,
           phoneNumber,
+          customerName: userName || 'Valued Customer',
           deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
           deliveryFee,
           distanceKm: locationResult?.distanceKm ?? 0,
