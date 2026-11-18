@@ -168,3 +168,17 @@ export interface PaymentTransaction {
   createdAt: string;
   fee?: number;
 }
+
+// ── Customer Management ──────────────────────────────────────────────────────
+export interface CustomerRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role?: string;
+  ordersCount?: number;
+  totalSpent?: number;
+  lastOrderDate?: string;
+  registeredAt?: string;
+  deliveryAddress?: string;
+}

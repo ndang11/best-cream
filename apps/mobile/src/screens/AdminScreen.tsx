@@ -32,7 +32,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction } from '@best-cream/shared';
+import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -46,7 +46,7 @@ interface AdminScreenProps {
 }
 
 type FilterTab = 'all' | 'pending' | 'accepted' | 'preparing' | 'ready' | 'out-for-delivery' | 'completed' | 'rejected';
-type AdminTab = 'overview' | 'orders' | 'products' | 'daily-menu' | 'payments';
+type AdminTab = 'overview' | 'orders' | 'products' | 'daily-menu' | 'payments' | 'customers';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'topping' | 'drink' | 'special-offer' | 'combo';
 type ProductStatusFilter = 'all' | 'active' | 'inactive' | 'archived';
 
@@ -1901,6 +1901,36 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     return list;
   }, [payments, paymentMethodFilter, paymentStatusFilter, paymentSearch]);
 
+  // ── Customers state ────────────────────────────────────────────────────────
+  const [customers, setCustomers] = useState<CustomerRecord[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerRecord | null>(null);
+  const [customerDetailVisible, setCustomerDetailVisible] = useState(false);
+
+  const fetchCustomers = useCallback(async () => {
+    setCustomersLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/customers`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setCustomers(json.data);
+      }
+    } catch (_) {}
+    setCustomersLoading(false);
+  }, [apiUrl]);
+
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch.trim()) return customers;
+    const q = customerSearch.toLowerCase().trim();
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        (c.phone && c.phone.includes(q))
+    );
+  }, [customers, customerSearch]);
+
   const topInset = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
 
   // ── Fetch notifications ────────────────────────────────────────────────────
@@ -2076,6 +2106,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   useEffect(() => {
     if (adminTab === 'payments') fetchPayments();
   }, [adminTab, fetchPayments]);
+
+  // Fetch customers when tab opens
+  useEffect(() => {
+    if (adminTab === 'customers') fetchCustomers();
+  }, [adminTab, fetchCustomers]);
 
   // Fallback stats computed from current orders
   const computedStats = useMemo(() => {
@@ -2566,7 +2601,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       {/* ══════════════════ TAB SWITCHER ══════════════════ */}
       <View style={tw`bg-white border-b border-vanillaCreamDark`}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row px-1`}>
-          {(['overview', 'orders', 'products', 'daily-menu', 'payments'] as AdminTab[]).map((tab) => {
+          {(['overview', 'orders', 'products', 'daily-menu', 'payments', 'customers'] as AdminTab[]).map((tab) => {
             const active = adminTab === tab;
             const iconName =
               tab === 'overview'
@@ -2577,7 +2612,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 ? 'ice-cream-outline'
                 : tab === 'daily-menu'
                 ? 'calendar-outline'
-                : 'card-outline';
+                : tab === 'payments'
+                ? 'card-outline'
+                : 'people-outline';
             const tabLabel =
               tab === 'overview'
                 ? t('adminOverviewTab')
@@ -2587,7 +2624,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 ? t('adminProductsTab')
                 : tab === 'daily-menu'
                 ? 'Daily Menu'
-                : 'Payments';
+                : tab === 'payments'
+                ? 'Payments'
+                : 'Customers';
             return (
               <TouchableOpacity
                 key={tab}
@@ -4369,6 +4408,335 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   >
                     <Text style={tw`text-white font-black`}>View Related Order →</Text>
                   </TouchableOpacity>
+                </ScrollView>
+              </View>
+            )}
+          </Modal>
+        </View>
+      )}
+
+      {/* ══════════════════ CUSTOMERS TAB ══════════════════ */}
+      {adminTab === 'customers' && (
+        <View style={tw`flex-1 bg-vanillaCream`}>
+          {/* Header */}
+          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View>
+                <Text style={tw`text-xl font-black text-chocolateBrown`}>👥 Registered Customers</Text>
+                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                  {filteredCustomers.length} registered customer{filteredCustomers.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={fetchCustomers} style={tw`p-2`} disabled={customersLoading}>
+                {customersLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                ) : (
+                  <Ionicons name="refresh-outline" size={20} color={COLORS.strawberryPink} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* KPI Cards */}
+            <View style={tw`flex-row gap-2 mb-3`}>
+              {(() => {
+                const totalCust = customers.length;
+                const activeCust = customers.filter((c) => (c.ordersCount || 0) > 0).length;
+                const totalSpent = customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
+                return (
+                  <>
+                    <View style={tw`flex-1 bg-strawberryPink/10 border border-strawberryPink/20 rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>CUSTOMERS</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{totalCust}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>registered</Text>
+                    </View>
+                    <View style={tw`flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>ORDERED</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{activeCust}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>active buyers</Text>
+                    </View>
+                    <View style={tw`flex-1 bg-butterYellowLight border border-butterYellow rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>LIFETIME</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{totalSpent.toLocaleString()}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    </View>
+                  </>
+                );
+              })()}
+            </View>
+
+            {/* Search Input */}
+            <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3`}>
+              <Ionicons name="search-outline" size={16} color={COLORS.chocolateBrownMuted} />
+              <TextInput
+                style={tw`flex-1 py-2.5 px-2 text-xs text-chocolateBrown`}
+                placeholder="Search by name, email, or phone…"
+                placeholderTextColor={COLORS.chocolateBrownMuted}
+                value={customerSearch}
+                onChangeText={setCustomerSearch}
+              />
+              {customerSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setCustomerSearch('')}>
+                  <Ionicons name="close-circle" size={16} color={COLORS.chocolateBrownMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Customer List */}
+          {customersLoading ? (
+            <View style={tw`flex-1 items-center justify-center`}>
+              <ActivityIndicator size="large" color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs text-chocolateBrownMuted mt-3`}>Loading customers…</Text>
+            </View>
+          ) : filteredCustomers.length === 0 ? (
+            <View style={tw`flex-1 items-center justify-center px-8`}>
+              <Text style={tw`text-4xl mb-3`}>👥</Text>
+              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>No customers found</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1`}>Try adjusting your search query</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredCustomers}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={tw`p-4 pb-8`}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item, index }) => {
+                const initials = item.name
+                  ? item.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
+                  : 'CU';
+                const avatarColors = ['bg-strawberryPink', 'bg-pistachioGreen', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500'];
+                const avatarColor = avatarColors[index % avatarColors.length];
+
+                return (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedCustomer(item);
+                      setCustomerDetailVisible(true);
+                    }}
+                    style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm`}
+                    activeOpacity={0.75}
+                  >
+                    {/* Top Row: Avatar + Name + Orders count */}
+                    <View style={tw`flex-row items-center gap-3 mb-2.5`}>
+                      <View style={[tw`w-12 h-12 rounded-2xl items-center justify-center`, tw`${avatarColor}`]}>
+                        <Text style={tw`text-white font-black text-sm tracking-wider`}>{initials}</Text>
+                      </View>
+                      <View style={tw`flex-1`}>
+                        <View style={tw`flex-row items-center justify-between`}>
+                          <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          {(item.ordersCount || 0) > 0 && (
+                            <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-lg border border-pistachioGreen`}>
+                              <Text style={tw`text-[10px] font-black text-green-800`}>
+                                {item.ordersCount} {item.ordersCount === 1 ? 'order' : 'orders'}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          Customer ID: {item.id}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Email Row */}
+                    <View style={tw`flex-row items-center gap-2 mb-1.5`}>
+                      <Ionicons name="mail-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                      <Text style={tw`text-xs text-chocolateBrown font-medium flex-1`} numberOfLines={1}>
+                        {item.email}
+                      </Text>
+                    </View>
+
+                    {/* Phone Number Row + Quick Call */}
+                    <View style={tw`flex-row items-center justify-between`}>
+                      <View style={tw`flex-row items-center gap-2 flex-1`}>
+                        <Ionicons name="call-outline" size={14} color={COLORS.pistachioGreen} />
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                          {item.phone || 'No phone provided'}
+                        </Text>
+                      </View>
+                      {item.phone && (
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(`tel:${item.phone?.replace(/[^0-9+]/g, '')}`)}
+                          style={tw`bg-pistachioGreen/10 border border-pistachioGreen/30 px-2.5 py-1 rounded-xl flex-row items-center gap-1`}
+                        >
+                          <Ionicons name="call" size={11} color={COLORS.pistachioGreen} />
+                          <Text style={tw`text-[10px] font-black text-green-800`}>Call</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Total spent and last order date footer */}
+                    {((item.totalSpent || 0) > 0 || item.lastOrderDate) && (
+                      <View style={tw`flex-row items-center justify-between border-t border-vanillaCreamDark/60 pt-2 mt-2.5`}>
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          {item.lastOrderDate ? `Last order: ${formatDate(item.lastOrderDate)}` : 'No recent orders'}
+                        </Text>
+                        {(item.totalSpent || 0) > 0 && (
+                          <Text style={tw`text-xs font-black text-strawberryPink`}>
+                            {(item.totalSpent || 0).toLocaleString()} XAF
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          )}
+
+          {/* Customer Detail Modal */}
+          <Modal
+            visible={customerDetailVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setCustomerDetailVisible(false)}
+          >
+            {selectedCustomer && (
+              <View style={tw`flex-1 bg-vanillaCream`}>
+                <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
+                  <Text style={tw`text-lg font-black text-chocolateBrown`}>Customer Profile</Text>
+                  <TouchableOpacity onPress={() => setCustomerDetailVisible(false)}>
+                    <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView style={tw`flex-1 p-5`}>
+                  {/* Top Avatar & Name */}
+                  <View style={tw`items-center mb-6 bg-white p-5 rounded-3xl border border-vanillaCreamDark shadow-sm`}>
+                    <View style={tw`w-20 h-20 rounded-3xl bg-strawberryPink items-center justify-center mb-3 shadow-md`}>
+                      <Text style={tw`text-white font-black text-2xl`}>
+                        {selectedCustomer.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={tw`text-xl font-black text-chocolateBrown`}>{selectedCustomer.name}</Text>
+                    <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>{selectedCustomer.email}</Text>
+                    <View style={tw`flex-row items-center gap-1 mt-2 bg-vanillaCream px-3 py-1 rounded-full border border-vanillaCreamDark`}>
+                      <Ionicons name="call-outline" size={12} color={COLORS.pistachioGreen} />
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>{selectedCustomer.phone || 'No phone'}</Text>
+                    </View>
+
+                    {/* Action buttons (Call / WhatsApp / Email) */}
+                    <View style={tw`flex-row gap-2 mt-4 w-full`}>
+                      {selectedCustomer.phone && (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => Linking.openURL(`tel:${selectedCustomer.phone?.replace(/[^0-9+]/g, '')}`)}
+                            style={tw`flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                          >
+                            <Ionicons name="call" size={14} color="#fff" />
+                            <Text style={tw`text-white text-xs font-black`}>Call</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => Linking.openURL(`https://wa.me/${selectedCustomer.phone?.replace(/[^0-9]/g, '')}`)}
+                            style={tw`flex-1 bg-emerald-600 py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                          >
+                            <Ionicons name="logo-whatsapp" size={14} color="#fff" />
+                            <Text style={tw`text-white text-xs font-black`}>WhatsApp</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                      <TouchableOpacity
+                        onPress={() => Linking.openURL(`mailto:${selectedCustomer.email}`)}
+                        style={tw`flex-1 bg-chocolateBrown py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                      >
+                        <Ionicons name="mail" size={14} color="#fff" />
+                        <Text style={tw`text-white text-xs font-black`}>Email</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Summary Stats */}
+                  <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm`}>
+                    <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
+                      Purchase Activity
+                    </Text>
+                    <View style={tw`flex-row gap-3`}>
+                      <View style={tw`flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark`}>
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TOTAL ORDERS</Text>
+                        <Text style={tw`text-lg font-black text-chocolateBrown mt-0.5`}>
+                          {selectedCustomer.ordersCount || 0}
+                        </Text>
+                      </View>
+                      <View style={tw`flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark`}>
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>LIFETIME SPENT</Text>
+                        <Text style={tw`text-lg font-black text-strawberryPink mt-0.5`}>
+                          {(selectedCustomer.totalSpent || 0).toLocaleString()}
+                        </Text>
+                        <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Details Rows */}
+                  <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm`}>
+                    <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2`}>
+                      Customer Information
+                    </Text>
+                    {[
+                      { label: 'Full Name', value: selectedCustomer.name },
+                      { label: 'Email Address', value: selectedCustomer.email },
+                      { label: 'Phone Number', value: selectedCustomer.phone || 'N/A' },
+                      { label: 'Delivery Address', value: selectedCustomer.deliveryAddress || 'Yaoundé, Cameroon' },
+                      { label: 'Member Since', value: selectedCustomer.registeredAt ? formatDate(selectedCustomer.registeredAt) : 'Recent' },
+                      { label: 'Last Order', value: selectedCustomer.lastOrderDate ? `${formatDate(selectedCustomer.lastOrderDate)} at ${formatTime(selectedCustomer.lastOrderDate)}` : 'No orders placed yet' },
+                    ].map((row) => (
+                      <View key={row.label} style={tw`py-2.5 border-b border-vanillaCreamDark/60 flex-row items-center justify-between`}>
+                        <Text style={tw`text-xs text-chocolateBrownMuted font-bold`}>{row.label}</Text>
+                        <Text style={tw`text-xs font-black text-chocolateBrown text-right flex-1 ml-4`} numberOfLines={2}>
+                          {row.value}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Related Orders Section */}
+                  {(() => {
+                    const custOrders = orders.filter(
+                      (o) =>
+                        (o.customerName && o.customerName.toLowerCase() === selectedCustomer.name.toLowerCase()) ||
+                        (selectedCustomer.phone && o.phoneNumber === selectedCustomer.phone)
+                    );
+                    if (custOrders.length === 0) return null;
+                    return (
+                      <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-6 shadow-sm`}>
+                        <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
+                          Order History ({custOrders.length})
+                        </Text>
+                        {custOrders.map((ord) => (
+                          <TouchableOpacity
+                            key={ord.id}
+                            onPress={() => {
+                              setCustomerDetailVisible(false);
+                              setSelectedOrderDetails(ord);
+                              setOrderDetailsVisible(true);
+                              setAdminTab('orders');
+                            }}
+                            style={tw`p-3 bg-vanillaCream rounded-2xl border border-vanillaCreamDark mb-2 flex-row items-center justify-between`}
+                          >
+                            <View style={tw`flex-1`}>
+                              <View style={tw`flex-row items-center gap-2 mb-0.5`}>
+                                <Text style={tw`text-xs font-black text-chocolateBrown`}>{ord.id}</Text>
+                                <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-md`}>
+                                  <Text style={tw`text-[9px] font-black text-green-800 uppercase`}>{ord.status}</Text>
+                                </View>
+                              </View>
+                              <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                                {formatDate(ord.createdAt)} · {ord.items.length} item{ord.items.length !== 1 ? 's' : ''}
+                              </Text>
+                            </View>
+                            <View style={tw`items-end flex-row items-center gap-1.5`}>
+                              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                                {ord.totalAmount.toLocaleString()} XAF
+                              </Text>
+                              <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrownMuted} />
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    );
+                  })()}
                 </ScrollView>
               </View>
             )}

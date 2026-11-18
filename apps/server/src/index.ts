@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
-import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -203,11 +203,13 @@ const menuItems: MenuItem[] = [
 ];
 
 const users: User[] = [
-  { id: '1', name: 'Alex Johnson', email: 'alex@bestcream.com', role: 'admin' },
-  { id: '2', name: 'Sam Rivera', email: 'sam@bestcream.com', role: 'customer' },
-  { id: '3', name: 'Diane Miller', email: 'diane@bestcream.com', role: 'customer' },
-  { id: '4', name: 'Jean-Paul Biya', email: 'jp@bestcream.com', role: 'customer' },
-  { id: '5', name: 'Marie Eto', email: 'marie@bestcream.com', role: 'customer' },
+  { id: '1', name: 'Alex Johnson', email: 'alex@bestcream.com', role: 'admin', phone: '+237 670 112 233' },
+  { id: '2', name: 'Sam Rivera', email: 'sam@bestcream.com', role: 'customer', phone: '+237 670 000 111' },
+  { id: '3', name: 'Diane Miller', email: 'diane@bestcream.com', role: 'customer', phone: '+237 690 123 456' },
+  { id: '4', name: 'Jean-Paul Biya', email: 'jp@bestcream.com', role: 'customer', phone: '+237 677 889 900' },
+  { id: '5', name: 'Marie Eto', email: 'marie@bestcream.com', role: 'customer', phone: '+237 699 445 566' },
+  { id: '6', name: 'Alain Fotso', email: 'alain.fotso@gmail.com', role: 'customer', phone: '+237 675 332 211' },
+  { id: '7', name: 'Brenda Ngu', email: 'brenda.ngu@yahoo.com', role: 'customer', phone: '+237 691 887 766' },
 ];
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -1589,6 +1591,119 @@ app.get('/api/admin/payments', async (_req: Request, res: Response) => {
 
   transactions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return res.json({ success: true, data: transactions, timestamp: new Date().toISOString() });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CUSTOMERS — retrieve registered customers from Supabase + orders aggregation
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/admin/customers', async (_req: Request, res: Response) => {
+  const customerMap = new Map<string, CustomerRecord>();
+
+  // 1. Seed / in-memory users with role === 'customer'
+  users.filter((u) => u.role === 'customer').forEach((u) => {
+    customerMap.set(u.email.toLowerCase(), {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone || '+237 670 000 000',
+      role: 'customer',
+      ordersCount: 0,
+      totalSpent: 0,
+      registeredAt: new Date(Date.now() - 30 * 86400000).toISOString(),
+    });
+  });
+
+  // 2. Try fetching from Supabase profiles
+  try {
+    const { data: profiles, error: profErr } = await supabase.from('profiles').select('*');
+    if (!profErr && profiles && profiles.length > 0) {
+      profiles.forEach((p: any) => {
+        if (p.role === 'customer' || !p.role) {
+          const email = (p.email || '').toLowerCase();
+          const existing = customerMap.get(email);
+          customerMap.set(email || p.id, {
+            id: p.id,
+            name: p.full_name || p.name || existing?.name || 'Customer',
+            email: p.email || existing?.email || '',
+            phone: p.phone || existing?.phone || '+237 670 000 000',
+            role: 'customer',
+            ordersCount: existing?.ordersCount || 0,
+            totalSpent: existing?.totalSpent || 0,
+            registeredAt: p.created_at || existing?.registeredAt || new Date().toISOString(),
+          });
+        }
+      });
+    }
+  } catch (_) { }
+
+  // 3. Aggregate customer stats & phones from orders
+  let allOrders: Order[] = [];
+  try {
+    const { data: dbOrders, error: orderErr } = await supabase.from('orders').select('*');
+    if (!orderErr && dbOrders && dbOrders.length > 0) {
+      allOrders = dbOrders.map((row: any) => ({
+        id: row.id,
+        items: typeof row.items === 'string' ? JSON.parse(row.items) : (row.items || []),
+        totalAmount: row.total_amount || 0,
+        paymentMethod: row.payment_method || 'mtn-momo',
+        phoneNumber: row.phone_number || '',
+        customerName: row.customer_name || 'Customer',
+        status: row.status || 'pending',
+        createdAt: row.created_at || new Date().toISOString(),
+        deliveryAddress: row.delivery_address,
+      }));
+    }
+  } catch (_) { }
+  if (allOrders.length === 0) {
+    allOrders = [...orders];
+  }
+
+  // Cross-reference orders with customers
+  allOrders.forEach((ord) => {
+    const nameKey = (ord.customerName || '').toLowerCase().trim();
+    let match = Array.from(customerMap.values()).find(
+      (c) => c.name.toLowerCase().trim() === nameKey || (ord.phoneNumber && c.phone === ord.phoneNumber)
+    );
+
+    if (!match && ord.customerName) {
+      const synthId = `cust-${ord.id}`;
+      match = {
+        id: synthId,
+        name: ord.customerName,
+        email: `${ord.customerName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@gmail.com`,
+        phone: ord.phoneNumber || '+237 670 000 000',
+        role: 'customer',
+        ordersCount: 0,
+        totalSpent: 0,
+        registeredAt: ord.createdAt,
+        deliveryAddress: ord.deliveryAddress,
+      };
+      customerMap.set(match.email, match);
+    }
+
+    if (match) {
+      match.ordersCount = (match.ordersCount || 0) + 1;
+      match.totalSpent = (match.totalSpent || 0) + ord.totalAmount;
+      if ((!match.phone || match.phone === '+237 670 000 000') && ord.phoneNumber) {
+        match.phone = ord.phoneNumber;
+      }
+      if (!match.deliveryAddress && ord.deliveryAddress) match.deliveryAddress = ord.deliveryAddress;
+      if (!match.lastOrderDate || ord.createdAt > match.lastOrderDate) {
+        match.lastOrderDate = ord.createdAt;
+      }
+    }
+  });
+
+  const customerList = Array.from(customerMap.values());
+  customerList.sort((a, b) => (b.ordersCount || 0) - (a.ordersCount || 0));
+
+  return res.json({
+    success: true,
+    data: customerList,
+    total: customerList.length,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
