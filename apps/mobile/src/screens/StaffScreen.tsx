@@ -234,8 +234,8 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
                         isPending
                           ? tw`bg-amber-50 border-amber-300`
                           : isApproved
-                          ? tw`bg-emerald-50 border-emerald-300`
-                          : tw`bg-blue-50 border-blue-300`,
+                            ? tw`bg-emerald-50 border-emerald-300`
+                            : tw`bg-blue-50 border-blue-300`,
                       ]}
                     >
                       <Text
@@ -244,8 +244,8 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
                           isPending
                             ? tw`text-amber-700`
                             : isApproved
-                            ? tw`text-emerald-700`
-                            : tw`text-blue-700`,
+                              ? tw`text-emerald-700`
+                              : tw`text-blue-700`,
                         ]}
                       >
                         {order.status}
