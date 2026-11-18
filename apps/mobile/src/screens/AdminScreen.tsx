@@ -118,15 +118,17 @@ interface OrderCardProps {
   onApprove: (id: string) => void;
   onMarkReceived: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewDetails: (order: Order) => void;
   loading: boolean;
 }
 
-function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: OrderCardProps) {
+function OrderCard({ order, onApprove, onMarkReceived, onDelete, onViewDetails, loading }: OrderCardProps) {
   const [showMap, setShowMap] = useState(false);
   const sc = statusColor(order.status);
   const isPending = order.status === 'pending';
   const isApproved = order.status === 'approved';
   const isReceived = order.status === 'received';
+  const customerName = order.customerName || 'Customer';
 
   return (
     <View
@@ -145,15 +147,18 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
 
       <View style={tw`p-4`}>
         {/* ── Header Row ── */}
-        <View style={tw`flex-row justify-between items-start mb-3`}>
-          <View style={tw`flex-1 mr-2`}>
-            <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>
-              {order.id}
-            </Text>
+        <View style={tw`flex-row justify-between items-start mb-2`}>
+          <TouchableOpacity onPress={() => onViewDetails(order)} style={tw`flex-1 mr-2`} activeOpacity={0.7}>
+            <View style={tw`flex-row items-center gap-1.5`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                {order.id}
+              </Text>
+              <Ionicons name="information-circle-outline" size={14} color={COLORS.strawberryPink} />
+            </View>
             <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
               {formatDate(order.createdAt)} · {formatTime(order.createdAt)}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           <View style={tw`flex-row items-center gap-2`}>
             <View
@@ -177,16 +182,42 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
           </View>
         </View>
 
-        {/* ── Payment method pill ── */}
-        <View style={tw`flex-row items-center mb-2.5`}>
-          <View style={tw`bg-vanillaCream px-3 py-1 rounded-full border border-vanillaCreamDark flex-row items-center gap-1.5`}>
+        {/* ── Customer Name & Phone Number Row ── */}
+        <View style={tw`flex-row items-center justify-between mb-2 pb-2 border-b border-vanillaCreamDark/60`}>
+          <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+            <Ionicons name="person-circle-outline" size={16} color={COLORS.chocolateBrownMuted} />
+            <Text style={tw`text-xs font-bold text-chocolateBrown`} numberOfLines={1}>
+              {customerName}
+            </Text>
+          </View>
+          <View style={tw`flex-row items-center gap-1`}>
+            <Ionicons name="call-outline" size={13} color={COLORS.chocolateBrownMuted} />
+            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
+              {order.phoneNumber}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Payment method & Fulfillment method pill ── */}
+        <View style={tw`flex-row items-center justify-between mb-2.5`}>
+          <View style={tw`bg-vanillaCream px-2.5 py-1 rounded-full border border-vanillaCreamDark flex-row items-center gap-1.5`}>
             <Text style={tw`text-xs`}>
               {order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}
             </Text>
             <Text style={tw`text-xs font-bold text-chocolateBrown`}>
               {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
             </Text>
-            <Text style={tw`text-xs text-chocolateBrownMuted`}>· {order.phoneNumber}</Text>
+            <Text style={[tw`text-[10px] font-black`, order.paymentStatus === 'paid' ? tw`text-emerald-700` : tw`text-amber-700`]}>
+              · {order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+            </Text>
+          </View>
+
+          {/* Fulfillment type badge */}
+          <View style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-vanillaCreamDark`}>
+            <Text style={tw`text-xs`}>{order.deliveryAddress ? '🛵' : '🏬'}</Text>
+            <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+              {order.deliveryAddress ? 'Delivery' : 'Store Pickup'}
+            </Text>
           </View>
         </View>
 
@@ -229,9 +260,9 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
         ) : null}
 
         {/* ── Order items ── */}
-        <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-3`}>
+        <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-2`}>
           {order.items.map((item, idx) => (
-            <View key={idx} style={tw``}>
+            <View key={idx}>
               <View style={tw`flex-row items-center`}>
                 <Text style={tw`text-xs font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
                 <View style={tw`flex-1`}>
@@ -279,7 +310,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
               )}
               {/* Special notes */}
               {item.specialNotes && (
-                <View style={tw`ml-7 mt-1 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg`}>
+                <View style={tw`ml-7 mt-1 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
                   <Text style={tw`text-[10px] font-bold text-red-700`}>
                     📝 {item.specialNotes}
                   </Text>
@@ -288,6 +319,18 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, loading }: Orde
             </View>
           ))}
         </View>
+
+        {/* ── Tap to view details link ── */}
+        <TouchableOpacity
+          onPress={() => onViewDetails(order)}
+          style={tw`flex-row items-center justify-between bg-vanillaCream/70 px-3 py-1.5 rounded-xl border border-vanillaCreamDark mb-3`}
+          activeOpacity={0.7}
+        >
+          <Text style={tw`text-[11px] font-bold text-strawberryPink`}>
+            Tap to view complete details & history ➔
+          </Text>
+          <Ionicons name="chevron-forward" size={13} color={COLORS.strawberryPink} />
+        </TouchableOpacity>
 
         {/* ── Footer: total + action buttons ── */}
         <View style={tw`flex-row justify-between items-center`}>
@@ -768,6 +811,294 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
   );
 }
 
+// ─── Order Details Modal ───────────────────────────────────────────────────────
+
+interface OrderDetailsModalProps {
+  order: Order | null;
+  visible: boolean;
+  onClose: () => void;
+  onApprove: (id: string) => void;
+  onMarkReceived: (id: string) => void;
+  onDelete: (id: string) => void;
+  actionLoading: string | null;
+}
+
+function OrderDetailsModal({
+  order,
+  visible,
+  onClose,
+  onApprove,
+  onMarkReceived,
+  onDelete,
+  actionLoading,
+}: OrderDetailsModalProps) {
+  const [showMap, setShowMap] = useState(false);
+  if (!order) return null;
+
+  const sc = statusColor(order.status);
+  const isPending = order.status === 'pending';
+  const isApproved = order.status === 'approved';
+  const isReceived = order.status === 'received';
+  const customerName = order.customerName || 'Customer';
+
+  // Timeline steps
+  const timelineSteps = [
+    { key: 'placed', label: 'Order Placed', icon: 'receipt-outline', done: true },
+    { key: 'payment', label: 'Payment Verified', icon: 'card-outline', done: order.paymentStatus === 'paid' },
+    { key: 'kitchen', label: 'Kitchen Approved', icon: 'flame-outline', done: isApproved || isReceived },
+    { key: 'done', label: order.deliveryAddress ? 'Delivered' : 'Received', icon: order.deliveryAddress ? 'bicycle-outline' : 'bag-check-outline', done: isReceived },
+  ];
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <View style={tw`flex-1 bg-vanillaCream`}>
+        {/* Header */}
+        <View style={tw`flex-row items-center justify-between px-5 pt-5 pb-3 bg-white border-b border-vanillaCreamDark`}>
+          <View style={tw`flex-1`}>
+            <Text style={tw`text-base font-black text-chocolateBrown`}>Order Details</Text>
+            <Text style={tw`text-xs text-chocolateBrownMuted`}>{order.id}</Text>
+          </View>
+          <View style={[tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border mr-3`, sc.bg, sc.border]}>
+            <Ionicons name={sc.icon as any} size={13} color={sc.iconColor} />
+            <Text style={[tw`text-xs font-black`, sc.text]}>{sc.label}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={onClose}
+            style={tw`w-8 h-8 rounded-full bg-vanillaCreamDark items-center justify-center`}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={18} color={COLORS.chocolateBrown} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28 pt-4 gap-4`}>
+
+          {/* ── Customer Information ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2`}>
+            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>👤 Customer Information</Text>
+            <View style={tw`flex-row items-center gap-2`}>
+              <Ionicons name="person-circle-outline" size={18} color={COLORS.strawberryPink} />
+              <Text style={tw`text-sm font-black text-chocolateBrown`}>{customerName}</Text>
+            </View>
+            <View style={tw`flex-row items-center gap-2`}>
+              <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} />
+              <Text style={tw`text-sm font-semibold text-chocolateBrown`}>{order.phoneNumber}</Text>
+            </View>
+            <View style={tw`flex-row items-center gap-2`}>
+              <Ionicons name="time-outline" size={16} color={COLORS.chocolateBrownMuted} />
+              <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                Ordered: {formatDate(order.createdAt)} at {formatTime(order.createdAt)}
+              </Text>
+            </View>
+          </View>
+
+          {/* ── Fulfillment & Payment ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3`}>
+            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>💳 Payment & Fulfillment</Text>
+            <View style={tw`flex-row justify-between`}>
+              <View style={tw`flex-row items-center gap-2`}>
+                <Text style={tw`text-sm`}>{order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}</Text>
+                <View>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
+                  </Text>
+                  <Text style={[tw`text-[11px] font-bold`, order.paymentStatus === 'paid' ? tw`text-emerald-700` : tw`text-amber-700`]}>
+                    {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
+                  </Text>
+                </View>
+              </View>
+              <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark`}>
+                <Text style={tw`text-sm`}>{order.deliveryAddress ? '🛵' : '🏬'}</Text>
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  {order.deliveryAddress ? 'Home Delivery' : 'Store Pickup'}
+                </Text>
+              </View>
+            </View>
+            {!order.deliveryAddress && (
+              <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl`}>
+                <Ionicons name="timer-outline" size={15} color={COLORS.chocolateBrownMuted} />
+                <Text style={tw`text-xs text-chocolateBrownMuted`}>Estimated pickup: <Text style={tw`font-black text-chocolateBrown`}>15–25 min</Text></Text>
+              </View>
+            )}
+          </View>
+
+          {/* ── Delivery Address + Map ── */}
+          {order.deliveryAddress && (
+            <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2`}>
+              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>📍 Delivery Address</Text>
+              <TouchableOpacity
+                style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl border border-vanillaCreamDark`}
+                onPress={() => setShowMap(!showMap)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="location-sharp" size={15} color={COLORS.strawberryPink} />
+                <Text style={tw`text-sm font-semibold text-chocolateBrown flex-1`}>{order.deliveryAddress}</Text>
+                {order.distanceKm ? (
+                  <Text style={tw`text-xs font-black text-strawberryPink`}>{order.distanceKm.toFixed(1)} km</Text>
+                ) : null}
+                <Ionicons name={showMap ? 'chevron-up' : 'map-outline'} size={14} color={COLORS.chocolateBrownMuted} />
+              </TouchableOpacity>
+              {showMap && (
+                <View style={tw`rounded-xl overflow-hidden mt-1`}>
+                  <YaoundeMapView
+                    userLatitude={order.latitude}
+                    userLongitude={order.longitude}
+                    userAddress={order.deliveryAddress}
+                    height={160}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* ── Ordered Products ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>
+            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-3`}>🛒 Ordered Products</Text>
+            <View style={tw`gap-3`}>
+              {order.items.map((item, idx) => (
+                <View key={idx} style={tw`bg-vanillaCream rounded-xl p-3`}>
+                  <View style={tw`flex-row items-start`}>
+                    <Text style={tw`text-sm font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
+                    <View style={tw`flex-1`}>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.name}</Text>
+                      {item.flavor ? (
+                        <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.flavor}</Text>
+                      ) : null}
+                    </View>
+                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                      {(item.price * item.quantity).toLocaleString()} XAF
+                    </Text>
+                  </View>
+                  {/* Customizations */}
+                  {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
+                    <View style={tw`ml-7 mt-2 flex-row flex-wrap gap-1`}>
+                      {item.servingStyle && (
+                        <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
+                          <Text style={tw`text-[10px] font-bold text-strawberryPink`}>{item.servingStyle}</Text>
+                        </View>
+                      )}
+                      {item.sizeOption && (
+                        <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.sizeOption}</Text>
+                        </View>
+                      )}
+                      {item.pancakeStyle && (
+                        <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.pancakeStyle}</Text>
+                        </View>
+                      )}
+                      {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
+                        <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
+                          <Text style={tw`text-[10px] text-amber-800`}>+ {topping.name}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {item.specialNotes ? (
+                    <View style={tw`ml-7 mt-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
+                      <Text style={tw`text-[10px] font-bold text-red-700`}>📝 {item.specialNotes}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+
+            {/* Order Total */}
+            <View style={tw`flex-row justify-between items-center mt-4 pt-3 border-t border-vanillaCreamDark`}>
+              <Text style={tw`text-sm font-black text-chocolateBrownMuted`}>Order Total</Text>
+              <Text style={tw`text-xl font-black text-chocolateBrown`}>{order.totalAmount.toLocaleString()} XAF</Text>
+            </View>
+          </View>
+
+          {/* ── Order History / Timeline ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>
+            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-4`}>📋 Order History</Text>
+            <View style={tw`gap-0`}>
+              {timelineSteps.map((step, idx) => {
+                const isLast = idx === timelineSteps.length - 1;
+                return (
+                  <View key={step.key} style={tw`flex-row`}>
+                    {/* Timeline column */}
+                    <View style={tw`items-center w-8`}>
+                      <View
+                        style={[
+                          tw`w-7 h-7 rounded-full items-center justify-center`,
+                          step.done ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`,
+                        ]}
+                      >
+                        <Ionicons
+                          name={step.icon as any}
+                          size={14}
+                          color={step.done ? COLORS.white : COLORS.chocolateBrownMuted}
+                        />
+                      </View>
+                      {!isLast && (
+                        <View style={[tw`w-0.5 flex-1 my-1`, step.done ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`]} />
+                      )}
+                    </View>
+                    {/* Label */}
+                    <View style={[tw`flex-1 pl-3`, !isLast && tw`pb-4`]}>
+                      <Text style={[tw`text-sm font-bold`, step.done ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`]}>
+                        {step.label}
+                      </Text>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        {step.done ? '✓ Completed' : '○ Pending'}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* ── Action Buttons ── */}
+          <View style={tw`gap-2.5`}>
+            {isPending && (
+              <TouchableOpacity
+                style={tw`flex-row items-center justify-center gap-2 bg-pistachioGreen py-3.5 rounded-2xl`}
+                onPress={() => { onApprove(order.id); onClose(); }}
+                disabled={actionLoading === order.id}
+                activeOpacity={0.8}
+              >
+                {actionLoading === order.id ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                )}
+                <Text style={tw`text-sm font-black text-white`}>Approve Order</Text>
+              </TouchableOpacity>
+            )}
+            {isApproved && (
+              <TouchableOpacity
+                style={tw`flex-row items-center justify-center gap-2 bg-blue-500 py-3.5 rounded-2xl`}
+                onPress={() => { onMarkReceived(order.id); onClose(); }}
+                disabled={actionLoading === order.id}
+                activeOpacity={0.8}
+              >
+                {actionLoading === order.id ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Ionicons name="bag-check-outline" size={18} color={COLORS.white} />
+                )}
+                <Text style={tw`text-sm font-black text-white`}>Mark as {order.deliveryAddress ? 'Delivered' : 'Received'}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={tw`flex-row items-center justify-center gap-2 bg-red-50 border border-red-300 py-3 rounded-2xl`}
+              onPress={() => { onDelete(order.id); onClose(); }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+              <Text style={tw`text-sm font-black text-red-600`}>Delete Order</Text>
+            </TouchableOpacity>
+          </View>
+
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Main AdminScreen ─────────────────────────────────────────────────────────
 
 export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreenProps) {
@@ -791,6 +1122,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | '7days' | 'month'>('all');
+  const [orderPage, setOrderPage] = useState(1);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
+  const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);
+  const ORDERS_PER_PAGE = 6;
 
   // Products state
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -1189,9 +1525,33 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       !q ||
       o.id.toLowerCase().includes(q) ||
       o.phoneNumber.toLowerCase().includes(q) ||
-      o.items.some((i) => i.name.toLowerCase().includes(q));
-    return matchesFilter && matchesSearch;
+      (o.customerName || '').toLowerCase().includes(q) ||
+      o.items.some((i) => i.name.toLowerCase().includes(q) || (i.flavor || '').toLowerCase().includes(q));
+    // Date filter
+    const now = new Date();
+    const orderDate = new Date(o.createdAt);
+    let matchesDate = true;
+    if (dateFilter === 'today') {
+      matchesDate =
+        orderDate.getDate() === now.getDate() &&
+        orderDate.getMonth() === now.getMonth() &&
+        orderDate.getFullYear() === now.getFullYear();
+    } else if (dateFilter === '7days') {
+      const diff = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24);
+      matchesDate = diff <= 7;
+    } else if (dateFilter === 'month') {
+      matchesDate =
+        orderDate.getMonth() === now.getMonth() &&
+        orderDate.getFullYear() === now.getFullYear();
+    }
+    return matchesFilter && matchesSearch && matchesDate;
   });
+
+  const totalOrderPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+  const paginatedOrders = filteredOrders.slice(
+    (orderPage - 1) * ORDERS_PER_PAGE,
+    orderPage * ORDERS_PER_PAGE
+  );
 
   const orderCounts = {
     all: orders.length,
@@ -2100,11 +2460,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
           </View>
 
-          {/* Filter tabs */}
+          {/* Filter tabs - Status */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+            contentContainerStyle={tw`px-5 pb-2 gap-2`}
           >
             {(['all', 'pending', 'approved', 'received'] as FilterTab[]).map((tab) => {
               const active = tab === activeFilter;
@@ -2117,7 +2477,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       ? tw`bg-strawberryPink border-strawberryPink`
                       : tw`bg-white border-vanillaCreamDark`,
                   ]}
-                  onPress={() => setActiveFilter(tab)}
+                  onPress={() => { setActiveFilter(tab); setOrderPage(1); }}
                   activeOpacity={0.7}
                 >
                   <Text
@@ -2148,6 +2508,42 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             })}
           </ScrollView>
 
+          {/* Date filter pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+          >
+            {([
+              { key: 'all', label: 'All Dates' },
+              { key: 'today', label: 'Today' },
+              { key: '7days', label: 'Last 7 Days' },
+              { key: 'month', label: 'This Month' },
+            ] as { key: 'all' | 'today' | '7days' | 'month'; label: string }[]).map((d) => {
+              const active = d.key === dateFilter;
+              return (
+                <TouchableOpacity
+                  key={d.key}
+                  style={[
+                    tw`flex-row items-center gap-1 px-3.5 py-1.5 rounded-full border`,
+                    active ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
+                  ]}
+                  onPress={() => { setDateFilter(d.key); setOrderPage(1); }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={11}
+                    color={active ? COLORS.white : COLORS.chocolateBrownMuted}
+                  />
+                  <Text style={[tw`text-[11px] font-bold`, active ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                    {d.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
           {/* Order list */}
           {ordersLoading && orders.length === 0 ? (
             <View style={tw`flex-1 items-center justify-center`}>
@@ -2172,26 +2568,70 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               {filteredOrders.length === 0 ? (
                 <View style={tw`items-center justify-center py-20`}>
                   <Text style={tw`text-5xl mb-4`}>
-                    {activeFilter === 'pending' ? '⏳' : activeFilter === 'approved' ? '✅' : '📭'}
+                    {activeFilter === 'pending' ? '⏳' : dateFilter !== 'all' ? '📅' : '📭'}
                   </Text>
                   <Text style={tw`text-base font-black text-chocolateBrown`}>No orders found</Text>
                   <Text style={tw`text-sm text-chocolateBrownMuted mt-1 text-center`}>
                     {searchQuery
                       ? `No results for "${searchQuery}"`
+                      : dateFilter !== 'all'
+                      ? 'No orders match the selected date range'
                       : `No ${activeFilter === 'all' ? '' : activeFilter + ' '}orders yet`}
                   </Text>
                 </View>
               ) : (
-                filteredOrders.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onApprove={handleApprove}
-                    onMarkReceived={handleMarkReceived}
-                    onDelete={handleDeleteOrder}
-                    loading={actionLoading === order.id}
-                  />
-                ))
+                <>
+                  {paginatedOrders.map((order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onApprove={handleApprove}
+                      onMarkReceived={handleMarkReceived}
+                      onDelete={handleDeleteOrder}
+                      onViewDetails={(o) => { setSelectedOrderDetails(o); setOrderDetailsVisible(true); }}
+                      loading={actionLoading === order.id}
+                    />
+                  ))}
+
+                  {/* Pagination */}
+                  {totalOrderPages > 1 && (
+                    <View style={tw`flex-row items-center justify-between mt-2 mb-4 px-1`}>
+                      <TouchableOpacity
+                        style={[
+                          tw`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border`,
+                          orderPage <= 1
+                            ? tw`bg-vanillaCreamDark border-vanillaCreamDark opacity-50`
+                            : tw`bg-white border-vanillaCreamDark`,
+                        ]}
+                        onPress={() => setOrderPage((p) => Math.max(1, p - 1))}
+                        disabled={orderPage <= 1}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="chevron-back" size={14} color={COLORS.chocolateBrown} />
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Prev</Text>
+                      </TouchableOpacity>
+
+                      <Text style={tw`text-xs font-black text-chocolateBrownMuted`}>
+                        Page {orderPage} of {totalOrderPages}
+                      </Text>
+
+                      <TouchableOpacity
+                        style={[
+                          tw`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border`,
+                          orderPage >= totalOrderPages
+                            ? tw`bg-vanillaCreamDark border-vanillaCreamDark opacity-50`
+                            : tw`bg-white border-vanillaCreamDark`,
+                        ]}
+                        onPress={() => setOrderPage((p) => Math.min(totalOrderPages, p + 1))}
+                        disabled={orderPage >= totalOrderPages}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Next</Text>
+                        <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrown} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </>
               )}
             </ScrollView>
           )}
@@ -2494,6 +2934,17 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </View>
         </View>
       </Modal>
+
+      {/* ══ Order Details Modal ══ */}
+      <OrderDetailsModal
+        order={selectedOrderDetails}
+        visible={orderDetailsVisible}
+        onClose={() => setOrderDetailsVisible(false)}
+        onApprove={handleApprove}
+        onMarkReceived={handleMarkReceived}
+        onDelete={handleDeleteOrder}
+        actionLoading={actionLoading}
+      />
     </View>
   );
 }
