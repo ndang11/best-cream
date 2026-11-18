@@ -17,7 +17,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import type { MenuItem, ApiResponse, Order } from '@best-cream/shared';
+import type { MenuItem, ApiResponse, Order, ProductCategory } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import YaoundeMapView from '../components/YaoundeMapView';
 import OrderTrackingModal from '../components/OrderTrackingModal';
@@ -45,7 +45,7 @@ interface CartItem {
   price: number;
   quantity: number;
   flavor: string;
-  category: 'ice-cream' | 'pancake' | 'combo';
+  category: ProductCategory;
   specialNotes?: string;
   servingStyle?: string;
   sizeOption?: string;
@@ -62,7 +62,7 @@ interface DashboardScreenProps {
 }
 
 type TabType = 'menu' | 'orders' | 'deals' | 'profile';
-type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
+type CategoryFilter = 'all' | ProductCategory;
 type OrderFilterType = 'all' | 'active' | 'pending' | 'completed';
 
 function formatOrderDate(iso: string, lang: Language = 'en'): string {
@@ -615,8 +615,9 @@ export default function DashboardScreen({
     }
   };
 
-  // Filter products by category and search term
+  // Filter products by category and search term (only active, non-archived items)
   const filteredProducts = menuItems.filter((item) => {
+    if (item.isActive === false || item.isArchived === true) return false;
     const matchesCategory =
       selectedCategory === 'all' || item.category === selectedCategory;
     const matchesSearch =
@@ -994,6 +995,72 @@ export default function DashboardScreen({
             <TouchableOpacity
               style={[
                 tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'topping' && tw`bg-strawberryPink border-strawberryPink`,
+              ]}
+              onPress={() => setSelectedCategory('topping')}
+            >
+              <MaterialCommunityIcons
+                name="cookie"
+                size={16}
+                color={selectedCategory === 'topping' ? COLORS.white : COLORS.chocolateBrown}
+              />
+              <Text
+                style={[
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'topping' && tw`text-chocolateBrown font-black`,
+                ]}
+              >
+                Toppings
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'drink' && tw`bg-strawberryPink border-strawberryPink`,
+              ]}
+              onPress={() => setSelectedCategory('drink')}
+            >
+              <Ionicons
+                name="cafe"
+                size={16}
+                color={selectedCategory === 'drink' ? COLORS.white : COLORS.chocolateBrown}
+              />
+              <Text
+                style={[
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'drink' && tw`text-chocolateBrown font-black`,
+                ]}
+              >
+                Drinks
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                selectedCategory === 'special-offer' && tw`bg-strawberryPink border-strawberryPink`,
+              ]}
+              onPress={() => setSelectedCategory('special-offer')}
+            >
+              <Ionicons
+                name="sparkles"
+                size={16}
+                color={selectedCategory === 'special-offer' ? COLORS.white : COLORS.chocolateBrown}
+              />
+              <Text
+                style={[
+                  tw`text-xs font-bold text-chocolateBrown`,
+                  selectedCategory === 'special-offer' && tw`text-chocolateBrown font-black`,
+                ]}
+              >
+                Special Offers
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
                 selectedCategory === 'combo' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('combo')}
@@ -1023,6 +1090,12 @@ export default function DashboardScreen({
                 ? 'Daily Ice Cream Flavors'
                 : selectedCategory === 'pancake'
                 ? 'Warm Fluffy Pancakes'
+                : selectedCategory === 'topping'
+                ? 'Delicious Extras & Toppings'
+                : selectedCategory === 'drink'
+                ? 'Chilled & Hot Drinks'
+                : selectedCategory === 'special-offer'
+                ? 'Special Offers & Bundles'
                 : 'Special Combo Stacks'}
             </Text>
             <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
@@ -1487,7 +1560,18 @@ export default function DashboardScreen({
                     {order.items.map((item, idx) => {
                       const isPancake = item.category === 'pancake';
                       const isIceCream = item.category === 'ice-cream';
-                      const emoji = isPancake ? '🥞' : isIceCream ? '🍦' : '✨';
+                      const emoji =
+                        isPancake
+                          ? '🥞'
+                          : isIceCream
+                          ? '🍦'
+                          : item.category === 'drink'
+                          ? '🥤'
+                          : item.category === 'topping'
+                          ? '🍓'
+                          : item.category === 'special-offer'
+                          ? '⭐'
+                          : '✨';
 
                       return (
                         <View

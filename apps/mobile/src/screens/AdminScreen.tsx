@@ -44,7 +44,8 @@ interface AdminScreenProps {
 
 type FilterTab = 'all' | 'pending' | 'accepted' | 'preparing' | 'ready' | 'out-for-delivery' | 'completed' | 'rejected';
 type AdminTab = 'overview' | 'orders' | 'products';
-type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
+type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'topping' | 'drink' | 'special-offer' | 'combo';
+type ProductStatusFilter = 'all' | 'active' | 'inactive' | 'archived';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -91,12 +92,18 @@ function statusColor(status: Order['status']): {
 function categoryLabel(category: MenuItem['category'], t: (k: any) => string): string {
   if (category === 'ice-cream') return t('adminCategoryIceCream');
   if (category === 'pancake') return t('adminCategoryPancake');
+  if (category === 'topping') return 'Topping';
+  if (category === 'drink') return 'Drink';
+  if (category === 'special-offer') return 'Special Offer';
   return t('adminCategoryCombo');
 }
 
 function categoryEmoji(category: MenuItem['category']): string {
   if (category === 'ice-cream') return '🍦';
   if (category === 'pancake') return '🥞';
+  if (category === 'topping') return '🍓';
+  if (category === 'drink') return '🥤';
+  if (category === 'special-offer') return '⭐';
   return '✨';
 }
 
@@ -396,19 +403,34 @@ interface ProductCardProps {
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
   onToggleStock: (item: MenuItem) => void;
+  onToggleActive: (item: MenuItem) => void;
+  onToggleArchive: (item: MenuItem) => void;
 }
 
-function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps) {
+function ProductCard({
+  item,
+  onEdit,
+  onDelete,
+  onToggleStock,
+  onToggleActive,
+  onToggleArchive,
+}: ProductCardProps) {
+  const { t } = useLanguage();
+  const isActive = item.isActive !== false;
+  const isArchived = !!item.isArchived;
+
   return (
     <View
       style={[
         tw`bg-white rounded-2xl mb-3.5 border border-vanillaCreamDark overflow-hidden`,
+        !isActive && tw`opacity-75 border-gray-300`,
+        isArchived && tw`border-amber-300 bg-amber-50/20`,
         { shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 2 },
       ]}
     >
       <View style={tw`flex-row`}>
         {/* Product image */}
-        <View style={tw`w-24 h-24 bg-vanillaCreamDark`}>
+        <View style={tw`w-28 h-28 bg-vanillaCreamDark relative`}>
           {item.imageUrl ? (
             <Image source={{ uri: item.imageUrl }} style={tw`w-full h-full`} resizeMode="cover" />
           ) : (
@@ -416,11 +438,19 @@ function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps
               <Text style={tw`text-3xl`}>{categoryEmoji(item.category)}</Text>
             </View>
           )}
+
+          {/* Badges on Image */}
           {item.isSpecialOffer && (
             <View style={tw`absolute top-1 left-1 bg-butterYellow px-1.5 py-0.5 rounded-md`}>
               <Text style={tw`text-[8px] font-black text-chocolateBrown`}>
-                {item.offerTag || '★'}
+                {item.offerTag || '★ Offer'}
               </Text>
+            </View>
+          )}
+
+          {isArchived && (
+            <View style={tw`absolute bottom-1 left-1 bg-amber-600 px-1.5 py-0.5 rounded-md`}>
+              <Text style={tw`text-[8px] font-black text-white`}>📁 Archived</Text>
             </View>
           )}
         </View>
@@ -430,21 +460,28 @@ function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps
           <View>
             <View style={tw`flex-row items-center justify-between`}>
               <View style={tw`flex-row items-center gap-1 flex-1 mr-2`}>
-                <Text style={tw`text-[10px]`}>{categoryEmoji(item.category)}</Text>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
-                  {item.category === 'ice-cream' ? 'Ice Cream' : item.category === 'pancake' ? 'Pancake' : 'Combo'}
+                <Text style={tw`text-[11px]`}>{categoryEmoji(item.category)}</Text>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`} numberOfLines={1}>
+                  {categoryLabel(item.category, t)}
                 </Text>
               </View>
               <Text style={tw`text-sm font-black text-chocolateBrown`}>
                 {item.price.toLocaleString()} XAF
               </Text>
             </View>
+
             <Text style={tw`text-sm font-black text-chocolateBrown mt-0.5`} numberOfLines={1}>
               {item.name}
             </Text>
             <Text style={tw`text-[11px] text-chocolateBrownLight`} numberOfLines={1}>
               {item.flavor}
             </Text>
+            {item.description ? (
+              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`} numberOfLines={1}>
+                {item.description}
+              </Text>
+            ) : null}
+
             {item.rating !== undefined && (
               <View style={tw`flex-row items-center gap-1 mt-0.5`}>
                 <Ionicons name="star" size={10} color={COLORS.butterYellow} />
@@ -456,33 +493,61 @@ function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps
           </View>
 
           {/* Action row */}
-          <View style={tw`flex-row items-center justify-between mt-1.5`}>
-            {/* Stock toggle */}
-            <TouchableOpacity
-              style={tw`flex-row items-center gap-1.5`}
-              onPress={() => onToggleStock(item)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  tw`px-2 py-0.5 rounded-full border`,
-                  item.inStock
-                    ? tw`bg-pistachioGreenLight border-pistachioGreen`
-                    : tw`bg-outOfStockBg border-outOfStockText`,
-                ]}
+          <View style={tw`flex-row items-center justify-between mt-2 pt-1.5 border-t border-vanillaCreamDark/50`}>
+            {/* Status pills: Stock & Active */}
+            <View style={tw`flex-row items-center gap-1.5`}>
+              {/* Active / Inactive switch */}
+              <TouchableOpacity
+                onPress={() => onToggleActive(item)}
+                activeOpacity={0.7}
               >
-                <Text
+                <View
                   style={[
-                    tw`text-[9px] font-black`,
-                    item.inStock ? tw`text-pistachioGreen` : tw`text-outOfStockText`,
+                    tw`px-2 py-0.5 rounded-full border`,
+                    isActive
+                      ? tw`bg-emerald-50 border-emerald-300`
+                      : tw`bg-gray-100 border-gray-300`,
                   ]}
                 >
-                  {item.inStock ? '● In Stock' : '● Sold Out'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+                  <Text
+                    style={[
+                      tw`text-[8px] font-black`,
+                      isActive ? tw`text-emerald-700` : tw`text-gray-600`,
+                    ]}
+                  >
+                    {isActive ? 'Active' : 'Inactive'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <View style={tw`flex-row items-center gap-2`}>
+              {/* Stock toggle */}
+              <TouchableOpacity
+                onPress={() => onToggleStock(item)}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    tw`px-2 py-0.5 rounded-full border`,
+                    item.inStock
+                      ? tw`bg-pistachioGreenLight border-pistachioGreen`
+                      : tw`bg-outOfStockBg border-outOfStockText`,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      tw`text-[8px] font-black`,
+                      item.inStock ? tw`text-pistachioGreen` : tw`text-outOfStockText`,
+                    ]}
+                  >
+                    {item.inStock ? 'In Stock' : 'Sold Out'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Action buttons */}
+            <View style={tw`flex-row items-center gap-1.5`}>
+              {/* Edit */}
               <TouchableOpacity
                 style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center`}
                 onPress={() => onEdit(item)}
@@ -490,12 +555,32 @@ function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps
               >
                 <Ionicons name="create-outline" size={14} color={COLORS.strawberryPink} />
               </TouchableOpacity>
+
+              {/* Archive / Unarchive */}
+              <TouchableOpacity
+                style={[
+                  tw`w-7 h-7 rounded-lg items-center justify-center border`,
+                  isArchived
+                    ? tw`bg-amber-100 border-amber-300`
+                    : tw`bg-vanillaCream border-vanillaCreamDark`,
+                ]}
+                onPress={() => onToggleArchive(item)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={isArchived ? 'arrow-undo-outline' : 'archive-outline'}
+                  size={13}
+                  color={isArchived ? '#B45309' : COLORS.chocolateBrown}
+                />
+              </TouchableOpacity>
+
+              {/* Delete */}
               <TouchableOpacity
                 style={tw`w-7 h-7 rounded-lg bg-red-50 border border-red-200 items-center justify-center`}
                 onPress={() => onDelete(item.id)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="trash-outline" size={14} color="#DC2626" />
+                <Ionicons name="trash-outline" size={13} color="#DC2626" />
               </TouchableOpacity>
             </View>
           </View>
@@ -505,7 +590,23 @@ function ProductCard({ item, onEdit, onDelete, onToggleStock }: ProductCardProps
   );
 }
 
-// ─── Product Edit Modal ───────────────────────────────────────────────────────
+// ─── Preset Product Images ────────────────────────────────────────────────────
+
+const PRESET_PRODUCT_IMAGES = [
+  { label: 'Vanilla Bean Bliss', url: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80', emoji: '🍦' },
+  { label: 'Dark Fudge Scoop', url: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80', emoji: '🍫' },
+  { label: 'Strawberry Swirl', url: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&auto=format&fit=crop&q=80', emoji: '🍓' },
+  { label: 'Pistachio Crunch', url: 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?w=500&auto=format&fit=crop&q=80', emoji: '🍨' },
+  { label: 'Golden Pancake', url: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500&auto=format&fit=crop&q=80', emoji: '🥞' },
+  { label: 'Choc Drizzle Stack', url: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=500&auto=format&fit=crop&q=80', emoji: '🥞' },
+  { label: 'Berry Compote', url: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=500&auto=format&fit=crop&q=80', emoji: '🍒' },
+  { label: 'Hot Ganache', url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&auto=format&fit=crop&q=80', emoji: '🍫' },
+  { label: 'Iced Coffee Frappé', url: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&auto=format&fit=crop&q=80', emoji: '☕' },
+  { label: 'Vanilla Milkshake', url: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&auto=format&fit=crop&q=80', emoji: '🥤' },
+  { label: 'Combo Delight', url: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=500&auto=format&fit=crop&q=80', emoji: '✨' },
+];
+
+// ─── Product Edit / Create Modal ──────────────────────────────────────────────
 
 interface ProductFormValues {
   name: string;
@@ -518,6 +619,8 @@ interface ProductFormValues {
   isSpecialOffer: boolean;
   offerTag: string;
   inStock: boolean;
+  isActive: boolean;
+  isArchived: boolean;
 }
 
 interface ProductEditModalProps {
@@ -526,11 +629,13 @@ interface ProductEditModalProps {
   onClose: () => void;
   onSave: (values: ProductFormValues, id?: string) => Promise<void>;
   saving: boolean;
+  apiUrl: string;
 }
 
-function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEditModalProps) {
+function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: ProductEditModalProps) {
   const { t } = useLanguage();
   const isEdit = !!item;
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [form, setForm] = useState<ProductFormValues>({
     name: '',
@@ -543,6 +648,8 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
     isSpecialOffer: false,
     offerTag: '',
     inStock: true,
+    isActive: true,
+    isArchived: false,
   });
 
   // Sync form when item changes
@@ -559,6 +666,8 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
         isSpecialOffer: !!item.isSpecialOffer,
         offerTag: item.offerTag || '',
         inStock: item.inStock,
+        isActive: item.isActive !== false,
+        isArchived: !!item.isArchived,
       });
     } else {
       setForm({
@@ -572,6 +681,8 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
         isSpecialOffer: false,
         offerTag: '',
         inStock: true,
+        isActive: true,
+        isArchived: false,
       });
     }
   }, [item, visible]);
@@ -590,8 +701,41 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
     await onSave(form, item?.id);
   };
 
+  const handleSimulateUpload = async () => {
+    setUploadingImage(true);
+    try {
+      // Pick a random or relevant high-res dessert photo preset if empty
+      const preset = PRESET_PRODUCT_IMAGES.find((p) => p.label.toLowerCase().includes(form.category.slice(0, 3))) || PRESET_PRODUCT_IMAGES[0];
+      const res = await fetch(`${apiUrl}/api/admin/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: preset.url, filename: `${form.name || 'product'}.jpg` }),
+      });
+      const json = await res.json();
+      if (json.success && json.data?.url) {
+        set('imageUrl', json.data.url);
+        Alert.alert('📸 Image Uploaded', 'Product image successfully uploaded and linked!');
+      }
+    } catch {
+      // Local fallback
+      set('imageUrl', 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80');
+      Alert.alert('📸 Image Selected', 'Image preview updated.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const inputStyle = tw`bg-vanillaCream rounded-xl px-3 py-2.5 text-sm text-chocolateBrown border border-vanillaCreamDark`;
   const labelStyle = tw`text-[11px] font-black text-chocolateBrown mb-1 mt-3`;
+
+  const categoriesList: MenuItem['category'][] = [
+    'ice-cream',
+    'pancake',
+    'topping',
+    'drink',
+    'special-offer',
+    'combo',
+  ];
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -628,14 +772,14 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
           <ScrollView style={tw`px-5 pt-1`} showsVerticalScrollIndicator={false}>
             {/* Category selector */}
             <Text style={labelStyle}>{t('adminProductCategory')}</Text>
-            <View style={tw`flex-row gap-2`}>
-              {(['ice-cream', 'pancake', 'combo'] as const).map((cat) => {
+            <View style={tw`flex-row flex-wrap gap-2`}>
+              {categoriesList.map((cat) => {
                 const active = form.category === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
                     style={[
-                      tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border`,
+                      tw`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border`,
                       active
                         ? tw`bg-strawberryPink border-strawberryPink`
                         : tw`bg-vanillaCream border-vanillaCreamDark`,
@@ -643,7 +787,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
                     onPress={() => set('category', cat)}
                     activeOpacity={0.8}
                   >
-                    <Text style={tw`text-sm`}>{categoryEmoji(cat)}</Text>
+                    <Text style={tw`text-xs`}>{categoryEmoji(cat)}</Text>
                     <Text
                       style={[
                         tw`text-[11px] font-bold`,
@@ -658,7 +802,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
             </View>
 
             {/* Name */}
-            <Text style={labelStyle}>{t('adminProductName')}</Text>
+            <Text style={labelStyle}>{t('adminProductName')} *</Text>
             <TextInput
               style={inputStyle}
               placeholder={t('adminNamePlaceholder')}
@@ -667,8 +811,8 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
               onChangeText={(v) => set('name', v)}
             />
 
-            {/* Flavor */}
-            <Text style={labelStyle}>{t('adminProductFlavor')}</Text>
+            {/* Flavor / Subtitle */}
+            <Text style={labelStyle}>{t('adminProductFlavor')} *</Text>
             <TextInput
               style={inputStyle}
               placeholder={t('adminFlavorPlaceholder')}
@@ -691,7 +835,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
             {/* Price & Rating row */}
             <View style={tw`flex-row gap-3`}>
               <View style={tw`flex-1`}>
-                <Text style={labelStyle}>{t('adminProductPrice')}</Text>
+                <Text style={labelStyle}>{t('adminProductPrice')} (XAF) *</Text>
                 <TextInput
                   style={inputStyle}
                   placeholder={t('adminPricePlaceholder')}
@@ -714,11 +858,76 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
               </View>
             </View>
 
-            {/* Image URL */}
-            <Text style={labelStyle}>{t('adminProductImage')}</Text>
+            {/* Image Upload & Presets */}
+            <Text style={labelStyle}>Product Image & Photo Presets</Text>
+            
+            {/* Live Preview Box */}
+            <View style={tw`bg-vanillaCream rounded-2xl p-3 border border-vanillaCreamDark mb-2`}>
+              <View style={tw`flex-row items-center gap-3`}>
+                <View style={tw`w-16 h-16 rounded-xl bg-vanillaCreamDark overflow-hidden items-center justify-center border border-vanillaCreamDark`}>
+                  {form.imageUrl ? (
+                    <Image source={{ uri: form.imageUrl }} style={tw`w-full h-full`} resizeMode="cover" />
+                  ) : (
+                    <Text style={tw`text-2xl`}>{categoryEmoji(form.category)}</Text>
+                  )}
+                </View>
+
+                <View style={tw`flex-1 gap-1.5`}>
+                  <TouchableOpacity
+                    style={tw`flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-2 rounded-xl`}
+                    onPress={handleSimulateUpload}
+                    disabled={uploadingImage}
+                    activeOpacity={0.8}
+                  >
+                    {uploadingImage ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Ionicons name="cloud-upload-outline" size={14} color={COLORS.white} />
+                    )}
+                    <Text style={tw`text-xs font-black text-white`}>
+                      {uploadingImage ? 'Uploading Image…' : 'Upload Image Photo'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {form.imageUrl ? (
+                    <TouchableOpacity onPress={() => set('imageUrl', '')} activeOpacity={0.7}>
+                      <Text style={tw`text-[10px] font-bold text-red-600`}>✕ Clear Image</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Preset Gallery Carousel */}
+              <Text style={tw`text-[10px] font-black text-chocolateBrownMuted mt-2.5 mb-1.5 uppercase tracking-wider`}>
+                Quick Pick Preset Photos:
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`gap-1.5`}>
+                {PRESET_PRODUCT_IMAGES.map((preset, pIdx) => {
+                  const isSelected = form.imageUrl === preset.url;
+                  return (
+                    <TouchableOpacity
+                      key={pIdx}
+                      style={[
+                        tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border`,
+                        isSelected ? tw`border-strawberryPink bg-strawberryPinkLight` : tw`border-vanillaCreamDark`,
+                      ]}
+                      onPress={() => set('imageUrl', preset.url)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={tw`text-xs`}>{preset.emoji}</Text>
+                      <Text style={[tw`text-[10px] font-bold`, isSelected ? tw`text-strawberryPink` : tw`text-chocolateBrown`]}>
+                        {preset.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Image URL Direct Input */}
             <TextInput
               style={inputStyle}
-              placeholder={t('adminImagePlaceholder')}
+              placeholder="Or paste direct image URL (https://…)"
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={form.imageUrl}
               onChangeText={(v) => set('imageUrl', v)}
@@ -726,13 +935,43 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
               autoCorrect={false}
             />
 
+            {/* Activate / Deactivate Toggle */}
+            <View style={tw`flex-row items-center justify-between mt-3 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark`}>
+              <View style={tw`flex-row items-center gap-2`}>
+                <Ionicons
+                  name={form.isActive ? 'eye-outline' : 'eye-off-outline'}
+                  size={18}
+                  color={form.isActive ? COLORS.pistachioGreen : COLORS.chocolateBrownMuted}
+                />
+                <View>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                    Product Active (Visible in Store)
+                  </Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                    {form.isActive ? 'Customers can view and order this item' : 'Hidden from customers'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={form.isActive}
+                onValueChange={(v) => set('isActive', v)}
+                trackColor={{ false: COLORS.vanillaCreamDark, true: COLORS.pistachioGreen }}
+                thumbColor={COLORS.white}
+              />
+            </View>
+
             {/* In stock toggle */}
-            <View style={tw`flex-row items-center justify-between mt-4 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark`}>
+            <View style={tw`flex-row items-center justify-between mt-2.5 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark`}>
               <View style={tw`flex-row items-center gap-2`}>
                 <Ionicons name="cube-outline" size={18} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                  {t('adminProductInStock')}
-                </Text>
+                <View>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                    {t('adminProductInStock')}
+                  </Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                    {form.inStock ? 'Available for immediate orders' : 'Shows as Sold Out'}
+                  </Text>
+                </View>
               </View>
               <Switch
                 value={form.inStock}
@@ -746,9 +985,14 @@ function ProductEditModal({ visible, item, onClose, onSave, saving }: ProductEdi
             <View style={tw`flex-row items-center justify-between mt-2.5 bg-butterYellowLight rounded-xl px-3.5 py-3 border border-butterYellow/60`}>
               <View style={tw`flex-row items-center gap-2`}>
                 <Ionicons name="sparkles" size={18} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                  {t('adminProductOffer')}
-                </Text>
+                <View>
+                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                    {t('adminProductOffer')}
+                  </Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                    Highlight with badge on customer catalog
+                  </Text>
+                </View>
               </View>
               <Switch
                 value={form.isSpecialOffer}
@@ -1361,6 +1605,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [productStatusFilter, setProductStatusFilter] = useState<ProductStatusFilter>('all');
   const [productSearch, setProductSearch] = useState('');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -1699,6 +1944,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         isSpecialOffer: values.isSpecialOffer,
         offerTag: values.offerTag.trim() || undefined,
         inStock: values.inStock,
+        isActive: values.isActive,
+        isArchived: values.isArchived,
       };
 
       const url = id ? `${apiUrl}/api/menu/${id}` : `${apiUrl}/api/menu`;
@@ -1729,15 +1976,63 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     }
   };
 
+  const handleToggleActive = async (item: MenuItem) => {
+    const newActive = item.isActive === false; // toggle: if false -> true, else -> false
+    setMenuItems((prev) =>
+      prev.map((m) => (m.id === item.id ? { ...m, isActive: newActive } : m))
+    );
+    try {
+      await fetch(`${apiUrl}/api/menu/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: newActive }),
+      });
+    } catch {
+      setMenuItems((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, isActive: !newActive } : m))
+      );
+      Alert.alert('Connection Error', 'Could not update active status.');
+    }
+  };
+
+  const handleToggleArchive = async (item: MenuItem) => {
+    const newArchived = !item.isArchived;
+    setMenuItems((prev) =>
+      prev.map((m) => (m.id === item.id ? { ...m, isArchived: newArchived } : m))
+    );
+    try {
+      await fetch(`${apiUrl}/api/menu/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived: newArchived }),
+      });
+      Alert.alert(
+        newArchived ? '📁 Product Archived' : '📂 Product Restored',
+        `"${item.name}" has been ${newArchived ? 'archived' : 'restored to active catalog'}.`
+      );
+    } catch {
+      setMenuItems((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, isArchived: !newArchived } : m))
+      );
+      Alert.alert('Connection Error', 'Could not update archive status.');
+    }
+  };
+
   const handleDeleteProduct = (id: string) => {
     const item = menuItems.find((m) => m.id === id);
+    if (!item) return;
+
     Alert.alert(
-      t('adminDeleteProduct'),
-      `${t('adminDeleteProductConfirm')}\n\n"${item?.name || id}"`,
+      'Product Options',
+      `Manage "${item.name}":`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: item.isArchived ? '📂 Unarchive' : '📁 Archive Product',
+          onPress: () => handleToggleArchive(item),
+        },
+        {
+          text: '🗑️ Delete Permanently',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -1830,19 +2125,39 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // ── Filtered products ────────────────────────────────────────────────────────
   const filteredProducts = menuItems.filter((m) => {
-    const matchesCat = categoryFilter === 'all' || m.category === categoryFilter;
+    const matchesCat =
+      categoryFilter === 'all'
+        ? true
+        : categoryFilter === 'special-offer'
+        ? m.category === 'special-offer' || m.isSpecialOffer
+        : m.category === categoryFilter;
+
+    let matchesStatus = true;
+    if (productStatusFilter === 'active') {
+      matchesStatus = m.isActive !== false && !m.isArchived;
+    } else if (productStatusFilter === 'inactive') {
+      matchesStatus = m.isActive === false && !m.isArchived;
+    } else if (productStatusFilter === 'archived') {
+      matchesStatus = !!m.isArchived;
+    }
+
     const q = productSearch.trim().toLowerCase();
     const matchesSearch =
       !q ||
       m.name.toLowerCase().includes(q) ||
-      m.flavor.toLowerCase().includes(q);
-    return matchesCat && matchesSearch;
+      m.flavor.toLowerCase().includes(q) ||
+      (m.description || '').toLowerCase().includes(q);
+
+    return matchesCat && matchesStatus && matchesSearch;
   });
 
-  const productCounts = {
+  const productCounts: Record<CategoryFilter, number> = {
     all: menuItems.length,
     'ice-cream': menuItems.filter((m) => m.category === 'ice-cream').length,
     pancake: menuItems.filter((m) => m.category === 'pancake').length,
+    topping: menuItems.filter((m) => m.category === 'topping').length,
+    drink: menuItems.filter((m) => m.category === 'drink').length,
+    'special-offer': menuItems.filter((m) => m.category === 'special-offer' || m.isSpecialOffer).length,
     combo: menuItems.filter((m) => m.category === 'combo').length,
   };
 
@@ -2964,12 +3279,15 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+            contentContainerStyle={tw`px-5 pb-2 gap-2`}
           >
             {([
               { id: 'all', label: t('adminAllCategories'), emoji: '🍽️', count: productCounts.all },
               { id: 'ice-cream', label: t('adminCategoryIceCream'), emoji: '🍦', count: productCounts['ice-cream'] },
               { id: 'pancake', label: t('adminCategoryPancake'), emoji: '🥞', count: productCounts.pancake },
+              { id: 'topping', label: 'Toppings', emoji: '🍓', count: productCounts.topping },
+              { id: 'drink', label: 'Drinks', emoji: '🥤', count: productCounts.drink },
+              { id: 'special-offer', label: 'Special Offers', emoji: '⭐', count: productCounts['special-offer'] },
               { id: 'combo', label: t('adminCategoryCombo'), emoji: '✨', count: productCounts.combo },
             ] as const).map((cat) => {
               const active = categoryFilter === cat.id;
@@ -3014,6 +3332,37 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             })}
           </ScrollView>
 
+          {/* Status filter chips: All · Active · Inactive · Archived */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+          >
+            {([
+              { id: 'all', label: 'All Status' },
+              { id: 'active', label: 'Active Only' },
+              { id: 'inactive', label: 'Deactivated' },
+              { id: 'archived', label: '📁 Archived' },
+            ] as const).map((st) => {
+              const active = productStatusFilter === st.id;
+              return (
+                <TouchableOpacity
+                  key={st.id}
+                  style={[
+                    tw`px-3 py-1.5 rounded-full border`,
+                    active ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
+                  ]}
+                  onPress={() => setProductStatusFilter(st.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[tw`text-[11px] font-bold`, active ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                    {st.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
           {/* Product list */}
           {productsLoading && menuItems.length === 0 ? (
             <View style={tw`flex-1 items-center justify-center`}>
@@ -3045,6 +3394,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     onEdit={openEditModal}
                     onDelete={handleDeleteProduct}
                     onToggleStock={handleToggleStock}
+                    onToggleActive={handleToggleActive}
+                    onToggleArchive={handleToggleArchive}
                   />
                 ))
               )}
@@ -3060,6 +3411,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         onClose={closeEditModal}
         onSave={handleSaveProduct}
         saving={savingProduct}
+        apiUrl={apiUrl}
       />
 
       {/* ══════════════════ QUICK NOTIFICATIONS MODAL ══════════════════ */}

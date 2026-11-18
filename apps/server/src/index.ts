@@ -107,6 +107,67 @@ const menuItems: MenuItem[] = [
     isSpecialOffer: true,
     offerTag: '20% OFF Combo',
   },
+  {
+    id: '8',
+    name: 'Warm Belgian Chocolate Drizzle',
+    category: 'topping',
+    flavor: 'Dark Ganache Drizzle',
+    description: 'Hot artisanal Belgian dark chocolate melted smooth for pancakes or ice cream.',
+    price: 700,
+    inStock: true,
+    rating: 4.9,
+    imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&auto=format&fit=crop&q=80',
+    isSpecialOffer: false,
+  },
+  {
+    id: '9',
+    name: 'Fresh Strawberry Fruit Compote',
+    category: 'topping',
+    flavor: 'Sun-ripened Strawberries',
+    description: 'Slow-simmered whole strawberry sauce with light cane sugar syrup.',
+    price: 800,
+    inStock: true,
+    rating: 4.8,
+    imageUrl: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=500&auto=format&fit=crop&q=80',
+    isSpecialOffer: false,
+  },
+  {
+    id: '10',
+    name: 'Iced Caramel Frappé Coffee',
+    category: 'drink',
+    flavor: 'Caramel & Chilled Espresso',
+    description: 'Double espresso blended with ice cream milk and rich caramel syrup.',
+    price: 2500,
+    inStock: true,
+    rating: 4.9,
+    imageUrl: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&auto=format&fit=crop&q=80',
+    isSpecialOffer: false,
+  },
+  {
+    id: '11',
+    name: 'Creamy Vanilla Milkshake',
+    category: 'drink',
+    flavor: 'Hand-spun Madagascar Vanilla',
+    description: 'Thick, frosty handcrafted milkshake topped with whipped cream.',
+    price: 2800,
+    inStock: true,
+    rating: 4.9,
+    imageUrl: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&auto=format&fit=crop&q=80',
+    isSpecialOffer: false,
+  },
+  {
+    id: '12',
+    name: 'Mega Ice Cream Sundae Tower',
+    category: 'special-offer',
+    flavor: '4 Scoops + Pancakes + Toppings',
+    description: '4 premium artisanal scoops atop golden mini-pancakes with double drizzles & wafers.',
+    price: 6500,
+    inStock: true,
+    rating: 5.0,
+    imageUrl: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&auto=format&fit=crop&q=80',
+    isSpecialOffer: true,
+    offerTag: 'Weekend Special ⭐',
+  },
 ];
 
 const users: User[] = [
@@ -430,7 +491,7 @@ app.get('/api/menu', (_req: Request, res: Response<ApiResponse<MenuItem[]>>) => 
 
 // Create a new menu item (admin only)
 app.post('/api/menu', (req: Request, res: Response<ApiResponse<MenuItem>>) => {
-  const { name, category, flavor, description, price, imageUrl, rating, isSpecialOffer, offerTag } = req.body;
+  const { name, category, flavor, description, price, imageUrl, rating, isSpecialOffer, offerTag, isActive, isArchived } = req.body;
   if (!name || !category || !flavor || price === undefined) {
     return res.status(400).json({
       success: false,
@@ -447,6 +508,8 @@ app.post('/api/menu', (req: Request, res: Response<ApiResponse<MenuItem>>) => {
     description: description ? String(description).trim() : undefined,
     price: Number(price),
     inStock: true,
+    isActive: isActive !== undefined ? !!isActive : true,
+    isArchived: isArchived !== undefined ? !!isArchived : false,
     imageUrl: imageUrl || undefined,
     rating: rating !== undefined ? Number(rating) : undefined,
     isSpecialOffer: !!isSpecialOffer,
@@ -473,13 +536,15 @@ app.patch('/api/menu/:id', (req: Request, res: Response<ApiResponse<MenuItem>>) 
       timestamp: new Date().toISOString(),
     });
   }
-  const { name, category, flavor, description, price, inStock, imageUrl, rating, isSpecialOffer, offerTag } = req.body;
+  const { name, category, flavor, description, price, inStock, isActive, isArchived, imageUrl, rating, isSpecialOffer, offerTag } = req.body;
   if (name !== undefined) item.name = String(name).trim();
   if (category !== undefined) item.category = category;
   if (flavor !== undefined) item.flavor = String(flavor).trim();
   if (description !== undefined) item.description = description ? String(description).trim() : undefined;
   if (price !== undefined) item.price = Number(price);
   if (inStock !== undefined) item.inStock = !!inStock;
+  if (isActive !== undefined) item.isActive = !!isActive;
+  if (isArchived !== undefined) item.isArchived = !!isArchived;
   if (imageUrl !== undefined) item.imageUrl = imageUrl || undefined;
   if (rating !== undefined) item.rating = rating !== null ? Number(rating) : undefined;
   if (isSpecialOffer !== undefined) item.isSpecialOffer = !!isSpecialOffer;
@@ -488,6 +553,18 @@ app.patch('/api/menu/:id', (req: Request, res: Response<ApiResponse<MenuItem>>) 
     success: true,
     data: item,
     message: 'Menu item updated successfully',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Upload product image (accepts base64 or URL)
+app.post('/api/admin/upload-image', (req: Request, res: Response<ApiResponse<{ url: string }>>) => {
+  const { imageUrl, filename } = req.body || {};
+  const sampleFallback = 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80';
+  res.json({
+    success: true,
+    data: { url: imageUrl || sampleFallback },
+    message: filename ? `Image "${filename}" uploaded successfully` : 'Image uploaded successfully',
     timestamp: new Date().toISOString(),
   });
 });

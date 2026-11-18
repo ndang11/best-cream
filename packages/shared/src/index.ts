@@ -6,14 +6,24 @@ export interface User {
   phone?: string;
 }
 
+export type ProductCategory =
+  | 'ice-cream'
+  | 'pancake'
+  | 'topping'
+  | 'drink'
+  | 'special-offer'
+  | 'combo';
+
 export interface MenuItem {
   id: string;
   name: string;
-  category: 'ice-cream' | 'pancake' | 'combo';
+  category: ProductCategory;
   flavor: string;
   description?: string;
   price: number;
   inStock: boolean;
+  isActive?: boolean;
+  isArchived?: boolean;
   imageUrl?: string;
   rating?: number;
   isSpecialOffer?: boolean;
@@ -27,7 +37,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   flavor?: string;
-  category: 'ice-cream' | 'pancake' | 'combo';
+  category: ProductCategory;
   specialNotes?: string;
   servingStyle?: string;
   sizeOption?: string;
