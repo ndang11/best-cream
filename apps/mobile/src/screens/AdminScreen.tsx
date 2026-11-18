@@ -1640,6 +1640,169 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
             )}
           </View>
+
+          {/* ── SECTION 3: Recent Customer Orders ── */}
+          <View style={tw`bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6`}>
+            {/* Header: Title, Subtitle, and "View All Orders" button */}
+            <View style={tw`flex-row items-center justify-between mb-4`}>
+              <View style={tw`flex-1 mr-2`}>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <Ionicons name="receipt" size={17} color={COLORS.strawberryPink} />
+                  <Text style={tw`text-base font-black text-chocolateBrown`}>
+                    {t('recentOrdersTitle')}
+                  </Text>
+                </View>
+                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                  {t('recentOrdersSubtitle')}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setAdminTab('orders')}
+                style={tw`flex-row items-center gap-1 bg-vanillaCream px-3 py-1.5 rounded-full border border-vanillaCreamDark`}
+                activeOpacity={0.7}
+              >
+                <Text style={tw`text-xs font-black text-strawberryPink`}>
+                  {t('viewAllOrdersBtn')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* List of Latest Orders (Top 5) */}
+            {orders.length === 0 ? (
+              <View style={tw`items-center justify-center py-8 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark`}>
+                <Text style={tw`text-2xl mb-1`}>🍦</Text>
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>No orders placed yet</Text>
+              </View>
+            ) : (
+              <View style={tw`gap-3`}>
+                {orders.slice(0, 5).map((order) => {
+                  const sc = statusColor(order.status);
+                  const isPaid = order.paymentStatus === 'paid' || order.status === 'approved' || order.status === 'received';
+                  const customerDisplayName = order.customerName || (order.phoneNumber ? `Customer (${order.phoneNumber.slice(-4)})` : 'Customer');
+
+                  return (
+                    <View
+                      key={order.id}
+                      style={tw`bg-vanillaCream rounded-2xl p-3.5 border border-vanillaCreamDark`}
+                    >
+                      {/* Top Row: Order ID, Time, and Status Badges */}
+                      <View style={tw`flex-row items-center justify-between mb-2`}>
+                        <View style={tw`flex-row items-center gap-2`}>
+                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                            {order.id}
+                          </Text>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-medium`}>
+                            {formatTime(order.createdAt)} · {formatDate(order.createdAt)}
+                          </Text>
+                        </View>
+
+                        <View style={tw`flex-row items-center gap-1.5`}>
+                          {/* Payment Status Pill */}
+                          <View
+                            style={[
+                              tw`px-2 py-0.5 rounded-md border`,
+                              isPaid
+                                ? tw`bg-emerald-50 border-emerald-300`
+                                : tw`bg-amber-50 border-amber-300`,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                tw`text-[10px] font-black`,
+                                isPaid ? tw`text-emerald-700` : tw`text-amber-700`,
+                              ]}
+                            >
+                              {isPaid ? t('paymentPaidBadge') : t('paymentPendingBadge')}
+                            </Text>
+                          </View>
+
+                          {/* Order Status Pill */}
+                          <View
+                            style={[
+                              tw`flex-row items-center gap-1 px-2 py-0.5 rounded-md border`,
+                              sc.bg,
+                              sc.border,
+                            ]}
+                          >
+                            <Ionicons name={sc.icon as any} size={11} color={sc.iconColor} />
+                            <Text style={[tw`text-[10px] font-black`, sc.text]}>
+                              {sc.label}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Customer Name & Phone */}
+                      <View style={tw`flex-row items-center justify-between mb-2`}>
+                        <View style={tw`flex-row items-center gap-1.5`}>
+                          <Ionicons name="person-circle-outline" size={15} color={COLORS.chocolateBrownMuted} />
+                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                            {customerDisplayName}
+                          </Text>
+                        </View>
+                        <Text style={tw`text-[11px] font-bold text-chocolateBrownMuted`}>
+                          📱 {order.phoneNumber}
+                        </Text>
+                      </View>
+
+                      {/* Ordered Products */}
+                      <View style={tw`bg-white rounded-xl p-2.5 border border-vanillaCreamDark mb-2`}>
+                        <Text style={tw`text-[10px] font-black uppercase text-chocolateBrownMuted mb-1`}>
+                          {t('productsOrderedLabel')}:
+                        </Text>
+                        {order.items.map((item, idx) => (
+                          <View key={idx} style={tw`flex-row items-center justify-between py-0.5`}>
+                            <Text style={tw`text-xs font-bold text-chocolateBrown flex-1 mr-2`} numberOfLines={1}>
+                              {item.quantity}x {item.name} {item.flavor ? `(${item.flavor})` : ''}
+                            </Text>
+                            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
+                              {(item.price * item.quantity).toLocaleString()} XAF
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* Bottom Row: Payment Method & Total Amount */}
+                      <View style={tw`flex-row items-center justify-between pt-1`}>
+                        <View style={tw`flex-row items-center gap-1.5`}>
+                          <Ionicons
+                            name={order.paymentMethod === 'mtn-momo' ? 'phone-portrait-outline' : 'card-outline'}
+                            size={13}
+                            color={COLORS.chocolateBrownMuted}
+                          />
+                          <Text style={tw`text-[11px] font-black uppercase text-chocolateBrownLight`}>
+                            {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
+                          </Text>
+                        </View>
+
+                        <View style={tw`flex-row items-center gap-1`}>
+                          <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                            {t('orderAmountLabel')}:
+                          </Text>
+                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                            {order.totalAmount.toLocaleString()} XAF
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+
+                {/* Bottom shortcut: View all orders */}
+                <TouchableOpacity
+                  onPress={() => setAdminTab('orders')}
+                  style={tw`w-full bg-vanillaCream border border-vanillaCreamDark py-3 rounded-2xl items-center justify-center flex-row gap-2 mt-1`}
+                  activeOpacity={0.7}
+                >
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    {t('viewAllOrdersBtn')}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={14} color={COLORS.chocolateBrown} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </ScrollView>
       )}
 

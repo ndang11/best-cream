@@ -125,6 +125,7 @@ const orders: Order[] = [
   // ── Today ─────────────────────────────────────────────────────────────
   {
     id: 'ORD-101',
+    customerName: 'Sam Rivera',
     items: [
       { id: 'i1', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 1, flavor: 'Warm Chocolate Lava', category: 'pancake' },
       { id: 'i2', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 1, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
@@ -132,11 +133,13 @@ const orders: Order[] = [
     totalAmount: 6000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 670 000 111',
+    paymentStatus: 'pending',
     status: 'pending',
     createdAt: dateAgo(0, 1),
   },
   {
     id: 'ORD-102',
+    customerName: 'Diane Miller',
     items: [
       { id: 'i3', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 1, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
       { id: 'i4', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
@@ -144,23 +147,27 @@ const orders: Order[] = [
     totalAmount: 8000,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 690 111 222',
+    paymentStatus: 'paid',
     status: 'approved',
     createdAt: dateAgo(0, 3),
   },
   {
     id: 'ORD-103',
+    customerName: 'Jean-Paul Biya',
     items: [
       { id: 'i5', menuItemId: '3', name: 'Strawberry Swirl Gelato', price: 2500, quantity: 2, flavor: 'Wild Strawberry & Cream', category: 'ice-cream' },
     ],
     totalAmount: 5000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 675 333 444',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(0, 6),
   },
   // ── Yesterday (1 day ago) ──────────────────────────────────────────────
   {
     id: 'ORD-104',
+    customerName: 'Marie Eto',
     items: [
       { id: 'i6', menuItemId: '6', name: 'Classic Golden Pancake', price: 3000, quantity: 2, flavor: 'Buttermilk & Honey Butter', category: 'pancake' },
       { id: 'i7', menuItemId: '4', name: 'Mint Choc Chip Breeze', price: 2500, quantity: 2, flavor: 'Cool Peppermint with Dark Flakes', category: 'ice-cream' },
@@ -168,11 +175,13 @@ const orders: Order[] = [
     totalAmount: 11000,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 699 444 555',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(1, 2),
   },
   {
     id: 'ORD-105',
+    customerName: 'Alex Johnson',
     items: [
       { id: 'i8', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
       { id: 'i9', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 1, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
@@ -180,12 +189,14 @@ const orders: Order[] = [
     totalAmount: 5500,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 671 222 888',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(1, 5),
   },
   // ── 2 Days Ago ────────────────────────────────────────────────────────
   {
     id: 'ORD-106',
+    customerName: 'Nathalie Ngono',
     items: [
       { id: 'i10', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 2, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
       { id: 'i11', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 1, flavor: 'Warm Chocolate Lava', category: 'pancake' },
@@ -193,12 +204,14 @@ const orders: Order[] = [
     totalAmount: 13500,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 677 888 999',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(2, 4),
   },
   // ── 3 Days Ago ────────────────────────────────────────────────────────
   {
     id: 'ORD-107',
+    customerName: 'Christian Fotso',
     items: [
       { id: 'i12', menuItemId: '3', name: 'Strawberry Swirl Gelato', price: 2500, quantity: 3, flavor: 'Wild Strawberry & Cream', category: 'ice-cream' },
       { id: 'i13', menuItemId: '6', name: 'Classic Golden Pancake', price: 3000, quantity: 1, flavor: 'Buttermilk & Honey Butter', category: 'pancake' },
@@ -206,12 +219,14 @@ const orders: Order[] = [
     totalAmount: 10500,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 691 555 666',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(3, 3),
   },
   // ── 4 Days Ago ────────────────────────────────────────────────────────
   {
     id: 'ORD-108',
+    customerName: 'Aline Kamga',
     items: [
       { id: 'i14', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 2, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
       { id: 'i15', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
@@ -219,24 +234,28 @@ const orders: Order[] = [
     totalAmount: 8000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 670 999 111',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(4, 2),
   },
   // ── 5 Days Ago ────────────────────────────────────────────────────────
   {
     id: 'ORD-109',
+    customerName: 'Cedric Mballa',
     items: [
       { id: 'i16', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 3, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
     ],
     totalAmount: 15000,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 694 222 333',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(5, 5),
   },
   // ── 6 Days Ago ────────────────────────────────────────────────────────
   {
     id: 'ORD-110',
+    customerName: 'Fabiola Atangana',
     items: [
       { id: 'i17', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 2, flavor: 'Warm Chocolate Lava', category: 'pancake' },
       { id: 'i18', menuItemId: '4', name: 'Mint Choc Chip Breeze', price: 2500, quantity: 2, flavor: 'Cool Peppermint with Dark Flakes', category: 'ice-cream' },
@@ -244,6 +263,7 @@ const orders: Order[] = [
     totalAmount: 12000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 672 333 444',
+    paymentStatus: 'paid',
     status: 'received',
     createdAt: dateAgo(6, 4),
   },
@@ -443,13 +463,15 @@ app.get('/api/orders', (_req: Request, res: Response<ApiResponse<Order[]>>) => {
 });
 
 app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
-  const { items, totalAmount, paymentMethod, phoneNumber, deliveryAddress, deliveryFee, distanceKm, latitude, longitude } = req.body;
+  const { items, totalAmount, paymentMethod, phoneNumber, customerName, paymentStatus, deliveryAddress, deliveryFee, distanceKm, latitude, longitude } = req.body;
   const newOrder: Order = {
     id: `ORD-${Date.now().toString().slice(-4)}`,
     items: items || [],
     totalAmount: totalAmount || 0,
     paymentMethod: paymentMethod || 'mtn-momo',
     phoneNumber: phoneNumber || '',
+    customerName: customerName || (phoneNumber ? `Customer (${phoneNumber.slice(-4)})` : 'Valued Customer'),
+    paymentStatus: paymentStatus || 'paid',
     status: 'pending',
     createdAt: new Date().toISOString(),
     deliveryAddress,
@@ -479,6 +501,7 @@ app.patch('/api/orders/:id/approve', (req: Request, res: Response<ApiResponse<Or
     });
   }
   order.status = 'approved';
+  order.paymentStatus = 'paid';
   res.json({
     success: true,
     data: order,
@@ -499,6 +522,7 @@ app.patch('/api/orders/:id/receive', (req: Request, res: Response<ApiResponse<Or
     });
   }
   order.status = 'received';
+  order.paymentStatus = 'paid';
   res.json({
     success: true,
     data: order,

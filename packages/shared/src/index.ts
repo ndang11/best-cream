@@ -41,6 +41,8 @@ export interface Order {
   totalAmount: number;
   paymentMethod: 'mtn-momo' | 'orange-money';
   phoneNumber: string;
+  customerName?: string;
+  paymentStatus?: 'paid' | 'pending' | 'failed';
   status: 'pending' | 'received' | 'approved';
   createdAt: string;
   deliveryAddress?: string;
