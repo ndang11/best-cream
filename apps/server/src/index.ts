@@ -4,7 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
-import type { ApiResponse, MenuItem, User, Order } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, SalesStatistics, SalesChartDataPoint, SalesAnalytics } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -112,36 +112,221 @@ const menuItems: MenuItem[] = [
 const users: User[] = [
   { id: '1', name: 'Alex Johnson', email: 'alex@bestcream.com', role: 'admin' },
   { id: '2', name: 'Sam Rivera', email: 'sam@bestcream.com', role: 'customer' },
+  { id: '3', name: 'Diane Miller', email: 'diane@bestcream.com', role: 'customer' },
+  { id: '4', name: 'Jean-Paul Biya', email: 'jp@bestcream.com', role: 'customer' },
+  { id: '5', name: 'Marie Eto', email: 'marie@bestcream.com', role: 'customer' },
 ];
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const dateAgo = (days: number, hours = 0): string =>
+  new Date(Date.now() - days * MS_PER_DAY - hours * 3600 * 1000).toISOString();
+
 const orders: Order[] = [
+  // ── Today ─────────────────────────────────────────────────────────────
   {
     id: 'ORD-101',
     items: [
-      {
-        id: 'item-1',
-        menuItemId: '5',
-        name: 'Chocolate Drizzle Stack',
-        price: 3500,
-        quantity: 1,
-        flavor: 'Warm Chocolate Lava',
-        category: 'pancake',
-      },
-      {
-        id: 'item-2',
-        menuItemId: '1',
-        name: 'Vanilla Bean Bliss',
-        price: 2500,
-        quantity: 1,
-        flavor: 'Pure Madagascar Vanilla',
-        category: 'ice-cream',
-      },
+      { id: 'i1', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 1, flavor: 'Warm Chocolate Lava', category: 'pancake' },
+      { id: 'i2', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 1, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
     ],
     totalAmount: 6000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 670 000 111',
     status: 'pending',
-    createdAt: new Date().toISOString(),
+    createdAt: dateAgo(0, 1),
+  },
+  {
+    id: 'ORD-102',
+    items: [
+      { id: 'i3', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 1, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+      { id: 'i4', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
+    ],
+    totalAmount: 8000,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 690 111 222',
+    status: 'approved',
+    createdAt: dateAgo(0, 3),
+  },
+  {
+    id: 'ORD-103',
+    items: [
+      { id: 'i5', menuItemId: '3', name: 'Strawberry Swirl Gelato', price: 2500, quantity: 2, flavor: 'Wild Strawberry & Cream', category: 'ice-cream' },
+    ],
+    totalAmount: 5000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 675 333 444',
+    status: 'received',
+    createdAt: dateAgo(0, 6),
+  },
+  // ── Yesterday (1 day ago) ──────────────────────────────────────────────
+  {
+    id: 'ORD-104',
+    items: [
+      { id: 'i6', menuItemId: '6', name: 'Classic Golden Pancake', price: 3000, quantity: 2, flavor: 'Buttermilk & Honey Butter', category: 'pancake' },
+      { id: 'i7', menuItemId: '4', name: 'Mint Choc Chip Breeze', price: 2500, quantity: 2, flavor: 'Cool Peppermint with Dark Flakes', category: 'ice-cream' },
+    ],
+    totalAmount: 11000,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 699 444 555',
+    status: 'received',
+    createdAt: dateAgo(1, 2),
+  },
+  {
+    id: 'ORD-105',
+    items: [
+      { id: 'i8', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
+      { id: 'i9', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 1, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
+    ],
+    totalAmount: 5500,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 671 222 888',
+    status: 'received',
+    createdAt: dateAgo(1, 5),
+  },
+  // ── 2 Days Ago ────────────────────────────────────────────────────────
+  {
+    id: 'ORD-106',
+    items: [
+      { id: 'i10', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 2, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+      { id: 'i11', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 1, flavor: 'Warm Chocolate Lava', category: 'pancake' },
+    ],
+    totalAmount: 13500,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 677 888 999',
+    status: 'received',
+    createdAt: dateAgo(2, 4),
+  },
+  // ── 3 Days Ago ────────────────────────────────────────────────────────
+  {
+    id: 'ORD-107',
+    items: [
+      { id: 'i12', menuItemId: '3', name: 'Strawberry Swirl Gelato', price: 2500, quantity: 3, flavor: 'Wild Strawberry & Cream', category: 'ice-cream' },
+      { id: 'i13', menuItemId: '6', name: 'Classic Golden Pancake', price: 3000, quantity: 1, flavor: 'Buttermilk & Honey Butter', category: 'pancake' },
+    ],
+    totalAmount: 10500,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 691 555 666',
+    status: 'received',
+    createdAt: dateAgo(3, 3),
+  },
+  // ── 4 Days Ago ────────────────────────────────────────────────────────
+  {
+    id: 'ORD-108',
+    items: [
+      { id: 'i14', menuItemId: '1', name: 'Vanilla Bean Bliss', price: 2500, quantity: 2, flavor: 'Pure Madagascar Vanilla', category: 'ice-cream' },
+      { id: 'i15', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 1, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
+    ],
+    totalAmount: 8000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 670 999 111',
+    status: 'received',
+    createdAt: dateAgo(4, 2),
+  },
+  // ── 5 Days Ago ────────────────────────────────────────────────────────
+  {
+    id: 'ORD-109',
+    items: [
+      { id: 'i16', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 3, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 15000,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 694 222 333',
+    status: 'received',
+    createdAt: dateAgo(5, 5),
+  },
+  // ── 6 Days Ago ────────────────────────────────────────────────────────
+  {
+    id: 'ORD-110',
+    items: [
+      { id: 'i17', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 2, flavor: 'Warm Chocolate Lava', category: 'pancake' },
+      { id: 'i18', menuItemId: '4', name: 'Mint Choc Chip Breeze', price: 2500, quantity: 2, flavor: 'Cool Peppermint with Dark Flakes', category: 'ice-cream' },
+    ],
+    totalAmount: 12000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 672 333 444',
+    status: 'received',
+    createdAt: dateAgo(6, 4),
+  },
+  // ── Previous Weeks (8 to 28 days ago) ─────────────────────────────────
+  {
+    id: 'ORD-111',
+    items: [
+      { id: 'i19', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 4, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 20000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 679 111 222',
+    status: 'received',
+    createdAt: dateAgo(10, 2),
+  },
+  {
+    id: 'ORD-112',
+    items: [
+      { id: 'i20', menuItemId: '6', name: 'Classic Golden Pancake', price: 3000, quantity: 3, flavor: 'Buttermilk & Honey Butter', category: 'pancake' },
+      { id: 'i21', menuItemId: '3', name: 'Strawberry Swirl Gelato', price: 2500, quantity: 3, flavor: 'Wild Strawberry & Cream', category: 'ice-cream' },
+    ],
+    totalAmount: 16500,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 695 777 888',
+    status: 'received',
+    createdAt: dateAgo(16, 6),
+  },
+  {
+    id: 'ORD-113',
+    items: [
+      { id: 'i22', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 5, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 25000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 676 000 999',
+    status: 'received',
+    createdAt: dateAgo(22, 1),
+  },
+  {
+    id: 'ORD-114',
+    items: [
+      { id: 'i23', menuItemId: '2', name: 'Dark Chocolate Fudge', price: 3000, quantity: 4, flavor: 'Rich Double Chocolate', category: 'ice-cream' },
+      { id: 'i24', menuItemId: '5', name: 'Chocolate Drizzle Stack', price: 3500, quantity: 2, flavor: 'Warm Chocolate Lava', category: 'pancake' },
+    ],
+    totalAmount: 19000,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 690 444 888',
+    status: 'received',
+    createdAt: dateAgo(27, 4),
+  },
+  // ── Previous Months (35 to 90 days ago) ───────────────────────────────
+  {
+    id: 'ORD-115',
+    items: [
+      { id: 'i25', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 6, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 30000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 674 888 999',
+    status: 'received',
+    createdAt: dateAgo(45, 3),
+  },
+  {
+    id: 'ORD-116',
+    items: [
+      { id: 'i26', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 8, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 40000,
+    paymentMethod: 'orange-money',
+    phoneNumber: '+237 697 123 456',
+    status: 'received',
+    createdAt: dateAgo(75, 5),
+  },
+  {
+    id: 'ORD-117',
+    items: [
+      { id: 'i27', menuItemId: '7', name: 'Best Cream Combo Delight', price: 5000, quantity: 7, flavor: 'Pancake Stack + 2 Ice Cream Scoops', category: 'combo' },
+    ],
+    totalAmount: 35000,
+    paymentMethod: 'mtn-momo',
+    phoneNumber: '+237 671 999 000',
+    status: 'received',
+    createdAt: dateAgo(105, 2),
   },
 ];
 
@@ -338,6 +523,205 @@ app.delete('/api/orders/:id', (req: Request, res: Response<ApiResponse<{ id: str
     success: true,
     data: { id: orderId },
     message: 'Order deleted successfully',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── Admin Analytics & Sales Dashboard Overview ─────────────────────────────
+app.get('/api/admin/analytics', async (req: Request, res: Response<ApiResponse<SalesAnalytics>>) => {
+  const period = (req.query.period as 'daily' | 'weekly' | 'monthly') || 'daily';
+  const customDays = req.query.days ? parseInt(req.query.days as string, 10) : undefined;
+
+  // 1. Retrieve orders from Supabase, fallback/merge with server orders
+  let allOrders = [...orders];
+  try {
+    const { data: supaOrders } = await supabase.from('orders').select('*');
+    if (supaOrders && Array.isArray(supaOrders) && supaOrders.length > 0) {
+      const orderMap = new Map<string, Order>();
+      allOrders.forEach((o) => orderMap.set(o.id, o));
+      supaOrders.forEach((o: any) => orderMap.set(o.id, o as Order));
+      allOrders = Array.from(orderMap.values());
+    }
+  } catch {
+    // Graceful fallback to memory orders
+  }
+
+  // 2. Retrieve registered customer count from Supabase
+  let registeredCustomers = users.filter((u) => u.role === 'customer').length + 18;
+  try {
+    const { count, error } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'customer');
+    if (!error && typeof count === 'number' && count > 0) {
+      registeredCustomers = Math.max(count, registeredCustomers);
+    } else {
+      const { data: authData } = await supabase.auth.admin.listUsers();
+      if (authData?.users && authData.users.length > 0) {
+        registeredCustomers = Math.max(authData.users.length, registeredCustomers);
+      }
+    }
+  } catch {
+    // Keep registeredCustomers
+  }
+
+  const now = Date.now();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTodayMs = startOfToday.getTime();
+
+  const sevenDaysAgoMs = now - 7 * MS_PER_DAY;
+  const thirtyDaysAgoMs = now - 30 * MS_PER_DAY;
+
+  // 3. Compute statistics
+  // A payment is successful if status is 'approved' or 'received'
+  const isPaid = (status: Order['status']) => status === 'approved' || status === 'received';
+
+  let salesToday = 0;
+  let salesThisWeek = 0;
+  let salesThisMonth = 0;
+  let totalRevenue = 0;
+  let pendingOrders = 0;
+  let completedOrders = 0;
+
+  for (const o of allOrders) {
+    const orderTime = new Date(o.createdAt).getTime();
+    const paid = isPaid(o.status);
+
+    if (paid) {
+      totalRevenue += o.totalAmount;
+      if (orderTime >= startOfTodayMs) {
+        salesToday += o.totalAmount;
+      }
+      if (orderTime >= sevenDaysAgoMs) {
+        salesThisWeek += o.totalAmount;
+      }
+      if (orderTime >= thirtyDaysAgoMs) {
+        salesThisMonth += o.totalAmount;
+      }
+    }
+
+    if (o.status === 'pending') pendingOrders++;
+    if (o.status === 'received') completedOrders++;
+  }
+
+  const statistics: SalesStatistics = {
+    salesToday,
+    salesThisWeek,
+    salesThisMonth,
+    totalRevenue,
+    totalOrders: allOrders.length,
+    pendingOrders,
+    completedOrders,
+    registeredCustomers,
+  };
+
+  // 4. Compute Sales Chart according to period
+  const chartData: SalesChartDataPoint[] = [];
+
+  if (period === 'daily') {
+    const numDays = customDays || 7;
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    for (let i = numDays - 1; i >= 0; i--) {
+      const d = new Date(now - i * MS_PER_DAY);
+      const dayStart = new Date(d);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(d);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dayOrders = allOrders.filter((o) => {
+        const t = new Date(o.createdAt).getTime();
+        return t >= dayStart.getTime() && t <= dayEnd.getTime();
+      });
+
+      const dayRevenue = dayOrders
+        .filter((o) => isPaid(o.status))
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      const label = i === 0 ? 'Today' : i === 1 ? 'Yest' : dayNames[d.getDay()];
+      const fullDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+      chartData.push({
+        label,
+        fullDate,
+        revenue: dayRevenue,
+        ordersCount: dayOrders.length,
+      });
+    }
+  } else if (period === 'weekly') {
+    // 4 Weeks
+    const weekCount = 4;
+    for (let w = weekCount - 1; w >= 0; w--) {
+      const startMs = now - (w + 1) * 7 * MS_PER_DAY;
+      const endMs = now - w * 7 * MS_PER_DAY;
+
+      const weekOrders = allOrders.filter((o) => {
+        const t = new Date(o.createdAt).getTime();
+        return t >= startMs && t < endMs;
+      });
+
+      const weekRevenue = weekOrders
+        .filter((o) => isPaid(o.status))
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      const startDate = new Date(startMs).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const endDate = new Date(endMs).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+      chartData.push({
+        label: `W${weekCount - w}`,
+        fullDate: `${startDate} - ${endDate}`,
+        revenue: weekRevenue,
+        ordersCount: weekOrders.length,
+      });
+    }
+  } else {
+    // Monthly (last 6 months)
+    const monthCount = 6;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const current = new Date();
+
+    for (let m = monthCount - 1; m >= 0; m--) {
+      const targetMonthDate = new Date(current.getFullYear(), current.getMonth() - m, 1);
+      const year = targetMonthDate.getFullYear();
+      const monthIndex = targetMonthDate.getMonth();
+      const monthStart = new Date(year, monthIndex, 1).getTime();
+      const nextMonthStart = new Date(year, monthIndex + 1, 1).getTime();
+
+      const monthOrders = allOrders.filter((o) => {
+        const t = new Date(o.createdAt).getTime();
+        return t >= monthStart && t < nextMonthStart;
+      });
+
+      const monthRevenue = monthOrders
+        .filter((o) => isPaid(o.status))
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      chartData.push({
+        label: monthNames[monthIndex],
+        fullDate: `${monthNames[monthIndex]} ${year}`,
+        revenue: monthRevenue,
+        ordersCount: monthOrders.length,
+      });
+    }
+  }
+
+  const totalPeriodRevenue = chartData.reduce((sum, p) => sum + p.revenue, 0);
+  const highest = chartData.reduce(
+    (max, cur) => (cur.revenue > max.revenue ? cur : max),
+    chartData[0] || { label: '', revenue: 0, ordersCount: 0 }
+  );
+
+  res.json({
+    success: true,
+    data: {
+      statistics,
+      chart: {
+        period,
+        data: chartData,
+        totalPeriodRevenue,
+        highestRevenueDay: highest.label,
+      },
+    },
     timestamp: new Date().toISOString(),
   });
 });

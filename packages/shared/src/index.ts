@@ -61,3 +61,31 @@ export interface AuthData {
   access_token: string;
   user: User;
 }
+
+export interface SalesStatistics {
+  salesToday: number;
+  salesThisWeek: number;
+  salesThisMonth: number;
+  totalRevenue: number;
+  totalOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  registeredCustomers: number;
+}
+
+export interface SalesChartDataPoint {
+  label: string;
+  fullDate?: string;
+  revenue: number;
+  ordersCount: number;
+}
+
+export interface SalesAnalytics {
+  statistics: SalesStatistics;
+  chart: {
+    period: 'daily' | 'weekly' | 'monthly';
+    data: SalesChartDataPoint[];
+    totalPeriodRevenue: number;
+    highestRevenueDay?: string;
+  };
+}
