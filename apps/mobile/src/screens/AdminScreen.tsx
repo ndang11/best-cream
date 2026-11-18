@@ -10,11 +10,12 @@
  * Auto-polls orders every 15s. PIN-protected entry (default 1234).
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   TextInput,
   Image,
@@ -31,7 +32,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification } from '@best-cream/shared';
+import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -45,7 +46,7 @@ interface AdminScreenProps {
 }
 
 type FilterTab = 'all' | 'pending' | 'accepted' | 'preparing' | 'ready' | 'out-for-delivery' | 'completed' | 'rejected';
-type AdminTab = 'overview' | 'orders' | 'products';
+type AdminTab = 'overview' | 'orders' | 'products' | 'daily-menu' | 'payments';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'topping' | 'drink' | 'special-offer' | 'combo';
 type ProductStatusFilter = 'all' | 'active' | 'inactive' | 'archived';
 
@@ -1819,6 +1820,87 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
   const [notifsModalVisible, setNotifsModalVisible] = useState<boolean>(false);
 
+  // ── Daily Menu state ───────────────────────────────────────────────────────
+  const getLocalToday = () => new Date().toISOString().slice(0, 10);
+  const [dailyMenus, setDailyMenus] = useState<DailyMenu[]>([]);
+  const [dmSelectedDate, setDmSelectedDate] = useState<string>(getLocalToday());
+  const [dmLoading, setDmLoading] = useState(false);
+  const [dmSaving, setDmSaving] = useState(false);
+  const [dmPreviewVisible, setDmPreviewVisible] = useState(false);
+
+  const ICE_CREAM_FLAVORS = [
+    'Vanilla Bean', 'Dark Chocolate Fudge', 'Strawberry Swirl', 'Mango Sorbet',
+    'Pistachio Cream', 'Salted Caramel', 'Mint Choc Chip', 'Cookies & Cream',
+    'Passion Fruit', 'Coconut Bliss', 'Banana Split', 'Bubblegum',
+    'Tiramisu', 'Hazelnut Praline', 'Raspberry Ripple',
+  ];
+
+  const currentDailyMenu = useMemo(() => dailyMenus.find((m) => m.date === dmSelectedDate) || null, [dailyMenus, dmSelectedDate]);
+
+  const fetchDailyMenus = useCallback(async () => {
+    setDmLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/daily-menu`);
+      const json = await res.json();
+      if (json.success) setDailyMenus(json.data);
+    } catch (_) {}
+    setDmLoading(false);
+  }, [apiUrl]);
+
+  const saveDailyMenu = useCallback(async (menu: Partial<DailyMenu> & { date: string }) => {
+    setDmSaving(true);
+    try {
+      if (currentDailyMenu) {
+        const res = await fetch(`${apiUrl}/api/admin/daily-menu/${currentDailyMenu.id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(menu),
+        });
+        const json = await res.json();
+        if (json.success) setDailyMenus((prev) => prev.map((m) => m.id === json.data.id ? json.data : m));
+      } else {
+        const res = await fetch(`${apiUrl}/api/admin/daily-menu`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(menu),
+        });
+        const json = await res.json();
+        if (json.success) setDailyMenus((prev) => [...prev, json.data]);
+      }
+    } catch (e: any) { Alert.alert('Error', e.message); }
+    setDmSaving(false);
+  }, [apiUrl, currentDailyMenu]);
+
+  // ── Payments state ─────────────────────────────────────────────────────────
+  const [payments, setPayments] = useState<PaymentTransaction[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'mtn-momo' | 'orange-money'>('all');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'paid' | 'pending' | 'failed'>('all');
+  const [paymentSearch, setPaymentSearch] = useState('');
+  const [selectedPayment, setSelectedPayment] = useState<PaymentTransaction | null>(null);
+  const [paymentDetailVisible, setPaymentDetailVisible] = useState(false);
+
+  const fetchPayments = useCallback(async () => {
+    setPaymentsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/payments`);
+      const json = await res.json();
+      if (json.success) setPayments(json.data);
+    } catch (_) {}
+    setPaymentsLoading(false);
+  }, [apiUrl]);
+
+  const filteredPayments = useMemo(() => {
+    let list = payments;
+    if (paymentMethodFilter !== 'all') list = list.filter((p) => p.paymentMethod === paymentMethodFilter);
+    if (paymentStatusFilter !== 'all') list = list.filter((p) => p.status === paymentStatusFilter);
+    if (paymentSearch.trim()) {
+      const q = paymentSearch.toLowerCase();
+      list = list.filter((p) =>
+        p.customerName.toLowerCase().includes(q) ||
+        p.transactionRef.toLowerCase().includes(q) ||
+        p.orderId.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [payments, paymentMethodFilter, paymentStatusFilter, paymentSearch]);
+
   const topInset = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
 
   // ── Fetch notifications ────────────────────────────────────────────────────
@@ -1984,6 +2066,16 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   useEffect(() => {
     fetchMenu();
   }, [fetchMenu]);
+
+  // Fetch daily menus when tab opens
+  useEffect(() => {
+    if (adminTab === 'daily-menu') fetchDailyMenus();
+  }, [adminTab, fetchDailyMenus]);
+
+  // Fetch payments when tab opens
+  useEffect(() => {
+    if (adminTab === 'payments') fetchPayments();
+  }, [adminTab, fetchPayments]);
 
   // Fallback stats computed from current orders
   const computedStats = useMemo(() => {
@@ -2472,47 +2564,57 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       </View>
 
       {/* ══════════════════ TAB SWITCHER ══════════════════ */}
-      <View style={tw`flex-row bg-white border-b border-vanillaCreamDark`}>
-        {(['overview', 'orders', 'products'] as AdminTab[]).map((tab) => {
-          const active = adminTab === tab;
-          const iconName =
-            tab === 'overview'
-              ? 'bar-chart-outline'
-              : tab === 'orders'
-              ? 'receipt-outline'
-              : 'ice-cream-outline';
-          const tabLabel =
-            tab === 'overview'
-              ? t('adminOverviewTab')
-              : tab === 'orders'
-              ? t('adminOrdersTab')
-              : t('adminProductsTab');
-          return (
-            <TouchableOpacity
-              key={tab}
-              style={tw`flex-1 items-center py-3 flex-row justify-center gap-1.5`}
-              onPress={() => setAdminTab(tab)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={iconName as any}
-                size={16}
-                color={active ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
-              />
-              <Text
-                style={[
-                  tw`text-xs font-black`,
-                  active ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                ]}
+      <View style={tw`bg-white border-b border-vanillaCreamDark`}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row px-1`}>
+          {(['overview', 'orders', 'products', 'daily-menu', 'payments'] as AdminTab[]).map((tab) => {
+            const active = adminTab === tab;
+            const iconName =
+              tab === 'overview'
+                ? 'bar-chart-outline'
+                : tab === 'orders'
+                ? 'receipt-outline'
+                : tab === 'products'
+                ? 'ice-cream-outline'
+                : tab === 'daily-menu'
+                ? 'calendar-outline'
+                : 'card-outline';
+            const tabLabel =
+              tab === 'overview'
+                ? t('adminOverviewTab')
+                : tab === 'orders'
+                ? t('adminOrdersTab')
+                : tab === 'products'
+                ? t('adminProductsTab')
+                : tab === 'daily-menu'
+                ? 'Daily Menu'
+                : 'Payments';
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={tw`items-center py-3 px-4 flex-row justify-center gap-1.5`}
+                onPress={() => setAdminTab(tab)}
+                activeOpacity={0.7}
               >
-                {tabLabel}
-              </Text>
-              {active && (
-                <View style={tw`absolute bottom-0 left-2 right-2 h-0.5 bg-strawberryPink rounded-full`} />
-              )}
-            </TouchableOpacity>
-          );
-        })}
+                <Ionicons
+                  name={iconName as any}
+                  size={16}
+                  color={active ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
+                />
+                <Text
+                  style={[
+                    tw`text-xs font-black`,
+                    active ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
+                  ]}
+                >
+                  {tabLabel}
+                </Text>
+                {active && (
+                  <View style={tw`absolute bottom-0 left-2 right-2 h-0.5 bg-strawberryPink rounded-full`} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* ══════════════════ OVERVIEW & SALES DASHBOARD TAB ══════════════════ */}
@@ -3765,6 +3867,514 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </View>
         </View>
       </Modal>
+
+      {/* ══ Order Details Modal ══ */}
+      <OrderDetailsModal
+        order={selectedOrderDetails}
+        visible={orderDetailsVisible}
+        onClose={() => setOrderDetailsVisible(false)}
+        onUpdateStatus={handleUpdateStatus}
+        onDelete={handleDeleteOrder}
+        actionLoading={actionLoading}
+      />
+
+      {/* ══════════════════ DAILY MENU TAB ══════════════════ */}
+      {adminTab === 'daily-menu' && (
+        <ScrollView style={tw`flex-1 bg-vanillaCream`} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={tw`px-5 pt-4 pb-3`}>
+            <Text style={tw`text-xl font-black text-chocolateBrown`}>📅 Daily Menu</Text>
+            <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>Set what's available each day</Text>
+          </View>
+
+          {/* Date Picker */}
+          <View style={tw`px-5 mb-4`}>
+            <Text style={tw`text-xs font-black text-chocolateBrown mb-2`}>SELECT DATE</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={tw`flex-row gap-2`}>
+                {Array.from({ length: 8 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + i);
+                  const dateStr = d.toISOString().slice(0, 10);
+                  const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' });
+                  const isSelected = dateStr === dmSelectedDate;
+                  const hasMenu = dailyMenus.some((m) => m.date === dateStr);
+                  return (
+                    <TouchableOpacity
+                      key={dateStr}
+                      onPress={() => setDmSelectedDate(dateStr)}
+                      style={[
+                        tw`px-4 py-2.5 rounded-2xl border items-center min-w-[72px]`,
+                        isSelected
+                          ? tw`bg-strawberryPink border-strawberryPink`
+                          : tw`bg-white border-vanillaCreamDark`,
+                      ]}
+                    >
+                      <Text style={[tw`text-xs font-black`, isSelected ? tw`text-white` : tw`text-chocolateBrown`]}>{label}</Text>
+                      <Text style={[tw`text-[10px] mt-0.5`, isSelected ? tw`text-white/80` : tw`text-chocolateBrownMuted`]}>{dateStr.slice(5)}</Text>
+                      {hasMenu && !isSelected && <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen mt-1`} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+
+          {/* Loading */}
+          {dmLoading && (
+            <View style={tw`items-center py-8`}>
+              <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs text-chocolateBrownMuted mt-2`}>Loading menus…</Text>
+            </View>
+          )}
+
+          {!dmLoading && (
+            <>
+              {/* Create / Status bar */}
+              <View style={tw`mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm`}>
+                <View style={tw`flex-row items-center justify-between mb-3`}>
+                  <View>
+                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                      {currentDailyMenu ? (currentDailyMenu.isPublished ? '✅ Published' : '📝 Draft') : '➕ No menu yet'}
+                    </Text>
+                    <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>{dmSelectedDate}</Text>
+                  </View>
+                  {currentDailyMenu && (
+                    <View style={tw`flex-row items-center gap-2`}>
+                      <Text style={tw`text-xs text-chocolateBrownMuted`}>{currentDailyMenu.isPublished ? 'Published' : 'Draft'}</Text>
+                      <Switch
+                        value={currentDailyMenu.isPublished}
+                        onValueChange={(v) => saveDailyMenu({ ...currentDailyMenu, isPublished: v })}
+                        trackColor={{ false: '#D1C4B0', true: COLORS.pistachioGreen }}
+                        thumbColor={currentDailyMenu.isPublished ? '#fff' : '#fff'}
+                      />
+                    </View>
+                  )}
+                </View>
+                {!currentDailyMenu && (
+                  <TouchableOpacity
+                    onPress={() => saveDailyMenu({ date: dmSelectedDate, isPublished: false, items: [], availableFlavors: [] })}
+                    style={tw`bg-strawberryPink py-3 rounded-2xl items-center`}
+                    disabled={dmSaving}
+                  >
+                    {dmSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={tw`text-white font-black text-sm`}>Create Menu for {dmSelectedDate}</Text>}
+                  </TouchableOpacity>
+                )}
+                {currentDailyMenu && (
+                  <View style={tw`flex-row gap-2`}>
+                    <TouchableOpacity onPress={() => setDmPreviewVisible(true)} style={tw`flex-1 border border-strawberryPink py-2.5 rounded-2xl items-center`}>
+                      <Text style={tw`text-strawberryPink font-black text-xs`}>👁 Preview</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        saveDailyMenu({ ...currentDailyMenu, isPublished: true });
+                        Alert.alert('Published!', `Menu for ${dmSelectedDate} is now live.`);
+                      }}
+                      style={tw`flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center`}
+                      disabled={dmSaving}
+                    >
+                      <Text style={tw`text-white font-black text-xs`}>🚀 Publish</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* Ice Cream Flavors */}
+              {currentDailyMenu && (
+                <View style={tw`mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm`}>
+                  <Text style={tw`text-sm font-black text-chocolateBrown mb-1`}>🍦 Available Flavours Today</Text>
+                  <Text style={tw`text-xs text-chocolateBrownMuted mb-3`}>Tap to select which flavours are available</Text>
+                  <View style={tw`flex-row flex-wrap gap-2`}>
+                    {ICE_CREAM_FLAVORS.map((flavor) => {
+                      const selected = currentDailyMenu.availableFlavors.includes(flavor);
+                      return (
+                        <TouchableOpacity
+                          key={flavor}
+                          onPress={() => {
+                            const updated = selected
+                              ? currentDailyMenu.availableFlavors.filter((f) => f !== flavor)
+                              : [...currentDailyMenu.availableFlavors, flavor];
+                            saveDailyMenu({ ...currentDailyMenu, availableFlavors: updated });
+                          }}
+                          style={[
+                            tw`px-3 py-1.5 rounded-full border`,
+                            selected ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
+                          ]}
+                        >
+                          <Text style={[tw`text-xs font-bold`, selected ? tw`text-white` : tw`text-chocolateBrownMuted`]}>{flavor}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {currentDailyMenu.availableFlavors.length > 0 && (
+                    <Text style={tw`text-xs text-pistachioGreen font-bold mt-2`}>
+                      ✓ {currentDailyMenu.availableFlavors.length} flavour{currentDailyMenu.availableFlavors.length !== 1 ? 's' : ''} selected
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {/* Products availability */}
+              {currentDailyMenu && (
+                <View style={tw`mx-5 mb-6`}>
+                  <Text style={tw`text-sm font-black text-chocolateBrown mb-3`}>📋 Products for {dmSelectedDate}</Text>
+                  {menuItems.filter((p) => !p.isArchived).map((product) => {
+                    const override = currentDailyMenu.items.find((it) => it.menuItemId === product.id);
+                    const isAvail = override ? override.isAvailable : true;
+                    const dailyPrice = override?.dailyPrice;
+                    const qty = override?.availableQuantity;
+                    return (
+                      <View key={product.id} style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm`}>
+                        <View style={tw`flex-row items-center justify-between mb-2`}>
+                          <View style={tw`flex-row items-center gap-2 flex-1`}>
+                            {product.imageUrl ? (
+                              <Image source={{ uri: product.imageUrl }} style={tw`w-10 h-10 rounded-xl`} resizeMode="cover" />
+                            ) : (
+                              <View style={tw`w-10 h-10 rounded-xl bg-vanillaCream items-center justify-center`}>
+                                <Text style={tw`text-lg`}>{categoryEmoji(product.category)}</Text>
+                              </View>
+                            )}
+                            <View style={tw`flex-1`}>
+                              <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>{product.name}</Text>
+                              <Text style={tw`text-xs text-chocolateBrownMuted`}>{product.price.toLocaleString()} XAF</Text>
+                            </View>
+                          </View>
+                          <Switch
+                            value={isAvail}
+                            onValueChange={(v) => {
+                              const items = currentDailyMenu.items.filter((it) => it.menuItemId !== product.id);
+                              items.push({ menuItemId: product.id, isAvailable: v, dailyPrice, availableQuantity: qty });
+                              saveDailyMenu({ ...currentDailyMenu, items });
+                            }}
+                            trackColor={{ false: '#D1C4B0', true: COLORS.pistachioGreen }}
+                          />
+                        </View>
+                        {isAvail && (
+                          <View style={tw`flex-row gap-2`}>
+                            <View style={tw`flex-1`}>
+                              <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold mb-1`}>DAILY PRICE (XAF)</Text>
+                              <TextInput
+                                style={tw`bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                                placeholder={`${product.price}`}
+                                keyboardType="numeric"
+                                defaultValue={dailyPrice ? String(dailyPrice) : ''}
+                                onEndEditing={(e) => {
+                                  const val = parseFloat(e.nativeEvent.text);
+                                  const items = currentDailyMenu.items.filter((it) => it.menuItemId !== product.id);
+                                  items.push({ menuItemId: product.id, isAvailable: isAvail, dailyPrice: isNaN(val) ? undefined : val, availableQuantity: qty });
+                                  saveDailyMenu({ ...currentDailyMenu, items });
+                                }}
+                              />
+                            </View>
+                            <View style={tw`flex-1`}>
+                              <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold mb-1`}>QUANTITY</Text>
+                              <TextInput
+                                style={tw`bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                                placeholder="Unlimited"
+                                keyboardType="numeric"
+                                defaultValue={qty ? String(qty) : ''}
+                                onEndEditing={(e) => {
+                                  const val = parseInt(e.nativeEvent.text);
+                                  const items = currentDailyMenu.items.filter((it) => it.menuItemId !== product.id);
+                                  items.push({ menuItemId: product.id, isAvailable: isAvail, dailyPrice, availableQuantity: isNaN(val) ? undefined : val });
+                                  saveDailyMenu({ ...currentDailyMenu, items });
+                                }}
+                              />
+                            </View>
+                          </View>
+                        )}
+                        {!isAvail && (
+                          <View style={tw`bg-red-50 rounded-xl px-3 py-1.5 mt-1`}>
+                            <Text style={tw`text-xs text-red-500 font-bold`}>Unavailable today</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </>
+          )}
+
+          {/* Preview Modal */}
+          <Modal visible={dmPreviewVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDmPreviewVisible(false)}>
+            <View style={tw`flex-1 bg-vanillaCream`}>
+              <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
+                <Text style={tw`text-lg font-black text-chocolateBrown`}>👁 Customer Preview</Text>
+                <TouchableOpacity onPress={() => setDmPreviewVisible(false)}>
+                  <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={tw`flex-1 p-5`}>
+                {currentDailyMenu && currentDailyMenu.availableFlavors.length > 0 && (
+                  <View style={tw`mb-4`}>
+                    <Text style={tw`text-sm font-black text-chocolateBrown mb-2`}>Today's Flavours 🍦</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View style={tw`flex-row gap-2`}>
+                        {currentDailyMenu.availableFlavors.map((f) => (
+                          <View key={f} style={tw`bg-chocolateBrown px-3 py-1.5 rounded-full`}>
+                            <Text style={tw`text-white text-xs font-bold`}>{f}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  </View>
+                )}
+                <Text style={tw`text-sm font-black text-chocolateBrown mb-3`}>Available Products</Text>
+                <View style={tw`flex-row flex-wrap gap-3`}>
+                  {menuItems.filter((p) => !p.isArchived && p.isActive !== false).map((product) => {
+                    const override = currentDailyMenu?.items.find((it) => it.menuItemId === product.id);
+                    if (override && !override.isAvailable) return null;
+                    const price = override?.dailyPrice ?? product.price;
+                    return (
+                      <View key={product.id} style={tw`bg-white rounded-3xl border border-vanillaCreamDark shadow-sm overflow-hidden`} >
+                        {product.imageUrl ? (
+                          <Image source={{ uri: product.imageUrl }} style={{ width: 160, height: 100 }} resizeMode="cover" />
+                        ) : (
+                          <View style={[{ width: 160, height: 100 }, tw`bg-vanillaCream items-center justify-center`]}>
+                            <Text style={tw`text-4xl`}>{categoryEmoji(product.category)}</Text>
+                          </View>
+                        )}
+                        <View style={tw`p-3`}>
+                          <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>{product.name}</Text>
+                          <Text style={tw`text-xs text-strawberryPink font-bold mt-0.5`}>{price.toLocaleString()} XAF</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          </Modal>
+        </ScrollView>
+      )}
+
+      {/* ══════════════════ PAYMENTS TAB ══════════════════ */}
+      {adminTab === 'payments' && (
+        <View style={tw`flex-1 bg-vanillaCream`}>
+          {/* Header */}
+          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View>
+                <Text style={tw`text-xl font-black text-chocolateBrown`}>💳 Payments</Text>
+                <Text style={tw`text-xs text-chocolateBrownMuted`}>{filteredPayments.length} transaction{filteredPayments.length !== 1 ? 's' : ''}</Text>
+              </View>
+              <TouchableOpacity onPress={fetchPayments} style={tw`p-2`} disabled={paymentsLoading}>
+                {paymentsLoading ? <ActivityIndicator size="small" color={COLORS.strawberryPink} /> : <Ionicons name="refresh-outline" size={20} color={COLORS.strawberryPink} />}
+              </TouchableOpacity>
+            </View>
+
+            {/* Summary chips */}
+            <View style={tw`flex-row gap-2 mb-3`}>
+              {(() => {
+                const today = new Date().toISOString().slice(0, 10);
+                const todayTotal = payments.filter((p) => p.createdAt.startsWith(today) && p.status === 'paid').reduce((s, p) => s + p.amount, 0);
+                const paidTotal = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
+                return (
+                  <>
+                    <View style={tw`flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TODAY</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{todayTotal.toLocaleString()}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    </View>
+                    <View style={tw`flex-1 bg-blue-50 border border-blue-200 rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TOTAL PAID</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{paidTotal.toLocaleString()}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    </View>
+                    <View style={tw`flex-1 bg-amber-50 border border-amber-200 rounded-2xl p-2.5 items-center`}>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>PENDING</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{payments.filter((p) => p.status === 'pending').length}</Text>
+                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>orders</Text>
+                    </View>
+                  </>
+                );
+              })()}
+            </View>
+
+            {/* Search */}
+            <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 mb-3`}>
+              <Ionicons name="search-outline" size={16} color={COLORS.chocolateBrownMuted} />
+              <TextInput
+                style={tw`flex-1 py-2.5 px-2 text-xs text-chocolateBrown`}
+                placeholder="Search by name, ref or order ID…"
+                placeholderTextColor={COLORS.chocolateBrownMuted}
+                value={paymentSearch}
+                onChangeText={setPaymentSearch}
+              />
+              {paymentSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setPaymentSearch('')}>
+                  <Ionicons name="close-circle" size={16} color={COLORS.chocolateBrownMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Method filter */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={tw`flex-row gap-2 mb-2`}>
+                {(['all', 'mtn-momo', 'orange-money'] as const).map((m) => (
+                  <TouchableOpacity
+                    key={m}
+                    onPress={() => setPaymentMethodFilter(m)}
+                    style={[tw`px-3 py-1.5 rounded-full border`, paymentMethodFilter === m ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`]}
+                  >
+                    <Text style={[tw`text-xs font-bold`, paymentMethodFilter === m ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                      {m === 'all' ? 'All Methods' : m === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            {/* Status filter */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={tw`flex-row gap-2`}>
+                {(['all', 'paid', 'pending', 'failed'] as const).map((s) => {
+                  const colors = s === 'paid' ? tw`bg-pistachioGreen border-pistachioGreen` : s === 'pending' ? tw`bg-amber-400 border-amber-400` : s === 'failed' ? tw`bg-red-400 border-red-400` : tw`bg-chocolateBrown border-chocolateBrown`;
+                  return (
+                    <TouchableOpacity
+                      key={s}
+                      onPress={() => setPaymentStatusFilter(s)}
+                      style={[tw`px-3 py-1.5 rounded-full border`, paymentStatusFilter === s ? colors : tw`bg-white border-vanillaCreamDark`]}
+                    >
+                      <Text style={[tw`text-xs font-bold`, paymentStatusFilter === s ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                        {s === 'all' ? 'All Status' : s.charAt(0).toUpperCase() + s.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+
+          {/* Transaction list */}
+          {paymentsLoading ? (
+            <View style={tw`flex-1 items-center justify-center`}>
+              <ActivityIndicator size="large" color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs text-chocolateBrownMuted mt-3`}>Loading transactions…</Text>
+            </View>
+          ) : filteredPayments.length === 0 ? (
+            <View style={tw`flex-1 items-center justify-center px-8`}>
+              <Text style={tw`text-4xl mb-3`}>💳</Text>
+              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>No transactions found</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1`}>Adjust filters or refresh</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredPayments}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={tw`p-4 pb-8`}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => {
+                const statusStyle =
+                  item.status === 'paid'
+                    ? { bg: tw`bg-pistachioGreen/10 border-pistachioGreen/30`, text: tw`text-green-700`, badge: tw`bg-pistachioGreen` }
+                    : item.status === 'pending'
+                    ? { bg: tw`bg-amber-50 border-amber-200`, text: tw`text-amber-700`, badge: tw`bg-amber-400` }
+                    : { bg: tw`bg-red-50 border-red-200`, text: tw`text-red-700`, badge: tw`bg-red-500` };
+                return (
+                  <TouchableOpacity
+                    onPress={() => { setSelectedPayment(item); setPaymentDetailVisible(true); }}
+                    style={[tw`bg-white rounded-3xl border p-4 mb-3 shadow-sm`, statusStyle.bg]}
+                    activeOpacity={0.75}
+                  >
+                    {/* Top row */}
+                    <View style={tw`flex-row items-start justify-between mb-2`}>
+                      <View style={tw`flex-1`}>
+                        <View style={tw`flex-row items-center gap-2 mb-1`}>
+                          <View style={[tw`px-2 py-0.5 rounded-lg`, statusStyle.badge]}>
+                            <Text style={tw`text-white text-[10px] font-black`}>{item.status.toUpperCase()}</Text>
+                          </View>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>{item.transactionRef}</Text>
+                        </View>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.customerName}</Text>
+                        <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.phoneNumber} · Order #{item.orderId}</Text>
+                      </View>
+                      <View style={tw`items-end`}>
+                        <Text style={[tw`text-base font-black`, statusStyle.text]}>{item.amount.toLocaleString()}</Text>
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>XAF</Text>
+                      </View>
+                    </View>
+                    {/* Bottom row */}
+                    <View style={tw`flex-row items-center justify-between border-t border-vanillaCreamDark pt-2`}>
+                      <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                        {item.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
+                      </Text>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{formatDate(item.createdAt)} · {formatTime(item.createdAt)}</Text>
+                      <Ionicons name="chevron-forward-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          )}
+
+          {/* Payment Detail Modal */}
+          <Modal visible={paymentDetailVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPaymentDetailVisible(false)}>
+            {selectedPayment && (
+              <View style={tw`flex-1 bg-vanillaCream`}>
+                <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
+                  <Text style={tw`text-lg font-black text-chocolateBrown`}>Transaction Details</Text>
+                  <TouchableOpacity onPress={() => setPaymentDetailVisible(false)}>
+                    <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={tw`flex-1 p-5`}>
+                  {/* Status badge */}
+                  <View style={tw`items-center mb-6`}>
+                    <View style={[
+                      tw`w-16 h-16 rounded-full items-center justify-center mb-3`,
+                      selectedPayment.status === 'paid' ? tw`bg-pistachioGreen` : selectedPayment.status === 'pending' ? tw`bg-amber-400` : tw`bg-red-500`
+                    ]}>
+                      <Ionicons
+                        name={selectedPayment.status === 'paid' ? 'checkmark-done' : selectedPayment.status === 'pending' ? 'time' : 'close'}
+                        size={32} color="#fff"
+                      />
+                    </View>
+                    <Text style={tw`text-2xl font-black text-chocolateBrown`}>{selectedPayment.amount.toLocaleString()} XAF</Text>
+                    <Text style={tw`text-sm text-chocolateBrownMuted mt-1`}>{selectedPayment.status.toUpperCase()}</Text>
+                  </View>
+
+                  {/* Detail rows */}
+                  {[
+                    { label: 'Transaction Ref', value: selectedPayment.transactionRef },
+                    { label: 'Provider Ref', value: selectedPayment.providerRef || 'N/A' },
+                    { label: 'Order ID', value: selectedPayment.orderId },
+                    { label: 'Customer', value: selectedPayment.customerName },
+                    { label: 'Phone', value: selectedPayment.phoneNumber },
+                    { label: 'Method', value: selectedPayment.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money' },
+                    { label: 'Date', value: `${formatDate(selectedPayment.createdAt)} at ${formatTime(selectedPayment.createdAt)}` },
+                    { label: 'Fee', value: selectedPayment.fee ? `${selectedPayment.fee.toLocaleString()} XAF` : 'N/A' },
+                  ].map((row) => (
+                    <View key={row.label} style={tw`flex-row items-center justify-between py-3 border-b border-vanillaCreamDark`}>
+                      <Text style={tw`text-xs text-chocolateBrownMuted font-bold`}>{row.label}</Text>
+                      <Text style={tw`text-sm font-black text-chocolateBrown text-right flex-1 ml-4`}>{row.value}</Text>
+                    </View>
+                  ))}
+
+                  {/* View Order button */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      setPaymentDetailVisible(false);
+                      const relatedOrder = orders.find((o) => o.id === selectedPayment.orderId);
+                      if (relatedOrder) {
+                        setSelectedOrderDetails(relatedOrder);
+                        setOrderDetailsVisible(true);
+                        setAdminTab('orders');
+                      } else {
+                        Alert.alert('Order', `Order ${selectedPayment.orderId} could not be found in current session.`);
+                      }
+                    }}
+                    style={tw`mt-6 bg-strawberryPink py-4 rounded-3xl items-center`}
+                  >
+                    <Text style={tw`text-white font-black`}>View Related Order →</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            )}
+          </Modal>
+        </View>
+      )}
 
       {/* ══ Order Details Modal ══ */}
       <OrderDetailsModal

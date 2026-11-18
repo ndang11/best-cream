@@ -132,3 +132,39 @@ export interface AdminNotification {
   createdAt: string;
   orderId?: string;
 }
+
+// ── Daily Menu Management ────────────────────────────────────────────────────
+export interface DailyMenuItemOverride {
+  menuItemId: string;
+  isAvailable: boolean;
+  dailyPrice?: number;
+  availableQuantity?: number;
+  availableFlavors?: string[];
+}
+
+export interface DailyMenu {
+  id: string;
+  date: string; // YYYY-MM-DD
+  title?: string;
+  isPublished: boolean;
+  items: DailyMenuItemOverride[];
+  availableFlavors: string[]; // General list of ice cream flavors available today
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Payment Management ───────────────────────────────────────────────────────
+export interface PaymentTransaction {
+  id: string;
+  transactionRef: string;
+  orderId: string;
+  customerName: string;
+  phoneNumber: string;
+  amount: number;
+  paymentMethod: 'mtn-momo' | 'orange-money';
+  status: 'paid' | 'pending' | 'failed';
+  providerRef?: string;
+  createdAt: string;
+  fee?: number;
+}

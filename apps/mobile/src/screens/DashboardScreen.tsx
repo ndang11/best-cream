@@ -17,7 +17,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import type { MenuItem, ApiResponse, Order, ProductCategory } from '@best-cream/shared';
+import type { MenuItem, ApiResponse, Order, ProductCategory, DailyMenu } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
 import YaoundeMapView from '../components/YaoundeMapView';
 import OrderTrackingModal from '../components/OrderTrackingModal';
@@ -180,6 +180,7 @@ export default function DashboardScreen({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<MenuItem | null>(null);
+  const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(null);
 
   // Cart & Order State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -211,6 +212,21 @@ export default function DashboardScreen({
   const fetchMenu = async () => {
     try {
       setLoading(true);
+      // First check for today's published daily menu
+      try {
+        const dailyRes = await fetch(`${apiUrl}/api/menu/daily`);
+        const dailyJson = await dailyRes.json();
+        if (dailyJson.success && dailyJson.data) {
+          setDailyMenu(dailyJson.data.menu);
+          if (Array.isArray(dailyJson.data.items) && dailyJson.data.items.length > 0) {
+            setMenuItems(dailyJson.data.items);
+            return;
+          }
+        } else {
+          setDailyMenu(null);
+        }
+      } catch {}
+
       const res = await fetch(`${apiUrl}/api/menu`);
       const json: ApiResponse<MenuItem[]> = await res.json();
       if (json.success) {
@@ -1081,6 +1097,31 @@ export default function DashboardScreen({
               </Text>
             </TouchableOpacity>
           </ScrollView>
+
+          {/* Today's Ice Cream Flavours Banner if published */}
+          {dailyMenu && dailyMenu.availableFlavors && dailyMenu.availableFlavors.length > 0 && (
+            <View style={tw`my-2 p-3.5 bg-vanillaCream rounded-2xl border border-strawberryPink/30`}>
+              <View style={tw`flex-row items-center justify-between mb-2`}>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <Text style={tw`text-base`}>🍦</Text>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Today's Fresh Churned Flavours</Text>
+                </View>
+                <View style={tw`bg-strawberryPink px-2 py-0.5 rounded-full`}>
+                  <Text style={tw`text-[10px] font-bold text-white`}>{dailyMenu.availableFlavors.length} today</Text>
+                </View>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={tw`flex-row gap-1.5`}>
+                  {dailyMenu.availableFlavors.map((flv) => (
+                    <View key={flv} style={tw`bg-white px-3 py-1.5 rounded-full border border-vanillaCreamDark shadow-sm flex-row items-center gap-1`}>
+                      <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen`} />
+                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>{flv}</Text>
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
           {/* Section Heading */}
           <View style={tw`flex-row justify-between items-center my-2`}>

@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
-import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -1450,6 +1450,148 @@ app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
   }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// DAILY MENU — in-memory store
+// ══════════════════════════════════════════════════════════════════════════════
+
+const dailyMenus: DailyMenu[] = [];
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// GET /api/admin/daily-menu — list all daily menus sorted by date desc
+app.get('/api/admin/daily-menu', (_req: Request, res: Response) => {
+  const sorted = [...dailyMenus].sort((a, b) => b.date.localeCompare(a.date));
+  return res.json({ success: true, data: sorted, timestamp: new Date().toISOString() });
+});
+
+// POST /api/admin/daily-menu — create a new daily menu (or replace existing for same date)
+app.post('/api/admin/daily-menu', (req: Request, res: Response) => {
+  const { date, title, isPublished, items, availableFlavors, notes } = req.body;
+  if (!date) return res.status(400).json({ success: false, message: 'date is required', timestamp: new Date().toISOString() });
+
+  const existing = dailyMenus.findIndex((m) => m.date === date);
+  const now = new Date().toISOString();
+  const menu: DailyMenu = {
+    id: existing >= 0 ? dailyMenus[existing].id : `menu-${Date.now()}`,
+    date,
+    title: title || `Menu for ${date}`,
+    isPublished: Boolean(isPublished),
+    items: Array.isArray(items) ? items : [],
+    availableFlavors: Array.isArray(availableFlavors) ? availableFlavors : [],
+    notes: notes || '',
+    createdAt: existing >= 0 ? dailyMenus[existing].createdAt : now,
+    updatedAt: now,
+  };
+
+  if (existing >= 0) {
+    dailyMenus[existing] = menu;
+  } else {
+    dailyMenus.push(menu);
+  }
+
+  return res.json({ success: true, data: menu, timestamp: now });
+});
+
+// PUT /api/admin/daily-menu/:id — update a menu (publish/unpublish, modify items)
+app.put('/api/admin/daily-menu/:id', (req: Request, res: Response) => {
+  const idx = dailyMenus.findIndex((m) => m.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ success: false, message: 'Menu not found', timestamp: new Date().toISOString() });
+
+  const now = new Date().toISOString();
+  const updated: DailyMenu = { ...dailyMenus[idx], ...req.body, id: dailyMenus[idx].id, createdAt: dailyMenus[idx].createdAt, updatedAt: now };
+  dailyMenus[idx] = updated;
+  return res.json({ success: true, data: updated, timestamp: now });
+});
+
+// DELETE /api/admin/daily-menu/:id
+app.delete('/api/admin/daily-menu/:id', (req: Request, res: Response) => {
+  const idx = dailyMenus.findIndex((m) => m.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ success: false, message: 'Menu not found', timestamp: new Date().toISOString() });
+  dailyMenus.splice(idx, 1);
+  return res.json({ success: true, data: null, timestamp: new Date().toISOString() });
+});
+
+// GET /api/menu/daily — customer-facing: today's published menu with overrides applied
+app.get('/api/menu/daily', (_req: Request, res: Response) => {
+  const today = todayStr();
+  const menu = dailyMenus.find((m) => m.date === today && m.isPublished);
+  if (!menu) {
+    return res.json({ success: true, data: null, timestamp: new Date().toISOString() });
+  }
+  // Apply overrides to menu items
+  const overrideMap = new Map<string, DailyMenuItemOverride>(menu.items.map((it) => [it.menuItemId, it]));
+  const enriched = menuItems
+    .filter((item) => item.isActive !== false && !item.isArchived)
+    .map((item) => {
+      const ovr = overrideMap.get(item.id);
+      if (ovr && !ovr.isAvailable) return null; // hidden today
+      return {
+        ...item,
+        price: ovr?.dailyPrice ?? item.price,
+        availableQuantity: ovr?.availableQuantity,
+        availableFlavors: ovr?.availableFlavors ?? (item.category === 'ice-cream' ? menu.availableFlavors : undefined),
+      };
+    })
+    .filter(Boolean);
+
+  return res.json({
+    success: true,
+    data: { menu, items: enriched },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PAYMENTS — derived from orders
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/admin/payments', async (_req: Request, res: Response) => {
+  // Try Supabase first
+  let sourceOrders: Order[] = [];
+  try {
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (!error && data && data.length > 0) {
+      sourceOrders = data.map((row: any) => ({
+        id: row.id,
+        items: typeof row.items === 'string' ? JSON.parse(row.items) : (row.items || []),
+        totalAmount: row.total_amount || 0,
+        paymentMethod: row.payment_method || 'mtn-momo',
+        phoneNumber: row.phone_number || '',
+        customerName: row.customer_name || 'Customer',
+        paymentStatus: row.payment_status || 'pending',
+        status: row.status || 'pending',
+        createdAt: row.created_at || new Date().toISOString(),
+        deliveryAddress: row.delivery_address,
+      }));
+    }
+  } catch (_) { }
+
+  // Fallback to in-memory
+  if (sourceOrders.length === 0) {
+    sourceOrders = [...orders];
+  }
+
+  const transactions: PaymentTransaction[] = sourceOrders.map((order) => ({
+    id: `txn-${order.id}`,
+    transactionRef: `TXN-${order.id}`,
+    orderId: order.id,
+    customerName: order.customerName || 'Customer',
+    phoneNumber: order.phoneNumber || '',
+    amount: order.totalAmount,
+    paymentMethod: order.paymentMethod,
+    status: (order.paymentStatus as PaymentTransaction['status']) || 'pending',
+    providerRef: `REF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+    createdAt: order.createdAt,
+    fee: Math.round(order.totalAmount * 0.015),
+  }));
+
+  transactions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return res.json({ success: true, data: transactions, timestamp: new Date().toISOString() });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {
   console.log(`🍦 Best Cream API running on http://localhost:${PORT}`);
 });
