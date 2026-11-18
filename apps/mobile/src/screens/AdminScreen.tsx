@@ -29,7 +29,7 @@ import {
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { Order, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint } from '@best-cream/shared';
+import { Order, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -801,7 +801,86 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [savingProduct, setSavingProduct] = useState(false);
 
+  // Notifications state
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
+  const [notifsModalVisible, setNotifsModalVisible] = useState<boolean>(false);
+
   const topInset = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
+
+  // ── Fetch notifications ────────────────────────────────────────────────────
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/notifications`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setNotifications(json.data.notifications || []);
+        setUnreadNotifCount(json.data.unreadCount || 0);
+      }
+    } catch {
+      // Fallback notifications if offline
+      setNotifications((prev) =>
+        prev.length > 0
+          ? prev
+          : [
+              {
+                id: 'n-1',
+                title: 'New Order Placed',
+                message: 'Order ORD-101 received from Sam Rivera (6,000 XAF) awaiting approval.',
+                type: 'order',
+                read: false,
+                createdAt: new Date().toISOString(),
+                orderId: 'ORD-101',
+              },
+              {
+                id: 'n-2',
+                title: 'Payment Confirmed',
+                message: 'Orange Money payment of 8,000 XAF confirmed for ORD-102.',
+                type: 'payment',
+                read: false,
+                createdAt: new Date(Date.now() - 3600000).toISOString(),
+                orderId: 'ORD-102',
+              },
+              {
+                id: 'n-3',
+                title: 'Low Stock Alert',
+                message: 'Strawberry Swirl Gelato stock is low. Prepare a new batch soon.',
+                type: 'stock',
+                read: false,
+                createdAt: new Date(Date.now() - 7200000).toISOString(),
+              },
+            ]
+      );
+      setUnreadNotifCount(3);
+    }
+  }, [apiUrl]);
+
+  const handleMarkNotifAsRead = async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+    setUnreadNotifCount((prev) => Math.max(0, prev - 1));
+    try {
+      await fetch(`${apiUrl}/api/admin/notifications/${id}/read`, { method: 'PATCH' });
+    } catch {}
+  };
+
+  const handleMarkAllNotifsAsRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadNotifCount(0);
+    try {
+      await fetch(`${apiUrl}/api/admin/notifications/mark-all-read`, { method: 'PATCH' });
+    } catch {}
+  };
+
+  // Filtered notifications
+  const displayedNotifications = useMemo(() => {
+    if (notifFilter === 'unread') {
+      return notifications.filter((n) => !n.read);
+    }
+    return notifications;
+  }, [notifications, notifFilter]);
 
   // ── Fetch analytics from Supabase ──────────────────────────────────────────
   const fetchAnalytics = useCallback(async (period = chartPeriod, days = chartDays, silent = false) => {
@@ -862,12 +941,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
   useEffect(() => {
     fetchOrders();
     fetchAnalytics(chartPeriod, chartDays);
+    fetchNotifications();
     const interval = setInterval(() => {
       fetchOrders(true);
       fetchAnalytics(chartPeriod, chartDays, true);
+      fetchNotifications();
     }, 15000);
     return () => clearInterval(interval);
-  }, [fetchOrders, fetchAnalytics, chartPeriod, chartDays]);
+  }, [fetchOrders, fetchAnalytics, fetchNotifications, chartPeriod, chartDays]);
 
   // Update chart whenever period or range changes
   useEffect(() => {
@@ -1171,12 +1252,38 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           <View style={tw`flex-row items-center gap-2`}>
             <LanguageSelector />
+            {/* Notification Bell with Unread Badge */}
+            <TouchableOpacity
+              style={tw`w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center relative`}
+              onPress={() => setNotifsModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={unreadNotifCount > 0 ? 'notifications' : 'notifications-outline'}
+                size={18}
+                color={unreadNotifCount > 0 ? COLORS.strawberryPink : COLORS.chocolateBrown}
+              />
+              {unreadNotifCount > 0 && (
+                <View
+                  style={[
+                    tw`absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-red-600 rounded-full items-center justify-center px-1 border-2 border-white`,
+                    { elevation: 3 },
+                  ]}
+                >
+                  <Text style={tw`text-[9px] font-black text-white leading-none`}>
+                    {unreadNotifCount > 9 ? '9+' : unreadNotifCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={tw`w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center`}
               onPress={() => {
                 fetchOrders();
                 fetchMenu();
                 fetchAnalytics(chartPeriod, chartDays);
+                fetchNotifications();
               }}
               activeOpacity={0.7}
             >
@@ -1803,6 +1910,163 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
             )}
           </View>
+
+          {/* ── SECTION 4: Notifications Overview ── */}
+          <View style={tw`bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6`}>
+            {/* Header: Bell Icon, Title, and Unread Count badge */}
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
+                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink`}>
+                  <Ionicons name="notifications" size={16} color={COLORS.strawberryPink} />
+                </View>
+                <View style={tw`flex-1`}>
+                  <View style={tw`flex-row items-center gap-1.5`}>
+                    <Text style={tw`text-base font-black text-chocolateBrown`}>
+                      {t('notificationsTitle')}
+                    </Text>
+                    {unreadNotifCount > 0 && (
+                      <View style={tw`bg-red-100 border border-red-300 px-2 py-0.5 rounded-full`}>
+                        <Text style={tw`text-[10px] font-black text-red-700`}>
+                          {unreadNotifCount} {t('unreadCountBadge')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`} numberOfLines={1}>
+                    {t('notificationsSubtitle')}
+                  </Text>
+                </View>
+              </View>
+
+              {unreadNotifCount > 0 && (
+                <TouchableOpacity
+                  onPress={handleMarkAllNotifsAsRead}
+                  style={tw`bg-vanillaCream border border-vanillaCreamDark px-2.5 py-1.5 rounded-xl`}
+                  activeOpacity={0.7}
+                >
+                  <Text style={tw`text-[11px] font-bold text-strawberryPink`}>
+                    {t('markAllAsReadBtn')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Filter Tabs: All vs Unread */}
+            <View style={tw`flex-row bg-vanillaCream p-1 rounded-xl mb-3 border border-vanillaCreamDark`}>
+              {(['all', 'unread'] as const).map((f) => {
+                const active = notifFilter === f;
+                const count = f === 'unread' ? unreadNotifCount : notifications.length;
+                return (
+                  <TouchableOpacity
+                    key={f}
+                    onPress={() => setNotifFilter(f)}
+                    style={[
+                      tw`flex-1 py-1.5 rounded-lg items-center`,
+                      active ? tw`bg-white shadow-sm` : tw`bg-transparent`,
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        tw`text-xs font-black capitalize`,
+                        active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                      ]}
+                    >
+                      {f === 'all' ? t('filterAllNotifs') : t('filterUnreadNotifs')} ({count})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Notification List */}
+            {displayedNotifications.length === 0 ? (
+              <View style={tw`items-center justify-center py-6 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark`}>
+                <Text style={tw`text-2xl mb-1`}>🎉</Text>
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  {t('allNotificationsRead')}
+                </Text>
+              </View>
+            ) : (
+              <View style={tw`gap-2.5`}>
+                {displayedNotifications.map((n) => {
+                  const getNotifStyle = (type: AdminNotification['type']) => {
+                    switch (type) {
+                      case 'order':
+                        return { icon: 'receipt-outline', bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-800' };
+                      case 'payment':
+                        return { icon: 'wallet-outline', bg: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-800' };
+                      case 'stock':
+                        return { icon: 'alert-circle-outline', bg: 'bg-rose-100', border: 'border-rose-300', text: 'text-rose-800' };
+                      case 'customer':
+                        return { icon: 'person-add-outline', bg: 'bg-indigo-100', border: 'border-indigo-300', text: 'text-indigo-800' };
+                      case 'milestone':
+                        return { icon: 'trophy-outline', bg: 'bg-yellow-100', border: 'border-yellow-400', text: 'text-yellow-900' };
+                      default:
+                        return { icon: 'notifications-outline', bg: 'bg-slate-100', border: 'border-slate-300', text: 'text-slate-800' };
+                    }
+                  };
+
+                  const ns = getNotifStyle(n.type);
+
+                  return (
+                    <TouchableOpacity
+                      key={n.id}
+                      onPress={() => {
+                        if (!n.read) handleMarkNotifAsRead(n.id);
+                        if (n.orderId) {
+                          setSearchQuery(n.orderId);
+                          setAdminTab('orders');
+                        }
+                      }}
+                      style={[
+                        tw`p-3 rounded-2xl border flex-row items-start gap-3`,
+                        n.read
+                          ? tw`bg-vanillaCream/50 border-vanillaCreamDark opacity-80`
+                          : tw`bg-white border-strawberryPinkLight shadow-sm`,
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      {/* Category Icon */}
+                      <View style={[tw`w-9 h-9 rounded-xl items-center justify-center border`, tw`${ns.bg} ${ns.border}`]}>
+                        <Ionicons name={ns.icon as any} size={17} color="#4A2810" />
+                      </View>
+
+                      {/* Content */}
+                      <View style={tw`flex-1`}>
+                        <View style={tw`flex-row items-center justify-between mb-0.5`}>
+                          <Text style={[tw`text-xs font-black`, n.read ? tw`text-chocolateBrown/80` : tw`text-chocolateBrown`]}>
+                            {n.title}
+                          </Text>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            {formatTime(n.createdAt)}
+                          </Text>
+                        </View>
+                        <Text style={tw`text-xs text-chocolateBrownLight font-medium leading-4`}>
+                          {n.message}
+                        </Text>
+
+                        {/* Action hint & unread dot */}
+                        <View style={tw`flex-row items-center justify-between mt-2 pt-1 border-t border-vanillaCreamDark/40`}>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-semibold`}>
+                            {n.orderId ? `Order ${n.orderId} · Tap to inspect` : 'Tap to mark read'}
+                          </Text>
+                          {!n.read && (
+                            <View style={tw`flex-row items-center gap-1`}>
+                              <View style={tw`w-2 h-2 rounded-full bg-strawberryPink`} />
+                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                                New
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </ScrollView>
       )}
 
@@ -2080,6 +2344,156 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         onSave={handleSaveProduct}
         saving={savingProduct}
       />
+
+      {/* ══════════════════ QUICK NOTIFICATIONS MODAL ══════════════════ */}
+      <Modal
+        visible={notifsModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setNotifsModalVisible(false)}
+      >
+        <View style={tw`flex-1 bg-black/50 justify-end`}>
+          <View style={tw`bg-white rounded-t-3xl max-h-[85%] border-t border-vanillaCreamDark shadow-2xl pb-8`}>
+            {/* Header bar */}
+            <View style={tw`flex-row items-center justify-between p-5 border-b border-vanillaCreamDark`}>
+              <View style={tw`flex-row items-center gap-2`}>
+                <View style={tw`w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink`}>
+                  <Ionicons name="notifications" size={18} color={COLORS.strawberryPink} />
+                </View>
+                <View>
+                  <Text style={tw`text-lg font-black text-chocolateBrown`}>
+                    {t('notificationsTitle')}
+                  </Text>
+                  <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                    {unreadNotifCount} {t('unreadCountBadge')}
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setNotifsModalVisible(false)}
+                style={tw`w-8 h-8 rounded-full bg-vanillaCream items-center justify-center`}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={18} color={COLORS.chocolateBrown} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick Actions & Filter */}
+            <View style={tw`flex-row items-center justify-between px-5 pt-3 pb-2`}>
+              <View style={tw`flex-row gap-2`}>
+                {(['all', 'unread'] as const).map((f) => (
+                  <TouchableOpacity
+                    key={f}
+                    onPress={() => setNotifFilter(f)}
+                    style={[
+                      tw`px-3 py-1 rounded-full border`,
+                      notifFilter === f
+                        ? tw`bg-chocolateBrown border-chocolateBrown`
+                        : tw`bg-vanillaCream border-vanillaCreamDark`,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        tw`text-xs font-black capitalize`,
+                        notifFilter === f ? tw`text-white` : tw`text-chocolateBrown`,
+                      ]}
+                    >
+                      {f === 'all' ? t('filterAllNotifs') : t('filterUnreadNotifs')}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {unreadNotifCount > 0 && (
+                <TouchableOpacity onPress={handleMarkAllNotifsAsRead} activeOpacity={0.7}>
+                  <Text style={tw`text-xs font-black text-strawberryPink`}>
+                    {t('markAllAsReadBtn')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Notifications List */}
+            <ScrollView style={tw`px-5 pt-2`} showsVerticalScrollIndicator={false}>
+              {displayedNotifications.length === 0 ? (
+                <View style={tw`items-center justify-center py-12`}>
+                  <Text style={tw`text-3xl mb-2`}>🎉</Text>
+                  <Text style={tw`text-sm font-bold text-chocolateBrown`}>
+                    {t('allNotificationsRead')}
+                  </Text>
+                </View>
+              ) : (
+                <View style={tw`gap-2.5 pb-6`}>
+                  {displayedNotifications.map((n) => {
+                    const getNotifStyle = (type: AdminNotification['type']) => {
+                      switch (type) {
+                        case 'order':
+                          return { icon: 'receipt-outline', bg: 'bg-amber-100', border: 'border-amber-300' };
+                        case 'payment':
+                          return { icon: 'wallet-outline', bg: 'bg-emerald-100', border: 'border-emerald-300' };
+                        case 'stock':
+                          return { icon: 'alert-circle-outline', bg: 'bg-rose-100', border: 'border-rose-300' };
+                        case 'customer':
+                          return { icon: 'person-add-outline', bg: 'bg-indigo-100', border: 'border-indigo-300' };
+                        case 'milestone':
+                          return { icon: 'trophy-outline', bg: 'bg-yellow-100', border: 'border-yellow-400' };
+                        default:
+                          return { icon: 'notifications-outline', bg: 'bg-slate-100', border: 'border-slate-300' };
+                      }
+                    };
+                    const ns = getNotifStyle(n.type);
+
+                    return (
+                      <TouchableOpacity
+                        key={n.id}
+                        onPress={() => {
+                          if (!n.read) handleMarkNotifAsRead(n.id);
+                          if (n.orderId) {
+                            setNotifsModalVisible(false);
+                            setSearchQuery(n.orderId);
+                            setAdminTab('orders');
+                          }
+                        }}
+                        style={[
+                          tw`p-3.5 rounded-2xl border flex-row items-start gap-3`,
+                          n.read
+                            ? tw`bg-vanillaCream/50 border-vanillaCreamDark opacity-80`
+                            : tw`bg-white border-strawberryPinkLight shadow-sm`,
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[tw`w-9 h-9 rounded-xl items-center justify-center border`, tw`${ns.bg} ${ns.border}`]}>
+                          <Ionicons name={ns.icon as any} size={17} color="#4A2810" />
+                        </View>
+                        <View style={tw`flex-1`}>
+                          <View style={tw`flex-row items-center justify-between mb-0.5`}>
+                            <Text style={[tw`text-xs font-black`, n.read ? tw`text-chocolateBrown/80` : tw`text-chocolateBrown`]}>
+                              {n.title}
+                            </Text>
+                            <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                              {formatTime(n.createdAt)}
+                            </Text>
+                          </View>
+                          <Text style={tw`text-xs text-chocolateBrownLight font-medium leading-4`}>
+                            {n.message}
+                          </Text>
+                          {!n.read && (
+                            <View style={tw`self-start mt-1.5 flex-row items-center gap-1`}>
+                              <View style={tw`w-2 h-2 rounded-full bg-strawberryPink`} />
+                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>New</Text>
+                            </View>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -91,3 +91,13 @@ export interface SalesAnalytics {
     highestRevenueDay?: string;
   };
 }
+
+export interface AdminNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'order' | 'payment' | 'stock' | 'customer' | 'milestone';
+  read: boolean;
+  createdAt: string;
+  orderId?: string;
+}

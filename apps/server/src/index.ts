@@ -4,7 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
-import type { ApiResponse, MenuItem, User, Order, SalesStatistics, SalesChartDataPoint, SalesAnalytics } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -350,6 +350,51 @@ const orders: Order[] = [
   },
 ];
 
+const notifications: AdminNotification[] = [
+  {
+    id: 'notif-1',
+    title: 'New Order Placed',
+    message: 'Order ORD-101 placed by Sam Rivera (6,000 XAF) awaiting approval.',
+    type: 'order',
+    read: false,
+    createdAt: dateAgo(0, 1),
+    orderId: 'ORD-101',
+  },
+  {
+    id: 'notif-2',
+    title: 'Payment Confirmed',
+    message: 'Orange Money payment of 8,000 XAF received for ORD-102.',
+    type: 'payment',
+    read: false,
+    createdAt: dateAgo(0, 3),
+    orderId: 'ORD-102',
+  },
+  {
+    id: 'notif-3',
+    title: 'Low Stock Alert',
+    message: 'Strawberry Swirl Gelato stock is running low. Please churn a fresh batch.',
+    type: 'stock',
+    read: false,
+    createdAt: dateAgo(0, 5),
+  },
+  {
+    id: 'notif-4',
+    title: 'New Customer Registered',
+    message: 'Diane Miller created a sweet tooth account from Yaoundé.',
+    type: 'customer',
+    read: true,
+    createdAt: dateAgo(1, 2),
+  },
+  {
+    id: 'notif-5',
+    title: 'Daily Sales Milestone',
+    message: 'Best Cream achieved 24,000 XAF in revenue today! +15% over last week.',
+    type: 'milestone',
+    read: true,
+    createdAt: dateAgo(1, 8),
+  },
+];
+
 app.get('/api/health', (_req: Request, res: Response<ApiResponse<{ status: string; esm: boolean }>>) => {
   res.json({
     success: true,
@@ -481,6 +526,19 @@ app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
     longitude,
   };
   orders.unshift(newOrder);
+
+  // Automatically trigger a real-time admin notification
+  const newNotif: AdminNotification = {
+    id: `notif-${Date.now()}`,
+    title: 'New Order Received',
+    message: `Order ${newOrder.id} placed by ${newOrder.customerName} for ${newOrder.totalAmount.toLocaleString()} XAF.`,
+    type: 'order',
+    read: false,
+    createdAt: new Date().toISOString(),
+    orderId: newOrder.id,
+  };
+  notifications.unshift(newNotif);
+
   res.json({
     success: true,
     data: newOrder,
@@ -547,6 +605,51 @@ app.delete('/api/orders/:id', (req: Request, res: Response<ApiResponse<{ id: str
     success: true,
     data: { id: orderId },
     message: 'Order deleted successfully',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── Notifications Endpoints ────────────────────────────────────────────────
+app.get('/api/admin/notifications', (_req: Request, res: Response<ApiResponse<{ notifications: AdminNotification[]; unreadCount: number }>>) => {
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  res.json({
+    success: true,
+    data: {
+      notifications,
+      unreadCount,
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.patch('/api/admin/notifications/:id/read', (req: Request, res: Response<ApiResponse<AdminNotification>>) => {
+  const notifId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const notif = notifications.find((n) => n.id === notifId);
+  if (!notif) {
+    return res.status(404).json({
+      success: false,
+      data: null as unknown as AdminNotification,
+      message: 'Notification not found',
+      timestamp: new Date().toISOString(),
+    });
+  }
+  notif.read = true;
+  res.json({
+    success: true,
+    data: notif,
+    message: 'Notification marked as read',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.patch('/api/admin/notifications/mark-all-read', (_req: Request, res: Response<ApiResponse<{ unreadCount: number }>>) => {
+  notifications.forEach((n) => {
+    n.read = true;
+  });
+  res.json({
+    success: true,
+    data: { unreadCount: 0 },
+    message: 'All notifications marked as read',
     timestamp: new Date().toISOString(),
   });
 });
