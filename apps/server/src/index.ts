@@ -14,30 +14,30 @@ const supabase = createClient(
 
 // Configure Cloudinary from CLOUDINARY_URL or explicit keys
 const rawCloudinaryUrl = process.env.CLOUDINARY_URL || '';
-const isCloudinaryConfigured =
-  (rawCloudinaryUrl.startsWith('cloudinary://') &&
-    !rawCloudinaryUrl.includes('<your_api_key>') &&
-    !rawCloudinaryUrl.includes('<your_api_secret>')) ||
-  !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+const uriMatch = rawCloudinaryUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
 
-if (isCloudinaryConfigured) {
-  if (rawCloudinaryUrl) {
-    cloudinary.config({
-      cloudinary_url: rawCloudinaryUrl,
-    });
-  } else {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dauivea1l',
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
-  }
-  console.log('☁️ Cloudinary configured with live credentials');
+if (uriMatch && !uriMatch[1].includes('<') && !uriMatch[2].includes('<')) {
+  cloudinary.config({
+    cloud_name: uriMatch[3],
+    api_key: uriMatch[1],
+    api_secret: uriMatch[2],
+    secure: true,
+  });
+  console.log(`☁️ Cloudinary configured with live credentials for cloud "${uriMatch[3]}"`);
+} else if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dauivea1l',
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+  console.log('☁️ Cloudinary configured via explicit API key & secret');
 } else {
   const cloudNameMatch = rawCloudinaryUrl.match(/@([^@/]+)$/);
   const defaultCloudName = cloudNameMatch ? cloudNameMatch[1] : (process.env.CLOUDINARY_CLOUD_NAME || 'dauivea1l');
   cloudinary.config({
     cloud_name: defaultCloudName,
+    secure: true,
   });
   console.log(`☁️ Cloudinary cloud initialized: ${defaultCloudName} (Note: Provide API Key & Secret in .env for live cloud uploads)`);
 }
