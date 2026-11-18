@@ -4,6 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
+import { v2 as cloudinary } from 'cloudinary';
 import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification } from '@best-cream/shared';
 
 const supabase = createClient(
@@ -11,11 +12,42 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY || ''
 );
 
+// Configure Cloudinary from CLOUDINARY_URL or explicit keys
+const rawCloudinaryUrl = process.env.CLOUDINARY_URL || '';
+const isCloudinaryConfigured =
+  (rawCloudinaryUrl.startsWith('cloudinary://') &&
+    !rawCloudinaryUrl.includes('<your_api_key>') &&
+    !rawCloudinaryUrl.includes('<your_api_secret>')) ||
+  !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+
+if (isCloudinaryConfigured) {
+  if (rawCloudinaryUrl) {
+    cloudinary.config({
+      cloudinary_url: rawCloudinaryUrl,
+    });
+  } else {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dauivea1l',
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+  }
+  console.log('☁️ Cloudinary configured with live credentials');
+} else {
+  const cloudNameMatch = rawCloudinaryUrl.match(/@([^@/]+)$/);
+  const defaultCloudName = cloudNameMatch ? cloudNameMatch[1] : (process.env.CLOUDINARY_CLOUD_NAME || 'dauivea1l');
+  cloudinary.config({
+    cloud_name: defaultCloudName,
+  });
+  console.log(`☁️ Cloudinary cloud initialized: ${defaultCloudName} (Note: Provide API Key & Secret in .env for live cloud uploads)`);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Fresh Daily Menu: Handcrafted Ice Creams & Hot Pancakes (Prices in XAF)
 const menuItems: MenuItem[] = [
@@ -557,16 +589,78 @@ app.patch('/api/menu/:id', (req: Request, res: Response<ApiResponse<MenuItem>>) 
   });
 });
 
-// Upload product image (accepts base64 or URL)
-app.post('/api/admin/upload-image', (req: Request, res: Response<ApiResponse<{ url: string }>>) => {
-  const { imageUrl, filename } = req.body || {};
-  const sampleFallback = 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80';
-  res.json({
-    success: true,
-    data: { url: imageUrl || sampleFallback },
-    message: filename ? `Image "${filename}" uploaded successfully` : 'Image uploaded successfully',
-    timestamp: new Date().toISOString(),
-  });
+// Upload product image to Cloudinary (accepts base64 data URI, raw base64, or remote URL)
+app.post('/api/admin/upload-image', async (req: Request, res: Response<ApiResponse<{ url: string; publicId?: string }>>) => {
+  try {
+    const { image, imageUrl, base64, filename, folder } = req.body || {};
+    let target = image || base64 || imageUrl;
+
+    if (!target) {
+      return res.status(400).json({
+        success: false,
+        data: { url: '' },
+        message: 'No image data or URL provided. Please select or capture an image.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Format raw base64 string if missing data URI prefix
+    if (typeof target === 'string' && !target.startsWith('data:') && !target.startsWith('http://') && !target.startsWith('https://')) {
+      target = `data:image/jpeg;base64,${target}`;
+    }
+
+    const cUrl = process.env.CLOUDINARY_URL || '';
+    const hasLiveCredentials =
+      (cUrl.startsWith('cloudinary://') &&
+        !cUrl.includes('<your_api_key>') &&
+        !cUrl.includes('<your_api_secret>')) ||
+      !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+
+    if (hasLiveCredentials) {
+      const uploadResult = await cloudinary.uploader.upload(target, {
+        folder: folder || 'best-cream/products',
+        resource_type: 'image',
+        transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          url: uploadResult.secure_url,
+          publicId: uploadResult.public_id,
+        },
+        message: 'Image uploaded to Cloudinary successfully',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // If Cloudinary URL has placeholder credentials, notify and gracefully handle
+    console.warn('[Cloudinary] Note: Placeholder credentials in apps/server/.env. Replace <your_api_key>:<your_api_secret> with your actual Cloudinary API Key & Secret.');
+
+    if (typeof target === 'string' && (target.startsWith('http://') || target.startsWith('https://'))) {
+      return res.json({
+        success: true,
+        data: { url: target },
+        message: 'Image linked successfully (Add real Cloudinary API key in .env for Cloudinary hosting)',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: { url: target },
+      message: 'Image preview loaded. Add real Cloudinary API credentials in .env to persist to Cloudinary.',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error('[Cloudinary Upload Error]', error);
+    return res.status(500).json({
+      success: false,
+      data: { url: '' },
+      message: error?.message || 'Failed to upload image to Cloudinary',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Delete a menu item (admin only)

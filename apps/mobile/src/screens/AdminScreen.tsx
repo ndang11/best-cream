@@ -26,6 +26,7 @@ import {
   Platform,
   StatusBar as RNStatusBar,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
@@ -701,28 +702,117 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
     await onSave(form, item?.id);
   };
 
-  const handleSimulateUpload = async () => {
-    setUploadingImage(true);
+  const handlePickFromGallery = async () => {
     try {
-      // Pick a random or relevant high-res dessert photo preset if empty
-      const preset = PRESET_PRODUCT_IMAGES.find((p) => p.label.toLowerCase().includes(form.category.slice(0, 3))) || PRESET_PRODUCT_IMAGES[0];
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission Needed', 'Access to photos is required to upload product images.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets || !result.assets[0]) return;
+
+      const asset = result.assets[0];
+      setUploadingImage(true);
+
+      const payload = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+
       const res = await fetch(`${apiUrl}/api/admin/upload-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: preset.url, filename: `${form.name || 'product'}.jpg` }),
+        body: JSON.stringify({
+          image: payload,
+          filename: `${form.name || 'product'}.jpg`,
+        }),
       });
+
       const json = await res.json();
       if (json.success && json.data?.url) {
         set('imageUrl', json.data.url);
-        Alert.alert('📸 Image Uploaded', 'Product image successfully uploaded and linked!');
+        Alert.alert('📸 Image Uploaded', json.message || 'Image uploaded successfully!');
+      } else {
+        set('imageUrl', asset.uri);
+        Alert.alert('Image Selected', json.message || 'Local preview updated.');
       }
-    } catch {
-      // Local fallback
-      set('imageUrl', 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500&auto=format&fit=crop&q=80');
-      Alert.alert('📸 Image Selected', 'Image preview updated.');
+    } catch (err: any) {
+      console.warn('Image picker error:', err);
+      Alert.alert('Upload Error', 'Could not upload image.');
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission Needed', 'Camera access is required to take a product photo.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets || !result.assets[0]) return;
+
+      const asset = result.assets[0];
+      setUploadingImage(true);
+
+      const payload = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+
+      const res = await fetch(`${apiUrl}/api/admin/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: payload,
+          filename: `${form.name || 'product'}.jpg`,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data?.url) {
+        set('imageUrl', json.data.url);
+        Alert.alert('📸 Photo Uploaded', json.message || 'Photo uploaded successfully!');
+      } else {
+        set('imageUrl', asset.uri);
+      }
+    } catch (err: any) {
+      console.warn('Camera error:', err);
+      Alert.alert('Camera Error', 'Could not take photo.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleUploadImageOptions = () => {
+    Alert.alert(
+      'Upload Product Image',
+      'Select image source for Cloudinary upload:',
+      [
+        {
+          text: '🖼️ Choose from Gallery',
+          onPress: handlePickFromGallery,
+        },
+        {
+          text: '📷 Take Photo',
+          onPress: handleTakePhoto,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
   };
 
   const inputStyle = tw`bg-vanillaCream rounded-xl px-3 py-2.5 text-sm text-chocolateBrown border border-vanillaCreamDark`;
@@ -875,7 +965,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
                 <View style={tw`flex-1 gap-1.5`}>
                   <TouchableOpacity
                     style={tw`flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-2 rounded-xl`}
-                    onPress={handleSimulateUpload}
+                    onPress={handleUploadImageOptions}
                     disabled={uploadingImage}
                     activeOpacity={0.8}
                   >
@@ -885,7 +975,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
                       <Ionicons name="cloud-upload-outline" size={14} color={COLORS.white} />
                     )}
                     <Text style={tw`text-xs font-black text-white`}>
-                      {uploadingImage ? 'Uploading Image…' : 'Upload Image Photo'}
+                      {uploadingImage ? 'Uploading Image…' : 'Choose Photo or Camera'}
                     </Text>
                   </TouchableOpacity>
 
