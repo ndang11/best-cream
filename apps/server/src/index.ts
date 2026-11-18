@@ -4,7 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
-import type { ApiResponse, MenuItem, User, Order, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -135,6 +135,7 @@ const orders: Order[] = [
     phoneNumber: '+237 670 000 111',
     paymentStatus: 'pending',
     status: 'pending',
+    statusHistory: [{ status: 'pending', changedAt: dateAgo(0, 1) }],
     createdAt: dateAgo(0, 1),
   },
   {
@@ -148,7 +149,13 @@ const orders: Order[] = [
     paymentMethod: 'orange-money',
     phoneNumber: '+237 690 111 222',
     paymentStatus: 'paid',
-    status: 'approved',
+    status: 'completed',
+    statusHistory: [
+      { status: 'pending', changedAt: dateAgo(0, 5) },
+      { status: 'accepted', changedAt: dateAgo(0, 4) },
+      { status: 'preparing', changedAt: dateAgo(0, 3.5) },
+      { status: 'completed', changedAt: dateAgo(0, 3) },
+    ],
     createdAt: dateAgo(0, 3),
   },
   {
@@ -161,7 +168,14 @@ const orders: Order[] = [
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 675 333 444',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
+    statusHistory: [
+      { status: 'pending', changedAt: dateAgo(0, 8) },
+      { status: 'accepted', changedAt: dateAgo(0, 7) },
+      { status: 'preparing', changedAt: dateAgo(0, 6.5) },
+      { status: 'ready', changedAt: dateAgo(0, 6.2) },
+      { status: 'completed', changedAt: dateAgo(0, 6) },
+    ],
     createdAt: dateAgo(0, 6),
   },
   // ── Yesterday (1 day ago) ──────────────────────────────────────────────
@@ -176,7 +190,7 @@ const orders: Order[] = [
     paymentMethod: 'orange-money',
     phoneNumber: '+237 699 444 555',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(1, 2),
   },
   {
@@ -190,7 +204,7 @@ const orders: Order[] = [
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 671 222 888',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(1, 5),
   },
   // ── 2 Days Ago ────────────────────────────────────────────────────────
@@ -205,7 +219,7 @@ const orders: Order[] = [
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 677 888 999',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(2, 4),
   },
   // ── 3 Days Ago ────────────────────────────────────────────────────────
@@ -220,7 +234,7 @@ const orders: Order[] = [
     paymentMethod: 'orange-money',
     phoneNumber: '+237 691 555 666',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(3, 3),
   },
   // ── 4 Days Ago ────────────────────────────────────────────────────────
@@ -235,7 +249,7 @@ const orders: Order[] = [
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 670 999 111',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(4, 2),
   },
   // ── 5 Days Ago ────────────────────────────────────────────────────────
@@ -249,7 +263,7 @@ const orders: Order[] = [
     paymentMethod: 'orange-money',
     phoneNumber: '+237 694 222 333',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(5, 5),
   },
   // ── 6 Days Ago ────────────────────────────────────────────────────────
@@ -264,7 +278,7 @@ const orders: Order[] = [
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 672 333 444',
     paymentStatus: 'paid',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(6, 4),
   },
   // ── Previous Weeks (8 to 28 days ago) ─────────────────────────────────
@@ -276,7 +290,7 @@ const orders: Order[] = [
     totalAmount: 20000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 679 111 222',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(10, 2),
   },
   {
@@ -288,7 +302,7 @@ const orders: Order[] = [
     totalAmount: 16500,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 695 777 888',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(16, 6),
   },
   {
@@ -299,7 +313,7 @@ const orders: Order[] = [
     totalAmount: 25000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 676 000 999',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(22, 1),
   },
   {
@@ -311,7 +325,7 @@ const orders: Order[] = [
     totalAmount: 19000,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 690 444 888',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(27, 4),
   },
   // ── Previous Months (35 to 90 days ago) ───────────────────────────────
@@ -323,7 +337,7 @@ const orders: Order[] = [
     totalAmount: 30000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 674 888 999',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(45, 3),
   },
   {
@@ -334,7 +348,7 @@ const orders: Order[] = [
     totalAmount: 40000,
     paymentMethod: 'orange-money',
     phoneNumber: '+237 697 123 456',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(75, 5),
   },
   {
@@ -345,7 +359,7 @@ const orders: Order[] = [
     totalAmount: 35000,
     paymentMethod: 'mtn-momo',
     phoneNumber: '+237 671 999 000',
-    status: 'received',
+    status: 'completed',
     createdAt: dateAgo(105, 2),
   },
 ];
@@ -499,15 +513,44 @@ app.delete('/api/menu/:id', (req: Request, res: Response<ApiResponse<{ id: strin
   });
 });
 
-app.get('/api/orders', (_req: Request, res: Response<ApiResponse<Order[]>>) => {
+app.get('/api/orders', async (_req: Request, res: Response<ApiResponse<Order[]>>) => {
+  let allOrders = [...orders];
+  try {
+    const { data: supaOrders } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (supaOrders && Array.isArray(supaOrders) && supaOrders.length > 0) {
+      const orderMap = new Map<string, Order>();
+      allOrders.forEach((o) => orderMap.set(o.id, o));
+      supaOrders.forEach((o: any) => orderMap.set(o.id, {
+        id: o.id,
+        items: o.items || [],
+        totalAmount: Number(o.total_amount ?? o.totalAmount ?? 0),
+        paymentMethod: o.payment_method ?? o.paymentMethod ?? 'mtn-momo',
+        phoneNumber: o.phone_number ?? o.phoneNumber ?? '',
+        customerName: o.customer_name ?? o.customerName ?? 'Customer',
+        paymentStatus: o.payment_status ?? o.paymentStatus ?? 'paid',
+        status: o.status || 'pending',
+        statusHistory: o.status_history ?? o.statusHistory,
+        cancelReason: o.cancel_reason ?? o.cancelReason,
+        createdAt: o.created_at ?? o.createdAt,
+        deliveryAddress: o.delivery_address ?? o.deliveryAddress,
+        deliveryFee: o.delivery_fee ?? o.deliveryFee,
+        distanceKm: o.distance_km ?? o.distanceKm,
+        latitude: o.latitude,
+        longitude: o.longitude,
+      }));
+      allOrders = Array.from(orderMap.values());
+    }
+  } catch {
+    // Graceful fallback to memory orders
+  }
   res.json({
     success: true,
-    data: orders,
+    data: allOrders,
     timestamp: new Date().toISOString(),
   });
 });
 
-app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
+app.post('/api/orders', async (req: Request, res: Response<ApiResponse<Order>>) => {
   const { items, totalAmount, paymentMethod, phoneNumber, customerName, paymentStatus, deliveryAddress, deliveryFee, distanceKm, latitude, longitude } = req.body;
   const newOrder: Order = {
     id: `ORD-${Date.now().toString().slice(-4)}`,
@@ -518,6 +561,7 @@ app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
     customerName: customerName || (phoneNumber ? `Customer (${phoneNumber.slice(-4)})` : 'Valued Customer'),
     paymentStatus: paymentStatus || 'paid',
     status: 'pending',
+    statusHistory: [{ status: 'pending', changedAt: new Date().toISOString() }],
     createdAt: new Date().toISOString(),
     deliveryAddress,
     deliveryFee,
@@ -526,6 +570,29 @@ app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
     longitude,
   };
   orders.unshift(newOrder);
+
+  // Attempt to save order to Supabase
+  try {
+    await supabase.from('orders').insert({
+      id: newOrder.id,
+      items: newOrder.items,
+      total_amount: newOrder.totalAmount,
+      payment_method: newOrder.paymentMethod,
+      phone_number: newOrder.phoneNumber,
+      customer_name: newOrder.customerName,
+      payment_status: newOrder.paymentStatus,
+      status: newOrder.status,
+      status_history: newOrder.statusHistory,
+      created_at: newOrder.createdAt,
+      delivery_address: newOrder.deliveryAddress,
+      delivery_fee: newOrder.deliveryFee,
+      distance_km: newOrder.distanceKm,
+      latitude: newOrder.latitude,
+      longitude: newOrder.longitude,
+    });
+  } catch {
+    // Graceful fallback if Supabase table is not configured or offline
+  }
 
   // Automatically trigger a real-time admin notification
   const newNotif: AdminNotification = {
@@ -547,8 +614,35 @@ app.post('/api/orders', (req: Request, res: Response<ApiResponse<Order>>) => {
   });
 });
 
-app.patch('/api/orders/:id/approve', (req: Request, res: Response<ApiResponse<Order>>) => {
-  const orderId = req.params.id;
+// Status label map for customer notifications
+const STATUS_MESSAGES: Record<OrderStatus, string> = {
+  pending: 'Your order has been received and is awaiting confirmation.',
+  accepted: '✅ Great news! Your order has been accepted and will be prepared shortly.',
+  rejected: '❌ Unfortunately your order has been rejected. Please contact us for details.',
+  cancelled: '🚫 Your order has been cancelled.',
+  preparing: '👨‍🍳 Your order is now being prepared in the kitchen!',
+  ready: '🎉 Your order is ready! Come pick it up at the counter.',
+  'out-for-delivery': '🛵 Your order is on its way! Our delivery rider is heading to you.',
+  completed: '✅ Order completed! Thank you for choosing Best Cream. Enjoy!',
+  approved: '✅ Great news! Your order has been accepted and will be prepared shortly.',
+  received: '✅ Order completed! Thank you for choosing Best Cream. Enjoy!',
+};
+
+// ── Universal Order Status Update ─────────────────────────────────────────────
+app.patch('/api/orders/:id/status', async (req: Request, res: Response<ApiResponse<Order>>) => {
+  const orderId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const { status, note } = req.body as { status: OrderStatus; note?: string };
+
+  const validStatuses: OrderStatus[] = ['pending', 'accepted', 'rejected', 'cancelled', 'preparing', 'ready', 'out-for-delivery', 'completed'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      data: null as unknown as Order,
+      message: `Invalid status: "${status}". Valid statuses: ${validStatuses.join(', ')}`,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   const order = orders.find((o) => o.id === orderId);
   if (!order) {
     return res.status(404).json({
@@ -558,14 +652,61 @@ app.patch('/api/orders/:id/approve', (req: Request, res: Response<ApiResponse<Or
       timestamp: new Date().toISOString(),
     });
   }
-  order.status = 'approved';
-  order.paymentStatus = 'paid';
+
+  const changedAt = new Date().toISOString();
+  order.status = status;
+  if (!order.statusHistory) order.statusHistory = [];
+  order.statusHistory.push({ status, changedAt, note });
+
+  // Auto-update payment status on accepted/completed
+  if (status === 'accepted' || status === 'completed') {
+    order.paymentStatus = 'paid';
+  }
+  if (status === 'rejected' || status === 'cancelled') {
+    if (note) order.cancelReason = note;
+  }
+
+  // Save status change to Supabase
+  try {
+    await supabase.from('orders').update({
+      status,
+      status_history: order.statusHistory,
+      payment_status: order.paymentStatus,
+      cancel_reason: order.cancelReason,
+      updated_at: changedAt,
+    }).eq('id', orderId);
+  } catch {
+    // Graceful fallback if Supabase table is not configured or offline
+  }
+
+  // Dispatch customer notification
+  const customerNotif: AdminNotification = {
+    id: `notif-status-${orderId}-${Date.now()}`,
+    title: `Order ${orderId} → ${status.replace(/-/g, ' ').toUpperCase()}`,
+    message: STATUS_MESSAGES[status],
+    type: 'order',
+    read: false,
+    createdAt: changedAt,
+    orderId,
+  };
+  notifications.unshift(customerNotif);
+
   res.json({
     success: true,
     data: order,
-    message: 'Order approved by admin!',
-    timestamp: new Date().toISOString(),
+    message: `Order ${orderId} updated to "${status}"`,
+    timestamp: changedAt,
   });
+});
+
+// Legacy endpoints (kept for backwards compatibility)
+app.patch('/api/orders/:id/approve', (req: Request, res: Response<ApiResponse<Order>>) => {
+  req.body = { status: 'accepted' };
+  return app._router.handle(
+    Object.assign(req, { url: `/api/orders/${req.params.id}/status`, method: 'PATCH' }),
+    res,
+    () => { }
+  );
 });
 
 app.patch('/api/orders/:id/receive', (req: Request, res: Response<ApiResponse<Order>>) => {
@@ -579,13 +720,16 @@ app.patch('/api/orders/:id/receive', (req: Request, res: Response<ApiResponse<Or
       timestamp: new Date().toISOString(),
     });
   }
-  order.status = 'received';
+  const changedAt = new Date().toISOString();
+  order.status = 'completed';
   order.paymentStatus = 'paid';
+  if (!order.statusHistory) order.statusHistory = [];
+  order.statusHistory.push({ status: 'completed', changedAt });
   res.json({
     success: true,
     data: order,
-    message: 'Order marked as delivered / received!',
-    timestamp: new Date().toISOString(),
+    message: 'Order marked as completed!',
+    timestamp: changedAt,
   });
 });
 
@@ -702,7 +846,11 @@ app.get('/api/admin/analytics', async (req: Request, res: Response<ApiResponse<S
 
   // 3. Compute statistics
   // A payment is successful if status is 'approved' or 'received'
-  const isPaid = (status: Order['status']) => status === 'approved' || status === 'received';
+  const isPaid = (status: Order['status']) =>
+    status === 'accepted' || status === 'preparing' || status === 'ready' ||
+    status === 'out-for-delivery' || status === 'completed' ||
+    // legacy compat
+    (status as string) === 'approved' || (status as string) === 'received';
 
   let salesToday = 0;
   let salesThisWeek = 0;
@@ -729,7 +877,7 @@ app.get('/api/admin/analytics', async (req: Request, res: Response<ApiResponse<S
     }
 
     if (o.status === 'pending') pendingOrders++;
-    if (o.status === 'received') completedOrders++;
+    if (o.status === 'completed' || (o.status as string) === 'received') completedOrders++;
   }
 
   const statistics: SalesStatistics = {

@@ -28,10 +28,18 @@ export function generateReceiptHtml(order: Order, lang: 'en' | 'fr' = 'en'): str
     order.paymentMethod === 'mtn-momo' ? 'MTN Mobile Money' : 'Orange Money';
 
   const statusLabel =
-    order.status === 'approved'
-      ? (isFr ? 'APPROUVÉE' : 'APPROVED')
-      : order.status === 'received'
-      ? (isFr ? 'LIVRÉE' : 'DELIVERED')
+    order.status === 'completed' || (order.status as string) === 'received'
+      ? (isFr ? 'LIVRÉE' : 'DELIVERED / COMPLETED')
+      : order.status === 'out-for-delivery'
+      ? (isFr ? 'EN COURS DE LIVRAISON' : 'OUT FOR DELIVERY')
+      : order.status === 'ready'
+      ? (isFr ? 'PRÊT' : 'READY')
+      : order.status === 'preparing'
+      ? (isFr ? 'EN PRÉPARATION' : 'PREPARING')
+      : order.status === 'accepted' || (order.status as string) === 'approved'
+      ? (isFr ? 'APPROUVÉE' : 'ACCEPTED')
+      : order.status === 'cancelled' || order.status === 'rejected'
+      ? (isFr ? 'ANNULÉE' : 'CANCELLED')
       : (isFr ? 'EN ATTENTE' : 'PENDING');
 
   const itemsHtml = order.items

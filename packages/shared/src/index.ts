@@ -35,6 +35,25 @@ export interface OrderItem {
   selectedToppings?: { name: string; price: number }[];
 }
 
+export type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'cancelled'
+  | 'preparing'
+  | 'ready'
+  | 'out-for-delivery'
+  | 'completed'
+  // Legacy status aliases for backward compatibility
+  | 'approved'
+  | 'received';
+
+export interface StatusHistoryEntry {
+  status: OrderStatus;
+  changedAt: string; // ISO timestamp
+  note?: string;
+}
+
 export interface Order {
   id: string;
   items: OrderItem[];
@@ -43,7 +62,9 @@ export interface Order {
   phoneNumber: string;
   customerName?: string;
   paymentStatus?: 'paid' | 'pending' | 'failed';
-  status: 'pending' | 'received' | 'approved';
+  status: OrderStatus;
+  statusHistory?: StatusHistoryEntry[];
+  cancelReason?: string;
   createdAt: string;
   deliveryAddress?: string;
   deliveryFee?: number;

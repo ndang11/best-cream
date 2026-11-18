@@ -81,27 +81,74 @@ function formatOrderDate(iso: string, lang: Language = 'en'): string {
 
 function getOrderStatusInfo(status: Order['status'], t: (key: TranslationKey) => string) {
   switch (status) {
+    case 'accepted':
     case 'approved':
       return {
-        label: t('preparingStatus'),
-        emoji: '🛵',
+        label: 'Accepted',
+        emoji: '✅',
         step: 2,
         bg: 'bg-pistachioGreenLight',
         border: 'border-pistachioGreen',
         text: 'text-chocolateBrown',
-        icon: 'bicycle-outline' as const,
+        icon: 'checkmark-circle-outline' as const,
         iconColor: COLORS.pistachioGreen,
       };
-    case 'received':
+    case 'preparing':
       return {
-        label: t('delivered'),
+        label: t('preparingStatus'),
+        emoji: '👨‍🍳',
+        step: 2,
+        bg: 'bg-orange-50',
+        border: 'border-orange-300',
+        text: 'text-orange-800',
+        icon: 'flame-outline' as const,
+        iconColor: '#EA580C',
+      };
+    case 'ready':
+      return {
+        label: 'Ready',
         emoji: '🎉',
         step: 3,
         bg: 'bg-blue-50',
         border: 'border-blue-300',
         text: 'text-blue-800',
+        icon: 'bag-check-outline' as const,
+        iconColor: '#2563EB',
+      };
+    case 'out-for-delivery':
+      return {
+        label: 'On the Way',
+        emoji: '🛵',
+        step: 3,
+        bg: 'bg-purple-50',
+        border: 'border-purple-300',
+        text: 'text-purple-800',
+        icon: 'bicycle-outline' as const,
+        iconColor: '#7C3AED',
+      };
+    case 'completed':
+    case 'received':
+      return {
+        label: t('delivered'),
+        emoji: '🎉',
+        step: 4,
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-300',
+        text: 'text-emerald-800',
         icon: 'checkmark-done-circle' as const,
-        iconColor: '#1D4ED8',
+        iconColor: '#059669',
+      };
+    case 'rejected':
+    case 'cancelled':
+      return {
+        label: 'Cancelled',
+        emoji: '❌',
+        step: 0,
+        bg: 'bg-red-50',
+        border: 'border-red-300',
+        text: 'text-red-700',
+        icon: 'close-circle-outline' as const,
+        iconColor: '#DC2626',
       };
     case 'pending':
     default:
@@ -241,19 +288,19 @@ export default function DashboardScreen({
 
   const orderCounts = {
     all: orders.length,
-    active: orders.filter((o) => o.status === 'pending' || o.status === 'approved').length,
+    active: orders.filter((o) => o.status !== 'completed' && (o.status as string) !== 'received' && o.status !== 'rejected' && o.status !== 'cancelled').length,
     pending: orders.filter((o) => o.status === 'pending').length,
-    completed: orders.filter((o) => o.status === 'received').length,
+    completed: orders.filter((o) => o.status === 'completed' || (o.status as string) === 'received').length,
   };
 
   const filteredOrders = orders.filter((order) => {
-    if (orderFilter === 'active' && order.status !== 'pending' && order.status !== 'approved') {
+    if (orderFilter === 'active' && (order.status === 'completed' || (order.status as string) === 'received' || order.status === 'rejected' || order.status === 'cancelled')) {
       return false;
     }
     if (orderFilter === 'pending' && order.status !== 'pending') {
       return false;
     }
-    if (orderFilter === 'completed' && order.status !== 'received') {
+    if (orderFilter === 'completed' && order.status !== 'completed' && (order.status as string) !== 'received') {
       return false;
     }
 

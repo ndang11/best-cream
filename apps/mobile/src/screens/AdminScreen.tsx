@@ -29,7 +29,7 @@ import {
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { Order, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification } from '@best-cream/shared';
+import { Order, OrderStatus, MenuItem, SalesAnalytics, SalesStatistics, SalesChartDataPoint, AdminNotification } from '@best-cream/shared';
 import YaoundeMapView from '../components/YaoundeMapView';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -42,7 +42,7 @@ interface AdminScreenProps {
   onLogout: () => void;
 }
 
-type FilterTab = 'all' | 'pending' | 'approved' | 'received';
+type FilterTab = 'all' | 'pending' | 'accepted' | 'preparing' | 'ready' | 'out-for-delivery' | 'completed' | 'rejected';
 type AdminTab = 'overview' | 'orders' | 'products';
 type CategoryFilter = 'all' | 'ice-cream' | 'pancake' | 'combo';
 
@@ -69,33 +69,22 @@ function statusColor(status: Order['status']): {
   label: string;
 } {
   switch (status) {
-    case 'approved':
-      return {
-        bg: tw`bg-pistachioGreenLight`,
-        border: tw`border-pistachioGreen`,
-        text: tw`text-chocolateBrown`,
-        icon: 'checkmark-circle-sharp',
-        iconColor: COLORS.pistachioGreen,
-        label: 'Approved',
-      };
-    case 'received':
-      return {
-        bg: tw`bg-blue-50`,
-        border: tw`border-blue-300`,
-        text: tw`text-blue-800`,
-        icon: 'bag-check-outline',
-        iconColor: '#1D4ED8',
-        label: 'Received',
-      };
-    default:
-      return {
-        bg: tw`bg-butterYellowLight`,
-        border: tw`border-butterYellow`,
-        text: tw`text-amber-800`,
-        icon: 'time-outline',
-        iconColor: '#B45309',
-        label: 'Pending',
-      };
+    case 'accepted':
+      return { bg: tw`bg-pistachioGreenLight`, border: tw`border-pistachioGreen`, text: tw`text-green-800`, icon: 'checkmark-circle-sharp', iconColor: COLORS.pistachioGreen, label: 'Accepted' };
+    case 'preparing':
+      return { bg: tw`bg-orange-50`, border: tw`border-orange-300`, text: tw`text-orange-800`, icon: 'flame-outline', iconColor: '#EA580C', label: 'Preparing' };
+    case 'ready':
+      return { bg: tw`bg-blue-50`, border: tw`border-blue-300`, text: tw`text-blue-800`, icon: 'bag-check-outline', iconColor: '#2563EB', label: 'Ready' };
+    case 'out-for-delivery':
+      return { bg: tw`bg-purple-50`, border: tw`border-purple-300`, text: tw`text-purple-800`, icon: 'bicycle-outline', iconColor: '#7C3AED', label: 'Out for Delivery' };
+    case 'completed':
+      return { bg: tw`bg-emerald-50`, border: tw`border-emerald-300`, text: tw`text-emerald-800`, icon: 'checkmark-done-circle', iconColor: '#059669', label: 'Completed' };
+    case 'rejected':
+      return { bg: tw`bg-red-50`, border: tw`border-red-300`, text: tw`text-red-700`, icon: 'close-circle-outline', iconColor: '#DC2626', label: 'Rejected' };
+    case 'cancelled':
+      return { bg: tw`bg-gray-100`, border: tw`border-gray-300`, text: tw`text-gray-600`, icon: 'ban-outline', iconColor: '#6B7280', label: 'Cancelled' };
+    default: // 'pending'
+      return { bg: tw`bg-butterYellowLight`, border: tw`border-butterYellow`, text: tw`text-amber-800`, icon: 'time-outline', iconColor: '#B45309', label: 'Pending' };
   }
 }
 
@@ -115,20 +104,39 @@ function categoryEmoji(category: MenuItem['category']): string {
 
 interface OrderCardProps {
   order: Order;
-  onApprove: (id: string) => void;
-  onMarkReceived: (id: string) => void;
+  onUpdateStatus: (id: string, status: OrderStatus) => void;
   onDelete: (id: string) => void;
   onViewDetails: (order: Order) => void;
   loading: boolean;
 }
 
-function OrderCard({ order, onApprove, onMarkReceived, onDelete, onViewDetails, loading }: OrderCardProps) {
+function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: OrderCardProps) {
   const [showMap, setShowMap] = useState(false);
   const sc = statusColor(order.status);
-  const isPending = order.status === 'pending';
-  const isApproved = order.status === 'approved';
-  const isReceived = order.status === 'received';
+  const s = order.status;
   const customerName = order.customerName || 'Customer';
+
+  // Next logical action for this order
+  const nextAction: { status: OrderStatus; label: string; icon: string; color: string } | null = (() => {
+    switch (s) {
+      case 'pending':   return { status: 'accepted',         label: 'Accept',         icon: 'checkmark-circle',  color: COLORS.pistachioGreen };
+      case 'accepted':  return { status: 'preparing',        label: 'Start Preparing', icon: 'flame-outline',    color: '#EA580C' };
+      case 'preparing': return { status: 'ready',            label: 'Mark Ready',      icon: 'bag-check-outline', color: '#2563EB' };
+      case 'ready':     return order.deliveryAddress
+                               ? { status: 'out-for-delivery', label: 'Out for Delivery', icon: 'bicycle-outline', color: '#7C3AED' }
+                               : { status: 'completed',        label: 'Mark Completed',   icon: 'checkmark-done-circle', color: '#059669' };
+      case 'out-for-delivery': return { status: 'completed', label: 'Mark Delivered', icon: 'checkmark-done-circle', color: '#059669' };
+      default: return null;
+    }
+  })();
+
+  const accentColor = s === 'pending' ? tw`bg-butterYellow`
+    : s === 'accepted'  ? tw`bg-pistachioGreen`
+    : s === 'preparing' ? tw`bg-orange-400`
+    : s === 'ready'     ? tw`bg-blue-400`
+    : s === 'out-for-delivery' ? tw`bg-purple-400`
+    : s === 'completed' ? tw`bg-emerald-400`
+    : tw`bg-red-300`;
 
   return (
     <View
@@ -138,12 +146,7 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, onViewDetails, 
       ]}
     >
       {/* Coloured top accent bar */}
-      <View
-        style={[
-          tw`h-1.5 w-full`,
-          isPending ? tw`bg-butterYellow` : isApproved ? tw`bg-pistachioGreen` : tw`bg-blue-400`,
-        ]}
-      />
+      <View style={[tw`h-1.5 w-full`, accentColor]} />
 
       <View style={tw`p-4`}>
         {/* ── Header Row ── */}
@@ -342,42 +345,41 @@ function OrderCard({ order, onApprove, onMarkReceived, onDelete, onViewDetails, 
           </View>
 
           <View style={tw`flex-row gap-2`}>
-            {isPending && (
+            {/* Reject/Cancel for pending or accepted */}
+            {(s === 'pending' || s === 'accepted') && (
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1.5 bg-pistachioGreen px-4 py-2 rounded-xl`}
-                onPress={() => onApprove(order.id)}
+                style={tw`flex-row items-center gap-1 bg-red-50 border border-red-300 px-3 py-2 rounded-xl`}
+                onPress={() => onUpdateStatus(order.id, s === 'pending' ? 'rejected' : 'cancelled')}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="close-circle-outline" size={15} color="#DC2626" />
+                <Text style={tw`text-xs font-black text-red-600`}>{s === 'pending' ? 'Reject' : 'Cancel'}</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Primary next-step action */}
+            {nextAction && (
+              <TouchableOpacity
+                style={[tw`flex-row items-center gap-1.5 px-4 py-2 rounded-xl`, { backgroundColor: nextAction.color }]}
+                onPress={() => onUpdateStatus(order.id, nextAction.status)}
                 disabled={loading}
                 activeOpacity={0.8}
               >
                 {loading ? (
                   <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
+                  <Ionicons name={nextAction.icon as any} size={15} color={COLORS.white} />
                 )}
-                <Text style={tw`text-xs font-black text-white`}>Approve</Text>
+                <Text style={tw`text-xs font-black text-white`}>{nextAction.label}</Text>
               </TouchableOpacity>
             )}
 
-            {isApproved && (
-              <TouchableOpacity
-                style={tw`flex-row items-center gap-1.5 bg-blue-500 px-4 py-2 rounded-xl`}
-                onPress={() => onMarkReceived(order.id)}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color={COLORS.white} />
-                ) : (
-                  <Ionicons name="bag-check-outline" size={16} color={COLORS.white} />
-                )}
-                <Text style={tw`text-xs font-black text-white`}>Received</Text>
-              </TouchableOpacity>
-            )}
-
-            {isReceived && (
-              <View style={tw`flex-row items-center gap-1 bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl`}>
-                <Ionicons name="checkmark-done-circle" size={16} color="#1D4ED8" />
-                <Text style={tw`text-xs font-black text-blue-700`}>Done</Text>
+            {/* Completed / Rejected / Cancelled — done badge */}
+            {(s === 'completed' || s === 'rejected' || s === 'cancelled') && (
+              <View style={[tw`flex-row items-center gap-1 px-4 py-2 rounded-xl border`, sc.bg, sc.border]}>
+                <Ionicons name={sc.icon as any} size={15} color={sc.iconColor} />
+                <Text style={[tw`text-xs font-black`, sc.text]}>{sc.label}</Text>
               </View>
             )}
           </View>
@@ -817,8 +819,7 @@ interface OrderDetailsModalProps {
   order: Order | null;
   visible: boolean;
   onClose: () => void;
-  onApprove: (id: string) => void;
-  onMarkReceived: (id: string) => void;
+  onUpdateStatus: (id: string, status: OrderStatus, note?: string) => void;
   onDelete: (id: string) => void;
   actionLoading: string | null;
 }
@@ -827,8 +828,7 @@ function OrderDetailsModal({
   order,
   visible,
   onClose,
-  onApprove,
-  onMarkReceived,
+  onUpdateStatus,
   onDelete,
   actionLoading,
 }: OrderDetailsModalProps) {
@@ -836,17 +836,34 @@ function OrderDetailsModal({
   if (!order) return null;
 
   const sc = statusColor(order.status);
-  const isPending = order.status === 'pending';
-  const isApproved = order.status === 'approved';
-  const isReceived = order.status === 'received';
+  const s = order.status;
   const customerName = order.customerName || 'Customer';
+  const isTerminal = s === 'completed' || s === 'rejected' || s === 'cancelled';
 
-  // Timeline steps
-  const timelineSteps = [
-    { key: 'placed', label: 'Order Placed', icon: 'receipt-outline', done: true },
-    { key: 'payment', label: 'Payment Verified', icon: 'card-outline', done: order.paymentStatus === 'paid' },
-    { key: 'kitchen', label: 'Kitchen Approved', icon: 'flame-outline', done: isApproved || isReceived },
-    { key: 'done', label: order.deliveryAddress ? 'Delivered' : 'Received', icon: order.deliveryAddress ? 'bicycle-outline' : 'bag-check-outline', done: isReceived },
+  // Order progression hierarchy to calculate timeline progress
+  const progressHierarchy: Record<OrderStatus, number> = {
+    pending: 1,
+    accepted: 2,
+    approved: 2,
+    preparing: 3,
+    ready: 4,
+    'out-for-delivery': 5,
+    completed: 6,
+    received: 6,
+    rejected: -1,
+    cancelled: -1,
+  };
+  const currentStep = progressHierarchy[s] || 1;
+
+  const standardTimeline = [
+    { key: 'pending', label: 'Order Placed', icon: 'receipt-outline', step: 1 },
+    { key: 'accepted', label: 'Order Accepted', icon: 'checkmark-circle-outline', step: 2 },
+    { key: 'preparing', label: 'In the Kitchen (Preparing)', icon: 'flame-outline', step: 3 },
+    { key: 'ready', label: 'Ready for Pickup / Dispatch', icon: 'bag-check-outline', step: 4 },
+    ...(order.deliveryAddress
+      ? [{ key: 'out-for-delivery', label: 'Out for Delivery (Rider en route)', icon: 'bicycle-outline', step: 5 }]
+      : []),
+    { key: 'completed', label: order.deliveryAddress ? 'Delivered & Completed' : 'Picked Up & Completed', icon: 'checkmark-done-circle', step: 6 },
   ];
 
   return (
@@ -872,6 +889,195 @@ function OrderDetailsModal({
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28 pt-4 gap-4`}>
+
+          {/* ── Customer Notification Banner ── */}
+          <View style={tw`flex-row items-center gap-2 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl`}>
+            <Ionicons name="notifications-outline" size={16} color="#059669" />
+            <Text style={tw`text-xs text-emerald-800 font-semibold flex-1 leading-4`}>
+              Customer is automatically notified via SMS/Push whenever you change the status.
+            </Text>
+          </View>
+
+          {/* ── Status Actions Controller ── */}
+          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3`}>
+            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-0.5`}>
+              ⚡ Manage Order Status
+            </Text>
+
+            {/* Quick status stepper buttons */}
+            <View style={tw`gap-2`}>
+              {s === 'pending' && (
+                <View style={tw`flex-row gap-2`}>
+                  <TouchableOpacity
+                    style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-pistachioGreen py-3 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'accepted')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    {actionLoading === order.id ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
+                    )}
+                    <Text style={tw`text-xs font-black text-white`}>Accept Order</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-3 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'rejected')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="close-circle-outline" size={16} color="#DC2626" />
+                    <Text style={tw`text-xs font-black text-red-600`}>Reject Order</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {s === 'accepted' && (
+                <View style={tw`gap-2`}>
+                  <TouchableOpacity
+                    style={tw`flex-row items-center justify-center gap-1.5 bg-orange-500 py-3 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'preparing')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    {actionLoading === order.id ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Ionicons name="flame-outline" size={16} color={COLORS.white} />
+                    )}
+                    <Text style={tw`text-xs font-black text-white`}>Start Preparing (Kitchen)</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={tw`flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'cancelled')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="ban-outline" size={14} color="#DC2626" />
+                    <Text style={tw`text-xs font-bold text-red-600`}>Cancel Order</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {s === 'preparing' && (
+                <View style={tw`gap-2`}>
+                  <TouchableOpacity
+                    style={tw`flex-row items-center justify-center gap-1.5 bg-blue-600 py-3 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'ready')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    {actionLoading === order.id ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Ionicons name="bag-check-outline" size={16} color={COLORS.white} />
+                    )}
+                    <Text style={tw`text-xs font-black text-white`}>Mark as Ready</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={tw`flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'cancelled')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="ban-outline" size={14} color="#DC2626" />
+                    <Text style={tw`text-xs font-bold text-red-600`}>Cancel Order</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {s === 'ready' && (
+                <View style={tw`gap-2`}>
+                  {order.deliveryAddress ? (
+                    <TouchableOpacity
+                      style={tw`flex-row items-center justify-center gap-1.5 bg-purple-600 py-3 rounded-xl`}
+                      onPress={() => onUpdateStatus(order.id, 'out-for-delivery')}
+                      disabled={actionLoading === order.id}
+                      activeOpacity={0.8}
+                    >
+                      {actionLoading === order.id ? (
+                        <ActivityIndicator size="small" color={COLORS.white} />
+                      ) : (
+                        <Ionicons name="bicycle-outline" size={16} color={COLORS.white} />
+                      )}
+                      <Text style={tw`text-xs font-black text-white`}>Mark Out for Delivery</Text>
+                    </TouchableOpacity>
+                  ) : null}
+
+                  <TouchableOpacity
+                    style={tw`flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3 rounded-xl`}
+                    onPress={() => onUpdateStatus(order.id, 'completed')}
+                    disabled={actionLoading === order.id}
+                    activeOpacity={0.8}
+                  >
+                    {actionLoading === order.id ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Ionicons name="checkmark-done-circle" size={16} color={COLORS.white} />
+                    )}
+                    <Text style={tw`text-xs font-black text-white`}>
+                      Mark Completed {order.deliveryAddress ? '(Delivered)' : '(Customer Picked Up)'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {s === 'out-for-delivery' && (
+                <TouchableOpacity
+                  style={tw`flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3.5 rounded-xl`}
+                  onPress={() => onUpdateStatus(order.id, 'completed')}
+                  disabled={actionLoading === order.id}
+                  activeOpacity={0.8}
+                >
+                  {actionLoading === order.id ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <Ionicons name="checkmark-done-circle" size={18} color={COLORS.white} />
+                  )}
+                  <Text style={tw`text-xs font-black text-white`}>Mark as Delivered & Completed</Text>
+                </TouchableOpacity>
+              )}
+
+              {isTerminal && (
+                <View style={[tw`flex-row items-center justify-center gap-1.5 py-3 rounded-xl border`, sc.bg, sc.border]}>
+                  <Ionicons name={sc.icon as any} size={18} color={sc.iconColor} />
+                  <Text style={[tw`text-xs font-black`, sc.text]}>Order is {sc.label}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Quick manual transition pills */}
+            <View style={tw`pt-2 border-t border-vanillaCreamDark`}>
+              <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted mb-2`}>
+                Force / Change Status Directly:
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`gap-1.5`}>
+                {(['accepted', 'preparing', 'ready', 'out-for-delivery', 'completed', 'cancelled'] as OrderStatus[]).map((st) => {
+                  const isCurrent = st === s;
+                  return (
+                    <TouchableOpacity
+                      key={st}
+                      style={[
+                        tw`px-2.5 py-1 rounded-lg border`,
+                        isCurrent ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-vanillaCream border-vanillaCreamDark`,
+                      ]}
+                      onPress={() => onUpdateStatus(order.id, st)}
+                      disabled={isCurrent || actionLoading === order.id}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[tw`text-[10px] font-bold capitalize`, isCurrent ? tw`text-white` : tw`text-chocolateBrown`]}>
+                        {st.replace(/-/g, ' ')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
 
           {/* ── Customer Information ── */}
           <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2`}>
@@ -1010,88 +1216,111 @@ function OrderDetailsModal({
             </View>
           </View>
 
-          {/* ── Order History / Timeline ── */}
+          {/* ── Order Status History (Recorded Timestamps) ── */}
           <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>
-            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-4`}>📋 Order History</Text>
-            <View style={tw`gap-0`}>
-              {timelineSteps.map((step, idx) => {
-                const isLast = idx === timelineSteps.length - 1;
-                return (
-                  <View key={step.key} style={tw`flex-row`}>
-                    {/* Timeline column */}
-                    <View style={tw`items-center w-8`}>
-                      <View
-                        style={[
-                          tw`w-7 h-7 rounded-full items-center justify-center`,
-                          step.done ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`,
-                        ]}
-                      >
-                        <Ionicons
-                          name={step.icon as any}
-                          size={14}
-                          color={step.done ? COLORS.white : COLORS.chocolateBrownMuted}
-                        />
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+                📋 Recorded Status History
+              </Text>
+              <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                  {order.statusHistory?.length || 1} update{order.statusHistory && order.statusHistory.length > 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
+
+            {order.statusHistory && order.statusHistory.length > 0 ? (
+              <View style={tw`gap-2`}>
+                {order.statusHistory.map((h, hIdx) => {
+                  const hSc = statusColor(h.status);
+                  return (
+                    <View key={hIdx} style={tw`flex-row items-start justify-between bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark`}>
+                      <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
+                        <View style={[tw`w-6 h-6 rounded-full items-center justify-center border`, hSc.bg, hSc.border]}>
+                          <Ionicons name={hSc.icon as any} size={12} color={hSc.iconColor} />
+                        </View>
+                        <View style={tw`flex-1`}>
+                          <Text style={[tw`text-xs font-black capitalize`, hSc.text]}>
+                            {h.status.replace(/-/g, ' ')}
+                          </Text>
+                          {h.note ? (
+                            <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+                              Note: {h.note}
+                            </Text>
+                          ) : null}
+                        </View>
                       </View>
-                      {!isLast && (
-                        <View style={[tw`w-0.5 flex-1 my-1`, step.done ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`]} />
-                      )}
-                    </View>
-                    {/* Label */}
-                    <View style={[tw`flex-1 pl-3`, !isLast && tw`pb-4`]}>
-                      <Text style={[tw`text-sm font-bold`, step.done ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`]}>
-                        {step.label}
-                      </Text>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
-                        {step.done ? '✓ Completed' : '○ Pending'}
+                      <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                        {formatDate(h.changedAt)} {formatTime(h.changedAt)}
                       </Text>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={tw`bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark flex-row justify-between items-center`}>
+                <Text style={tw`text-xs font-bold text-chocolateBrown`}>Order Placed (pending)</Text>
+                <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{formatDate(order.createdAt)} {formatTime(order.createdAt)}</Text>
+              </View>
+            )}
+
+            {/* Lifecycle Progress Flow */}
+            <View style={tw`mt-4 pt-3 border-t border-vanillaCreamDark`}>
+              <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted uppercase tracking-wider mb-3`}>
+                Progress Stepper
+              </Text>
+              <View style={tw`gap-0`}>
+                {standardTimeline.map((step, idx) => {
+                  const isLast = idx === standardTimeline.length - 1;
+                  const isDone = currentStep >= step.step;
+                  const isCurrent = currentStep === step.step;
+                  return (
+                    <View key={step.key} style={tw`flex-row`}>
+                      <View style={tw`items-center w-8`}>
+                        <View
+                          style={[
+                            tw`w-7 h-7 rounded-full items-center justify-center`,
+                            isCurrent
+                              ? tw`bg-chocolateBrown border-2 border-strawberryPink`
+                              : isDone
+                              ? tw`bg-pistachioGreen`
+                              : tw`bg-vanillaCreamDark`,
+                          ]}
+                        >
+                          <Ionicons
+                            name={step.icon as any}
+                            size={13}
+                            color={isDone || isCurrent ? COLORS.white : COLORS.chocolateBrownMuted}
+                          />
+                        </View>
+                        {!isLast && (
+                          <View style={[tw`w-0.5 flex-1 my-1`, isDone ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`]} />
+                        )}
+                      </View>
+                      <View style={[tw`flex-1 pl-3`, !isLast && tw`pb-3.5`]}>
+                        <Text style={[tw`text-xs font-bold`, isCurrent ? tw`text-strawberryPink font-black` : isDone ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`]}>
+                          {step.label}
+                        </Text>
+                        <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                          {isCurrent ? '● Current Status' : isDone ? '✓ Completed' : '○ Upcoming'}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           </View>
 
-          {/* ── Action Buttons ── */}
-          <View style={tw`gap-2.5`}>
-            {isPending && (
-              <TouchableOpacity
-                style={tw`flex-row items-center justify-center gap-2 bg-pistachioGreen py-3.5 rounded-2xl`}
-                onPress={() => { onApprove(order.id); onClose(); }}
-                disabled={actionLoading === order.id}
-                activeOpacity={0.8}
-              >
-                {actionLoading === order.id ? (
-                  <ActivityIndicator size="small" color={COLORS.white} />
-                ) : (
-                  <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
-                )}
-                <Text style={tw`text-sm font-black text-white`}>Approve Order</Text>
-              </TouchableOpacity>
-            )}
-            {isApproved && (
-              <TouchableOpacity
-                style={tw`flex-row items-center justify-center gap-2 bg-blue-500 py-3.5 rounded-2xl`}
-                onPress={() => { onMarkReceived(order.id); onClose(); }}
-                disabled={actionLoading === order.id}
-                activeOpacity={0.8}
-              >
-                {actionLoading === order.id ? (
-                  <ActivityIndicator size="small" color={COLORS.white} />
-                ) : (
-                  <Ionicons name="bag-check-outline" size={18} color={COLORS.white} />
-                )}
-                <Text style={tw`text-sm font-black text-white`}>Mark as {order.deliveryAddress ? 'Delivered' : 'Received'}</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={tw`flex-row items-center justify-center gap-2 bg-red-50 border border-red-300 py-3 rounded-2xl`}
-              onPress={() => { onDelete(order.id); onClose(); }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="trash-outline" size={16} color="#DC2626" />
-              <Text style={tw`text-sm font-black text-red-600`}>Delete Order</Text>
-            </TouchableOpacity>
-          </View>
+          {/* ── Delete Button ── */}
+          <TouchableOpacity
+            style={tw`flex-row items-center justify-center gap-2 bg-red-50 border border-red-300 py-3 rounded-2xl`}
+            onPress={() => { onDelete(order.id); onClose(); }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="trash-outline" size={16} color="#DC2626" />
+            <Text style={tw`text-sm font-black text-red-600`}>Delete Order</Text>
+          </TouchableOpacity>
 
         </ScrollView>
       </View>
@@ -1242,8 +1471,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
         const sorted = [...json.data].sort((a: Order, b: Order) => {
-          const rank = { pending: 0, approved: 1, received: 2 };
-          if (rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
+          const rank: Record<string, number> = {
+            pending: 0,
+            accepted: 1,
+            approved: 1,
+            preparing: 2,
+            ready: 3,
+            'out-for-delivery': 4,
+            completed: 5,
+            received: 5,
+            cancelled: 6,
+            rejected: 7,
+          };
+          const rankA = rank[a.status] ?? 99;
+          const rankB = rank[b.status] ?? 99;
+          if (rankA !== rankB) return rankA - rankB;
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         setOrders(sorted);
@@ -1298,7 +1540,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // Fallback stats computed from current orders
   const computedStats = useMemo(() => {
-    const isPaid = (s: Order['status']) => s === 'approved' || s === 'received';
+    const isPaid = (s: Order['status']) =>
+      s === 'accepted' || s === 'preparing' || s === 'ready' ||
+      s === 'out-for-delivery' || s === 'completed' ||
+      s === 'approved' || s === 'received';
     const now = Date.now();
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -1330,56 +1575,75 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     { label: 'Today', revenue: 19000, ordersCount: 3 },
   ];
 
-  // ── Order actions ───────────────────────────────────────────────────────────
-  const handleApprove = async (orderId: string) => {
-    setActionLoading(orderId);
-    try {
-      const res = await fetch(`${apiUrl}/api/orders/${orderId}/approve`, { method: 'PATCH' });
-      const json = await res.json();
-      if (json.success) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status: 'approved' } : o))
-        );
-        Alert.alert('✅ Order Approved', `Order ${orderId} has been approved.`);
-      } else {
-        Alert.alert('Error', json.message || 'Could not approve order.');
-      }
-    } catch {
-      Alert.alert('Connection Error', 'Failed to approve order.');
-    } finally {
-      setActionLoading(null);
-    }
+  // ── Order status update ─────────────────────────────────────────────────────
+  const STATUS_CONFIRM: Partial<Record<OrderStatus, { title: string; message: string; confirmText: string }>> = {
+    rejected:  { title: 'Reject Order',   message: 'Are you sure you want to reject this order? The customer will be notified.', confirmText: 'Reject' },
+    cancelled: { title: 'Cancel Order',   message: 'Cancel this order? The customer will be notified.', confirmText: 'Cancel Order' },
+    completed: { title: 'Mark Completed', message: 'Confirm the customer has received/picked up this order?', confirmText: 'Yes, Completed' },
   };
 
-  const handleMarkReceived = (orderId: string) => {
-    Alert.alert(
-      'Mark as Received',
-      'Confirm the customer has picked up / received this order?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Received',
-          onPress: async () => {
-            setActionLoading(orderId);
-            try {
-              const res = await fetch(`${apiUrl}/api/orders/${orderId}/receive`, { method: 'PATCH' });
-              const json = await res.json();
-              if (json.success) {
-                setOrders((prev) =>
-                  prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
-                );
-              }
-            } catch {
-              setOrders((prev) =>
-                prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
-              );
-            } finally {
-              setActionLoading(null);
-            }
-          },
-        },
-      ]
-    );
+  const handleUpdateStatus = (orderId: string, newStatus: OrderStatus, note?: string) => {
+    const confirm = STATUS_CONFIRM[newStatus];
+    const doUpdate = async () => {
+      setActionLoading(orderId);
+      try {
+        const res = await fetch(`${apiUrl}/api/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus, note }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          setOrders((prev) =>
+            prev.map((o) =>
+              o.id === orderId
+                ? {
+                    ...o,
+                    status: newStatus,
+                    statusHistory: [
+                      ...(o.statusHistory || []),
+                      { status: newStatus, changedAt: new Date().toISOString(), note },
+                    ],
+                    paymentStatus: (newStatus === 'accepted' || newStatus === 'completed') ? 'paid' : o.paymentStatus,
+                    cancelReason: note || o.cancelReason,
+                  }
+                : o
+            )
+          );
+          // Also update selectedOrderDetails if it's open
+          setSelectedOrderDetails((prev) =>
+            prev?.id === orderId
+              ? {
+                  ...prev,
+                  status: newStatus,
+                  statusHistory: [
+                    ...(prev.statusHistory || []),
+                    { status: newStatus, changedAt: new Date().toISOString(), note },
+                  ],
+                }
+              : prev
+          );
+        } else {
+          Alert.alert('Error', json.message || 'Could not update status.');
+        }
+      } catch {
+        // Optimistic update on network failure
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+        );
+      } finally {
+        setActionLoading(null);
+      }
+    };
+
+    if (confirm) {
+      Alert.alert(confirm.title, confirm.message, [
+        { text: 'Go Back', style: 'cancel' },
+        { text: confirm.confirmText, style: 'destructive', onPress: doUpdate },
+      ]);
+    } else {
+      doUpdate();
+    }
   };
 
   const handleDeleteOrder = (orderId: string) => {
@@ -1553,11 +1817,15 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
     orderPage * ORDERS_PER_PAGE
   );
 
-  const orderCounts = {
+  const orderCounts: Record<FilterTab, number> = {
     all: orders.length,
     pending: orders.filter((o) => o.status === 'pending').length,
-    approved: orders.filter((o) => o.status === 'approved').length,
-    received: orders.filter((o) => o.status === 'received').length,
+    accepted: orders.filter((o) => o.status === 'accepted').length,
+    preparing: orders.filter((o) => o.status === 'preparing').length,
+    ready: orders.filter((o) => o.status === 'ready').length,
+    'out-for-delivery': orders.filter((o) => o.status === 'out-for-delivery').length,
+    completed: orders.filter((o) => o.status === 'completed').length,
+    rejected: orders.filter((o) => o.status === 'rejected' || o.status === 'cancelled').length,
   };
 
   // ── Filtered products ────────────────────────────────────────────────────────
@@ -1580,7 +1848,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // ── Revenue / stats ──────────────────────────────────────────────────────────
   const totalRevenue = orders
-    .filter((o) => o.status === 'received')
+    .filter((o) => o.status === 'completed' || o.status === 'received' || o.paymentStatus === 'paid')
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -1895,7 +2163,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   </Text>
                 </View>
                 <Text style={tw`text-xl font-black text-emerald-600`}>
-                  {analytics?.statistics?.completedOrders ?? orderCounts.received}
+                  {analytics?.statistics?.completedOrders ?? orderCounts.completed}
                 </Text>
                 <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
                   {t('completedOrdersMetric')}
@@ -2145,7 +2413,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               <View style={tw`gap-3`}>
                 {orders.slice(0, 5).map((order) => {
                   const sc = statusColor(order.status);
-                  const isPaid = order.paymentStatus === 'paid' || order.status === 'approved' || order.status === 'received';
+                  const isPaid = order.paymentStatus === 'paid' || order.status === 'accepted' || order.status === 'completed' || order.status === 'approved' || order.status === 'received';
                   const customerDisplayName = order.customerName || (order.phoneNumber ? `Customer (${order.phoneNumber.slice(-4)})` : 'Customer');
 
                   return (
@@ -2466,13 +2734,22 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw`px-5 pb-2 gap-2`}
           >
-            {(['all', 'pending', 'approved', 'received'] as FilterTab[]).map((tab) => {
+            {([
+              { key: 'all',              label: 'All',           emoji: '📋' },
+              { key: 'pending',          label: 'Pending',       emoji: '⏳' },
+              { key: 'accepted',         label: 'Accepted',      emoji: '✅' },
+              { key: 'preparing',        label: 'Preparing',     emoji: '👨‍🍳' },
+              { key: 'ready',            label: 'Ready',         emoji: '🎉' },
+              { key: 'out-for-delivery', label: 'On the Way',    emoji: '🛵' },
+              { key: 'completed',        label: 'Completed',     emoji: '✔️' },
+              { key: 'rejected',         label: 'Rejected',      emoji: '❌' },
+            ] as { key: FilterTab; label: string; emoji: string }[]).map(({ key: tab, label, emoji }) => {
               const active = tab === activeFilter;
               return (
                 <TouchableOpacity
                   key={tab}
                   style={[
-                    tw`flex-row items-center gap-1.5 px-4 py-2 rounded-full border`,
+                    tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border`,
                     active
                       ? tw`bg-strawberryPink border-strawberryPink`
                       : tw`bg-white border-vanillaCreamDark`,
@@ -2480,13 +2757,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   onPress={() => { setActiveFilter(tab); setOrderPage(1); }}
                   activeOpacity={0.7}
                 >
+                  <Text style={tw`text-xs`}>{emoji}</Text>
                   <Text
                     style={[
-                      tw`text-xs font-black capitalize`,
+                      tw`text-xs font-black`,
                       active ? tw`text-white` : tw`text-chocolateBrown`,
                     ]}
                   >
-                    {tab}
+                    {label}
                   </Text>
                   <View
                     style={[
@@ -2585,8 +2863,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     <OrderCard
                       key={order.id}
                       order={order}
-                      onApprove={handleApprove}
-                      onMarkReceived={handleMarkReceived}
+                      onUpdateStatus={handleUpdateStatus}
                       onDelete={handleDeleteOrder}
                       onViewDetails={(o) => { setSelectedOrderDetails(o); setOrderDetailsVisible(true); }}
                       loading={actionLoading === order.id}
@@ -2940,8 +3217,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         order={selectedOrderDetails}
         visible={orderDetailsVisible}
         onClose={() => setOrderDetailsVisible(false)}
-        onApprove={handleApprove}
-        onMarkReceived={handleMarkReceived}
+        onUpdateStatus={handleUpdateStatus}
         onDelete={handleDeleteOrder}
         actionLoading={actionLoading}
       />

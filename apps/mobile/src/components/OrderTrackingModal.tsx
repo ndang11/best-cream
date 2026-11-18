@@ -44,11 +44,15 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
   const [downloading, setDownloading] = useState(false);
 
   const isPending = order.status === 'pending';
-  const isApproved = order.status === 'approved';
-  const isReceived = order.status === 'received';
+  const isAccepted = order.status === 'accepted' || (order.status as string) === 'approved';
+  const isPreparing = order.status === 'preparing';
+  const isReady = order.status === 'ready';
+  const isOutForDelivery = order.status === 'out-for-delivery';
+  const isCompleted = order.status === 'completed' || (order.status as string) === 'received';
+  const isCancelled = order.status === 'cancelled' || order.status === 'rejected';
 
-  // Determine active step index (0 to 3)
-  const currentStep = isReceived ? 3 : isApproved ? 2 : isPending ? 1 : 0;
+  // Step indices: 0 = placed, 1 = accepted/payment, 2 = preparing, 3 = ready/out-for-delivery, 4 = completed
+  const currentStep = isCompleted ? 4 : isOutForDelivery || isReady ? 3 : isPreparing ? 2 : isAccepted ? 1 : 0;
 
   const handleCallShop = () => {
     const phoneNumber = '+237670123456';
@@ -72,31 +76,40 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
       active: currentStep === 0,
     },
     {
-      title: t('paymentStatus'),
+      title: 'Payment & Confirmation',
       desc: isPending
         ? `${t('pendingPayment')} (${order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'})`
-        : t('paymentVerified'),
+        : 'Payment verified & order accepted',
       icon: isPending ? 'time-outline' : 'checkmark-circle-outline',
-      done: !isPending,
+      done: !isPending && !isCancelled,
       active: currentStep === 1,
     },
     {
       title: t('preparingTreats'),
-      desc: isPending ? t('pendingPayment') : t('preparingDesc'),
-      icon: 'ice-cream-outline',
-      done: isReceived || isApproved,
+      desc: isPending ? t('pendingPayment') : isPreparing ? 'Kitchen is preparing your handcrafted treats now!' : t('preparingDesc'),
+      icon: 'flame-outline',
+      done: currentStep >= 2 && !isCancelled,
       active: currentStep === 2,
     },
     {
-      title: isReceived ? t('deliveredStatus') : t('outForDelivery'),
-      desc: isReceived
-        ? t('deliveredToYou')
-        : order.deliveryAddress
-        ? `${t('outForDelivery')} ➔ ${order.deliveryAddress}`
-        : t('readyPickup'),
-      icon: 'bicycle-outline',
-      done: isReceived,
+      title: order.deliveryAddress ? (isOutForDelivery ? 'Rider On The Way' : 'Ready for Dispatch') : 'Ready for Pickup',
+      desc: isOutForDelivery
+        ? `Out for delivery to ${order.deliveryAddress}`
+        : isReady
+        ? (order.deliveryAddress ? 'Packed and awaiting courier pickup' : 'Ready at the shop counter!')
+        : (order.deliveryAddress ? 'Courier pickup soon' : 'In prep for pickup'),
+      icon: order.deliveryAddress ? 'bicycle-outline' : 'bag-check-outline',
+      done: currentStep >= 3 && !isCancelled,
       active: currentStep === 3,
+    },
+    {
+      title: isCompleted ? t('deliveredStatus') : 'Order Fulfilled',
+      desc: isCompleted
+        ? (order.deliveryAddress ? t('deliveredToYou') : 'Picked up at shop counter. Enjoy!')
+        : 'Final delivery / handover',
+      icon: 'checkmark-done-circle',
+      done: isCompleted,
+      active: currentStep === 4,
     },
   ];
 
@@ -117,24 +130,40 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                 <View
                   style={[
                     tw`px-2.5 py-0.5 rounded-full border`,
-                    isApproved
-                      ? tw`bg-pistachioGreenLight border-pistachioGreen`
-                      : isReceived
+                    isCompleted
+                      ? tw`bg-emerald-50 border-emerald-300`
+                      : isOutForDelivery
+                      ? tw`bg-purple-50 border-purple-300`
+                      : isReady
                       ? tw`bg-blue-50 border-blue-300`
+                      : isPreparing
+                      ? tw`bg-orange-50 border-orange-300`
+                      : isAccepted
+                      ? tw`bg-pistachioGreenLight border-pistachioGreen`
+                      : isCancelled
+                      ? tw`bg-red-50 border-red-300`
                       : tw`bg-butterYellowLight border-butterYellow`,
                   ]}
                 >
                   <Text
                     style={[
-                      tw`text-[10px] font-black`,
-                      isApproved
-                        ? tw`text-chocolateBrown`
-                        : isReceived
+                      tw`text-[10px] font-black capitalize`,
+                      isCompleted
+                        ? tw`text-emerald-800`
+                        : isOutForDelivery
+                        ? tw`text-purple-800`
+                        : isReady
                         ? tw`text-blue-800`
+                        : isPreparing
+                        ? tw`text-orange-800`
+                        : isAccepted
+                        ? tw`text-green-800`
+                        : isCancelled
+                        ? tw`text-red-700`
                         : tw`text-amber-800`,
                     ]}
                   >
-                    {isApproved ? t('approvedStatus') : isReceived ? t('deliveredStatus') : t('pendingStatus')}
+                    {order.status.replace(/-/g, ' ')}
                   </Text>
                 </View>
               </View>

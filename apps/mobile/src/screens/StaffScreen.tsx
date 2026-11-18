@@ -77,7 +77,7 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
           totalAmount: 3500,
           paymentMethod: 'orange-money',
           phoneNumber: '+237 690 222 333',
-          status: 'approved',
+          status: 'accepted',
           createdAt: new Date().toISOString(),
         },
       ]);
@@ -100,14 +100,18 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
 
   const handleMarkReady = async (orderId: string) => {
     try {
-      await fetch(`${apiUrl}/api/orders/${orderId}/receive`, { method: 'PATCH' });
+      await fetch(`${apiUrl}/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ready' }),
+      });
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'ready' } : o))
       );
-      Alert.alert('✅ Kitchen Update', `Order ${orderId} marked as ready / delivered.`);
+      Alert.alert('✅ Kitchen Update', `Order ${orderId} marked as ready.`);
     } catch {
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: 'received' } : o))
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'ready' } : o))
       );
       Alert.alert('✅ Kitchen Update', `Order ${orderId} updated locally.`);
     }
@@ -210,7 +214,7 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
           ) : (
             filteredOrders.map((order) => {
               const isPending = order.status === 'pending';
-              const isApproved = order.status === 'approved';
+              const isApproved = order.status === 'accepted' || (order.status as string) === 'approved' || order.status === 'preparing';
 
               return (
                 <View
@@ -270,7 +274,7 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
                     <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
                       Customer: {order.phoneNumber}
                     </Text>
-                    {order.status !== 'received' && (
+                    {order.status !== 'ready' && order.status !== 'completed' && (order.status as string) !== 'received' && (
                       <TouchableOpacity
                         onPress={() => handleMarkReady(order.id)}
                         style={tw`bg-emerald-600 px-4 py-2 rounded-xl flex-row items-center gap-1.5`}
