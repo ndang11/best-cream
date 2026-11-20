@@ -81,6 +81,9 @@ export interface Order {
   distanceKm?: number;
   latitude?: number;
   longitude?: number;
+  orderType?: 'delivery' | 'pickup';
+  preferredTime?: string;
+  orderInstructions?: string;
 }
 
 export interface ApiResponse<T> {

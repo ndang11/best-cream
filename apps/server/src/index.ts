@@ -774,7 +774,7 @@ app.get('/api/orders', async (_req: Request, res: Response<ApiResponse<Order[]>>
 });
 
 app.post('/api/orders', async (req: Request, res: Response<ApiResponse<Order>>) => {
-  const { items, totalAmount, paymentMethod, phoneNumber, customerName, paymentStatus, deliveryAddress, deliveryFee, distanceKm, latitude, longitude } = req.body;
+  const { items, totalAmount, paymentMethod, phoneNumber, customerName, paymentStatus, deliveryAddress, deliveryFee, distanceKm, latitude, longitude, orderType, preferredTime, orderInstructions } = req.body;
   const newOrder: Order = {
     id: `ORD-${Date.now().toString().slice(-4)}`,
     items: items || [],
@@ -791,6 +791,9 @@ app.post('/api/orders', async (req: Request, res: Response<ApiResponse<Order>>) 
     distanceKm,
     latitude,
     longitude,
+    orderType,
+    preferredTime,
+    orderInstructions,
   };
   orders.unshift(newOrder);
 
@@ -812,6 +815,9 @@ app.post('/api/orders', async (req: Request, res: Response<ApiResponse<Order>>) 
       distance_km: newOrder.distanceKm,
       latitude: newOrder.latitude,
       longitude: newOrder.longitude,
+      order_type: newOrder.orderType,
+      preferred_time: newOrder.preferredTime,
+      order_instructions: newOrder.orderInstructions,
     });
   } catch {
     // Graceful fallback if Supabase table is not configured or offline

@@ -288,6 +288,35 @@ export const translations = {
     adminCategoryCombo: 'Combos',
     adminAllCategories: 'All',
     adminToggleStock: 'Toggle availability',
+
+    // Sort & Filter
+    sortBy: 'Sort by',
+    sortDefault: 'Default',
+    sortPriceLowHigh: 'Price: Low to High',
+    sortPriceHighLow: 'Price: High to Low',
+    sortPopular: 'Popular (Rating)',
+    sortNew: 'New Items',
+    showUnavailable: 'Show unavailable',
+    hideUnavailable: 'Hide unavailable',
+    unavailableItems: 'Unavailable items',
+
+    // Checkout / Order details
+    customerName: 'Customer Name',
+    customerNamePlaceholder: 'e.g. Jean Dupont',
+    phoneNumberLabel: 'Phone Number',
+    orderType: 'Order Type',
+    orderTypeDelivery: 'Delivery',
+    orderTypePickup: 'Pickup',
+    preferredTime: 'Preferred Time',
+    preferredTimePlaceholder: 'e.g. 2:00 PM',
+    orderInstructions: 'Additional Instructions',
+    orderInstructionsPlaceholder: 'e.g. Extra napkins, call on arrival...',
+    subtotal: 'Subtotal',
+    deliveryFee: 'Delivery Fee',
+    totalAmount: 'Total Amount',
+    placeOrder: 'Place Order',
+    payingVia: 'Paying via',
+    orderPendingNote: 'Upon payment, your order will show Pending until approved by the admin.',
   },
   fr: {
     // Brand
@@ -576,6 +605,35 @@ export const translations = {
     adminCategoryCombo: 'Combos',
     adminAllCategories: 'Tous',
     adminToggleStock: 'Changer la disponibilité',
+
+    // Sort & Filter
+    sortBy: 'Trier par',
+    sortDefault: 'Par défaut',
+    sortPriceLowHigh: 'Prix: du plus bas au plus haut',
+    sortPriceHighLow: 'Prix: du plus haut au plus bas',
+    sortPopular: 'Populaire (Note)',
+    sortNew: 'Nouveautés',
+    showUnavailable: 'Afficher indisponibles',
+    hideUnavailable: 'Masquer indisponibles',
+    unavailableItems: 'Articles indisponibles',
+
+    // Checkout / Order details
+    customerName: 'Nom du Client',
+    customerNamePlaceholder: 'ex: Jean Dupont',
+    phoneNumberLabel: 'Numéro de Téléphone',
+    orderType: 'Type de Commande',
+    orderTypeDelivery: 'Livraison',
+    orderTypePickup: 'À Emporter',
+    preferredTime: 'Heure Préférée',
+    preferredTimePlaceholder: 'ex: 14h00',
+    orderInstructions: 'Instructions Supplémentaires',
+    orderInstructionsPlaceholder: 'ex: Serviettes supplémentaires, appeler à l\'arrivée...',
+    subtotal: 'Sous-total',
+    deliveryFee: 'Frais de Livraison',
+    totalAmount: 'Montant Total',
+    placeOrder: 'Passer la Commande',
+    payingVia: 'Paiement via',
+    orderPendingNote: 'Après paiement, votre commande sera en attente jusqu\'à approbation par l\'administrateur.',
   },
 };
 

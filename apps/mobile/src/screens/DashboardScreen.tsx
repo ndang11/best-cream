@@ -179,6 +179,8 @@ export default function DashboardScreen({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular' | 'new'>('default');
+  const [showUnavailable, setShowUnavailable] = useState(false);
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<MenuItem | null>(null);
   const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(null);
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings | null>(null);
@@ -188,6 +190,10 @@ export default function DashboardScreen({
   const [isCartModalVisible, setIsCartModalVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mtn-momo' | 'orange-money'>('mtn-momo');
   const [phoneNumber, setPhoneNumber] = useState('+237 670 123 456');
+  const [customerName, setCustomerName] = useState(userName || '');
+  const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
+  const [preferredTime, setPreferredTime] = useState('');
+  const [orderInstructions, setOrderInstructions] = useState('');
   const [placingOrder, setPlacingOrder] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
   const [orderFilter, setOrderFilter] = useState<OrderFilterType>('all');
@@ -352,6 +358,8 @@ export default function DashboardScreen({
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const totalCartPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  const cartDeliveryFee = orderType === 'pickup' ? 0 : (locationResult?.tier.fee ?? 0);
 
   // Simple add (from menu list, without customization)
   const addToCartSimple = (id: string) => {
@@ -574,7 +582,7 @@ export default function DashboardScreen({
     if (totalCartCount === 0) return;
     setPlacingOrder(true);
 
-    const deliveryFee = locationResult?.tier.fee ?? 0;
+    const deliveryFee = orderType === 'pickup' ? 0 : (locationResult?.tier.fee ?? 0);
     const grandTotal = totalCartPrice + deliveryFee;
 
     const orderItems = cart.map((ci, idx) => ({
@@ -592,6 +600,10 @@ export default function DashboardScreen({
       selectedToppings: ci.selectedToppings.length > 0 ? ci.selectedToppings : undefined,
     }));
 
+    const deliveryAddressValue = orderType === 'pickup'
+      ? 'Pickup at store (Best Cream, Centre-ville, Yaoundé)'
+      : (locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)');
+
     try {
       const res = await fetch(`${apiUrl}/api/orders`, {
         method: 'POST',
@@ -601,12 +613,15 @@ export default function DashboardScreen({
           totalAmount: grandTotal,
           paymentMethod,
           phoneNumber,
-          customerName: userName || 'Valued Customer',
-          deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
+          customerName: customerName || 'Valued Customer',
+          orderType,
+          preferredTime,
+          orderInstructions,
+          deliveryAddress: deliveryAddressValue,
           deliveryFee,
-          distanceKm: locationResult?.distanceKm ?? 0,
-          latitude: locationResult?.latitude,
-          longitude: locationResult?.longitude,
+          distanceKm: orderType === 'pickup' ? 0 : (locationResult?.distanceKm ?? 0),
+          latitude: orderType === 'pickup' ? STORE_LOCATION.latitude : locationResult?.latitude,
+          longitude: orderType === 'pickup' ? STORE_LOCATION.longitude : locationResult?.longitude,
         }),
       });
 
@@ -627,13 +642,17 @@ export default function DashboardScreen({
         totalAmount: grandTotal,
         paymentMethod,
         phoneNumber,
+        customerName: customerName || 'Valued Customer',
+        orderType,
+        preferredTime,
+        orderInstructions,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        deliveryAddress: locationResult?.displayName || deliveryAddress || 'Pickup at store (Yaoundé Centre-ville)',
+        deliveryAddress: deliveryAddressValue,
         deliveryFee,
-        distanceKm: locationResult?.distanceKm ?? 0,
-        latitude: locationResult?.latitude,
-        longitude: locationResult?.longitude,
+        distanceKm: orderType === 'pickup' ? 0 : (locationResult?.distanceKm ?? 0),
+        latitude: orderType === 'pickup' ? STORE_LOCATION.latitude : locationResult?.latitude,
+        longitude: orderType === 'pickup' ? STORE_LOCATION.longitude : locationResult?.longitude,
       };
       setOrders((prev) => [fallbackNewOrder, ...prev]);
       clearCart();
@@ -645,16 +664,29 @@ export default function DashboardScreen({
     }
   };
 
-  // Filter products by category and search term (only active, non-archived items)
-  const filteredProducts = menuItems.filter((item) => {
-    if (item.isActive === false || item.isArchived === true) return false;
-    const matchesCategory =
-      selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.flavor.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  // Filter products by category and search term (only active, non-archived items unless showing unavailable)
+  const filteredProducts = menuItems
+    .filter((item) => {
+      if (!showUnavailable && (item.isActive === false || item.isArchived === true)) return false;
+      const matchesCategory =
+        selectedCategory === 'all' || item.category === selectedCategory;
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.flavor.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'popular') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'new') {
+        const aNum = Number(a.id);
+        const bNum = Number(b.id);
+        if (!isNaN(aNum) && !isNaN(bNum)) return bNum - aNum;
+        return b.id.localeCompare(a.id);
+      }
+      return 0;
+    });
 
   if (selectedProductForDetails) {
     return (
@@ -826,6 +858,63 @@ export default function DashboardScreen({
                 <Ionicons name="close-circle" size={18} color={COLORS.chocolateBrownMuted} />
               </TouchableOpacity>
             )}
+          </View>
+
+          {/* Sort & Availability Controls */}
+          <View style={tw`flex-row items-center justify-between my-2 px-1`}>
+            <TouchableOpacity
+              style={tw`flex-row items-center gap-1.5 bg-white px-4 py-2 rounded-xl border border-vanillaCreamDark shadow-sm`}
+              onPress={() => {
+                Alert.alert(
+                  t('sortBy'),
+                  '',
+                  [
+                    { text: t('sortDefault'), onPress: () => setSortBy('default') },
+                    { text: t('sortPriceLowHigh'), onPress: () => setSortBy('price-asc') },
+                    { text: t('sortPriceHighLow'), onPress: () => setSortBy('price-desc') },
+                    { text: t('sortPopular'), onPress: () => setSortBy('popular') },
+                    { text: t('sortNew'), onPress: () => setSortBy('new') },
+                    { text: 'Cancel', style: 'cancel' },
+                  ]
+                );
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="funnel" size={16} color={COLORS.chocolateBrownMuted} />
+              <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                {t('sortBy')}:{' '}
+                <Text style={tw`text-strawberryPink font-black`}>
+                  {sortBy === 'default' ? t('sortDefault')
+                    : sortBy === 'price-asc' ? t('sortPriceLowHigh')
+                    : sortBy === 'price-desc' ? t('sortPriceHighLow')
+                    : sortBy === 'popular' ? t('sortPopular')
+                    : t('sortNew')}
+                </Text>
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                tw`flex-row items-center gap-1 px-3 py-1.5 rounded-xl border border-vanillaCreamDark`,
+                showUnavailable && tw`bg-strawberryPink border-strawberryPink`,
+              ]}
+              onPress={() => setShowUnavailable((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={showUnavailable ? 'eye-off' : 'eye'}
+                size={14}
+                color={showUnavailable ? COLORS.white : COLORS.chocolateBrownMuted}
+              />
+              <Text
+                style={[
+                  tw`text-[10px] font-bold`,
+                  showUnavailable ? tw`text-white` : tw`text-chocolateBrownMuted`,
+                ]}
+              >
+                {showUnavailable ? t('hideUnavailable') : t('showUnavailable')}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* ── Interactive Yaoundé Map Card on Main Dashboard ── */}
@@ -1165,7 +1254,7 @@ export default function DashboardScreen({
               <Text style={tw`text-xs text-chocolateBrownMuted`}>Loading fresh treats...</Text>
             </View>
           ) : (
-            <View style={tw`gap-4 mt-2`}>
+            <View style={tw`flex-row flex-wrap gap-4 mt-2`}>
               {filteredProducts.map((product) => {
                 const qtyInCart = cart
                   .filter((ci) => ci.menuItemId === product.id)
@@ -1173,7 +1262,9 @@ export default function DashboardScreen({
                 return (
                   <View
                     key={product.id}
-                    style={tw`bg-white rounded-3xl overflow-hidden shadow-md border border-vanillaCreamDark`}
+                    style={[
+                      tw`w-[calc(50%-8px)] bg-white rounded-3xl overflow-hidden shadow-md border border-vanillaCreamDark`,
+                    ]}
                   >
                     {/* Image & Tags (Tappable to customize) */}
                     <TouchableOpacity
@@ -2208,6 +2299,244 @@ export default function DashboardScreen({
                 ))
               )}
 
+              {/* Customer Details Section */}
+              {totalCartCount > 0 && (
+                <View style={tw`mt-4 pb-6`}>
+                  {/* Customer Name */}
+                  <View style={tw`mb-3.5`}>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                      {t('customerName')}
+                    </Text>
+                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                      <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                      <TextInput
+                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        value={customerName}
+                        onChangeText={setCustomerName}
+                        placeholder={t('customerNamePlaceholder')}
+                        placeholderTextColor={COLORS.chocolateBrownMuted}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Phone Number */}
+                  <View style={tw`mb-3.5`}>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                      {t('phoneNumberLabel')}
+                    </Text>
+                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                      <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                      <TextInput
+                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                        keyboardType="phone-pad"
+                        placeholder="+237 6XX XXX XXX"
+                        placeholderTextColor={COLORS.chocolateBrownMuted}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Order Type: Delivery / Pickup */}
+                  <View style={tw`mb-3.5`}>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                      {t('orderType')}
+                    </Text>
+                    <View style={tw`flex-row gap-2`}>
+                      <TouchableOpacity
+                        style={[
+                          tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
+                          orderType === 'delivery'
+                            ? tw`bg-strawberryPinkLight border-strawberryPink`
+                            : tw`bg-vanillaCream border-vanillaCreamDark`,
+                        ]}
+                        onPress={() => setOrderType('delivery')}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={{ fontSize: 18 }}>🛵</Text>
+                        <Text style={[
+                          tw`text-xs font-bold`,
+                          orderType === 'delivery' ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
+                        ]}>
+                          {t('orderTypeDelivery')}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
+                          orderType === 'pickup'
+                            ? tw`bg-strawberryPinkLight border-strawberryPink`
+                            : tw`bg-vanillaCream border-vanillaCreamDark`,
+                        ]}
+                        onPress={() => setOrderType('pickup')}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={{ fontSize: 18 }}>🏪</Text>
+                        <Text style={[
+                          tw`text-xs font-bold`,
+                          orderType === 'pickup' ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
+                        ]}>
+                          {t('orderTypePickup')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Delivery Location (only shown for delivery) */}
+                  {orderType === 'delivery' && (
+                    <>
+                      <View style={tw`mb-3.5`}>
+                        <View style={tw`flex-row justify-between items-center mb-1.5`}>
+                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                            Delivery Destination 📍
+                          </Text>
+                          <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                            Shop: Centre-ville, Yaoundé
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          style={[
+                            tw`flex-row items-center justify-center gap-2 bg-strawberryPinkLight border border-strawberryPink/40 rounded-2xl py-2.5 px-3 mb-2`,
+                            locationLoading && tw`opacity-70`,
+                          ]}
+                          onPress={detectGPSLocation}
+                          disabled={locationLoading}
+                          activeOpacity={0.8}
+                        >
+                          {locationLoading ? (
+                            <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                          ) : (
+                            <Ionicons name="navigate-circle" size={18} color={COLORS.strawberryPink} />
+                          )}
+                          <Text style={tw`text-xs font-black text-strawberryPink`}>
+                            {locationLoading ? 'Detecting Location...' : 'Use My Current GPS Location'}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5`}>
+                          <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                          <TextInput
+                            style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1`}
+                            value={deliveryAddress}
+                            onChangeText={(txt) => {
+                              setDeliveryAddress(txt);
+                              if (locationResult) setLocationResult(null);
+                            }}
+                            placeholder="e.g. Bastos, Omnisports, Biyem-Assi..."
+                            placeholderTextColor={COLORS.chocolateBrownMuted}
+                          />
+                          <TouchableOpacity
+                            style={tw`bg-chocolateBrown px-3 py-1.5 rounded-xl ml-1`}
+                            onPress={geocodeManualAddress}
+                            disabled={locationLoading}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={tw`text-xs font-bold text-white`}>Check</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {locationResult ? (
+                          <View style={tw`mt-2.5 bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-3`}>
+                            <View style={tw`flex-row items-center justify-between mb-1`}>
+                              <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+                                <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
+                                <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
+                                  {locationResult.tier.label}
+                                </Text>
+                              </View>
+                              <View style={tw`bg-white px-2 py-0.5 rounded-full border border-pistachioGreen/50`}>
+                                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                                  {formatDistance(locationResult.distanceKm)} from shop
+                                </Text>
+                              </View>
+                            </View>
+
+                            <Text style={tw`text-xs text-chocolateBrownLight`} numberOfLines={2}>
+                              📍 {locationResult.displayName}
+                            </Text>
+
+                            <View style={tw`flex-row justify-between items-center mt-2 pt-2 border-t border-pistachioGreen/30`}>
+                              <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                                ⏱️ Est. arrival: <Text style={tw`font-bold text-chocolateBrown`}>{locationResult.tier.estimatedMinutes}</Text>
+                              </Text>
+                              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                                Fee: {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
+                              </Text>
+                            </View>
+
+                            {locationResult.latitude && locationResult.longitude && (
+                              <View style={tw`mt-2.5 rounded-xl overflow-hidden`}>
+                                <YaoundeMapView
+                                  userLatitude={locationResult.latitude}
+                                  userLongitude={locationResult.longitude}
+                                  userAddress={locationResult.displayName}
+                                  height={130}
+                                />
+                              </View>
+                            )}
+                          </View>
+                        ) : (
+                          <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1 ml-1`}>
+                            💡 Tap GPS or enter a quarter in Yaoundé to compute distance & delivery fee.
+                          </Text>
+                        )}
+                      </View>
+                    </>
+                  )}
+
+                  {/* Pickup Info (only shown for pickup) */}
+                  {orderType === 'pickup' && (
+                    <View style={tw`bg-butterYellowLight border border-butterYellow rounded-2xl p-3 mb-3`}>
+                      <View style={tw`flex-row items-center gap-2 mb-1`}>
+                        <Ionicons name="storefront" size={16} color={COLORS.chocolateBrown} />
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                          Pickup at Best Cream, Centre-ville, Yaoundé
+                        </Text>
+                      </View>
+                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        No delivery fee. Your order will be ready for collection at the shop.
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Preferred Time */}
+                  <View style={tw`mb-3.5`}>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                      {t('preferredTime')}
+                    </Text>
+                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                      <Text style={{ fontSize: 16, marginRight: 8 }}>⏰</Text>
+                      <TextInput
+                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        value={preferredTime}
+                        onChangeText={setPreferredTime}
+                        placeholder={t('preferredTimePlaceholder')}
+                        placeholderTextColor={COLORS.chocolateBrownMuted}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Additional Instructions */}
+                  <View style={tw`mb-3.5`}>
+                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                      {t('orderInstructions')}
+                    </Text>
+                    <View style={tw`bg-vanillaCream rounded-2xl border border-vanillaCreamDark`}>
+                      <TextInput
+                        style={tw`text-sm font-medium text-chocolateBrown p-3`}
+                        value={orderInstructions}
+                        onChangeText={setOrderInstructions}
+                        placeholder={t('orderInstructionsPlaceholder')}
+                        placeholderTextColor={COLORS.chocolateBrownMuted}
+                        multiline
+                        numberOfLines={3}
+                      />
+                    </View>
+                  </View>
+                </View>
+              )}
+
               {/* Payment Section */}
               {totalCartCount > 0 && (
                 <View style={tw`mt-4 pb-6`}>
@@ -2250,195 +2579,70 @@ export default function DashboardScreen({
                     </TouchableOpacity>
                   </View>
 
-                  {/* Phone Input */}
-                  <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
-                    Account Phone Number
-                  </Text>
-                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5 mb-3.5`}>
-                    <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
-                    <TextInput
-                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                      value={phoneNumber}
-                      onChangeText={setPhoneNumber}
-                      keyboardType="phone-pad"
-                      placeholder="+237 6XX XXX XXX"
-                    />
-                  </View>
-
-                  {/* ── Delivery Location (Yaoundé Store) ── */}
-                  <View style={tw`mb-4`}>
-                    <View style={tw`flex-row justify-between items-center mb-1.5`}>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                        Delivery Destination 📍
-                      </Text>
-                      <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
-                        Shop: Centre-ville, Yaoundé
-                      </Text>
+                    {/* Summary */}
+                    <View style={tw`bg-vanillaCream rounded-2xl p-3.5 mb-4 gap-1.5`}>
+                      <View style={tw`flex-row justify-between`}>
+                        <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
+                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                          {totalCartPrice.toLocaleString()} XAF
+                        </Text>
+                      </View>
+                      <View style={tw`flex-row justify-between items-center`}>
+                        <View style={tw`flex-row items-center gap-1`}>
+                          <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                            {orderType === 'delivery' ? 'Delivery' : 'Pickup'}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            tw`text-xs font-bold`,
+                            cartDeliveryFee === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
+                          ]}
+                        >
+                          {cartDeliveryFee === 0 ? 'FREE' : formatXAF(cartDeliveryFee)}
+                        </Text>
+                      </View>
+                      <View style={tw`flex-row justify-between border-t border-vanillaCreamDark pt-2 mt-1`}>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
+                        <View style={tw`items-end`}>
+                          <Text style={tw`text-base font-black text-chocolateBrown`}>
+                            {(totalCartPrice + cartDeliveryFee).toLocaleString()} XAF
+                          </Text>
+                          {cartDeliveryFee > 0 && (
+                            <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                              incl. {formatXAF(cartDeliveryFee)} delivery
+                            </Text>
+                          )}
+                        </View>
+                      </View>
                     </View>
 
-                    {/* GPS Button */}
+                    {/* Action Button */}
                     <TouchableOpacity
                       style={[
-                        tw`flex-row items-center justify-center gap-2 bg-strawberryPinkLight border border-strawberryPink/40 rounded-2xl py-2.5 px-3 mb-2`,
-                        locationLoading && tw`opacity-70`,
+                        tw`w-full bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-1.5 shadow-md`,
+                        placingOrder && tw`opacity-70`,
                       ]}
-                      onPress={detectGPSLocation}
-                      disabled={locationLoading}
-                      activeOpacity={0.8}
+                      disabled={placingOrder}
+                      onPress={handlePlaceOrder}
+                      activeOpacity={0.85}
                     >
-                      {locationLoading ? (
-                        <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                      {placingOrder ? (
+                        <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                       ) : (
-                        <Ionicons name="navigate-circle" size={18} color={COLORS.strawberryPink} />
+                        <>
+                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                            Pay {(totalCartPrice + cartDeliveryFee).toLocaleString()} XAF via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
+                          </Text>
+                          <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
+                        </>
                       )}
-                      <Text style={tw`text-xs font-black text-strawberryPink`}>
-                        {locationLoading ? 'Detecting Location...' : 'Use My Current GPS Location'}
-                      </Text>
                     </TouchableOpacity>
-
-                    {/* Manual Address Input + Check Button */}
-                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5`}>
-                      <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
-                      <TextInput
-                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1`}
-                        value={deliveryAddress}
-                        onChangeText={(txt) => {
-                          setDeliveryAddress(txt);
-                          if (locationResult) setLocationResult(null);
-                        }}
-                        placeholder="e.g. Bastos, Omnisports, Biyem-Assi..."
-                        placeholderTextColor={COLORS.chocolateBrownMuted}
-                      />
-                      <TouchableOpacity
-                        style={tw`bg-chocolateBrown px-3 py-1.5 rounded-xl ml-1`}
-                        onPress={geocodeManualAddress}
-                        disabled={locationLoading}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={tw`text-xs font-bold text-white`}>Check</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Calculated Distance & Fee Card */}
-                    {locationResult ? (
-                      <View style={tw`mt-2.5 bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-3`}>
-                        <View style={tw`flex-row items-center justify-between mb-1`}>
-                          <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-                            <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
-                            <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
-                              {locationResult.tier.label}
-                            </Text>
-                          </View>
-                          <View style={tw`bg-white px-2 py-0.5 rounded-full border border-pistachioGreen/50`}>
-                            <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
-                              {formatDistance(locationResult.distanceKm)} from shop
-                            </Text>
-                          </View>
-                        </View>
-
-                        <Text style={tw`text-xs text-chocolateBrownLight`} numberOfLines={2}>
-                          📍 {locationResult.displayName}
-                        </Text>
-
-                        <View style={tw`flex-row justify-between items-center mt-2 pt-2 border-t border-pistachioGreen/30`}>
-                          <Text style={tw`text-xs text-chocolateBrownMuted`}>
-                            ⏱️ Est. arrival: <Text style={tw`font-bold text-chocolateBrown`}>{locationResult.tier.estimatedMinutes}</Text>
-                          </Text>
-                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                            Fee: {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
-                          </Text>
-                        </View>
-
-                        {/* Interactive Yaoundé Map Preview */}
-                        {locationResult.latitude && locationResult.longitude && (
-                          <View style={tw`mt-2.5 rounded-xl overflow-hidden`}>
-                            <YaoundeMapView
-                              userLatitude={locationResult.latitude}
-                              userLongitude={locationResult.longitude}
-                              userAddress={locationResult.displayName}
-                              height={130}
-                            />
-                          </View>
-                        )}
-                      </View>
-                    ) : (
-                      <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1 ml-1`}>
-                        💡 Tap GPS or enter a quarter in Yaoundé to compute distance & delivery fee.
-                      </Text>
-                    )}
+                    <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-2`}>
+                      Upon payment, your order will show 'Pending' until approved by the admin.
+                    </Text>
                   </View>
-
-                  {/* Summary */}
-                  <View style={tw`bg-vanillaCream rounded-2xl p-3.5 mb-4 gap-1.5`}>
-                    <View style={tw`flex-row justify-between`}>
-                      <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                        {totalCartPrice.toLocaleString()} XAF
-                      </Text>
-                    </View>
-                    <View style={tw`flex-row justify-between items-center`}>
-                      <View style={tw`flex-row items-center gap-1`}>
-                        <Text style={tw`text-xs text-chocolateBrownMuted`}>Delivery</Text>
-                        {locationResult && (
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
-                            ({formatDistance(locationResult.distanceKm)})
-                          </Text>
-                        )}
-                      </View>
-                      <Text
-                        style={[
-                          tw`text-xs font-bold`,
-                          (locationResult?.tier.fee ?? 0) === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
-                        ]}
-                      >
-                        {locationResult
-                          ? locationResult.tier.fee === 0
-                            ? 'FREE'
-                            : formatXAF(locationResult.tier.fee)
-                          : 'FREE / Pickup'}
-                      </Text>
-                    </View>
-                    <View style={tw`flex-row justify-between border-t border-vanillaCreamDark pt-2 mt-1`}>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
-                      <View style={tw`items-end`}>
-                        <Text style={tw`text-base font-black text-chocolateBrown`}>
-                          {(totalCartPrice + (locationResult?.tier.fee ?? 0)).toLocaleString()} XAF
-                        </Text>
-                        {locationResult && locationResult.tier.fee > 0 && (
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
-                            incl. {formatXAF(locationResult.tier.fee)} delivery
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Action Button */}
-                  <TouchableOpacity
-                    style={[
-                      tw`w-full bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-1.5 shadow-md`,
-                      placingOrder && tw`opacity-70`,
-                    ]}
-                    disabled={placingOrder}
-                    onPress={handlePlaceOrder}
-                    activeOpacity={0.85}
-                  >
-                    {placingOrder ? (
-                      <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
-                    ) : (
-                      <>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>
-                          Pay {(totalCartPrice + (locationResult?.tier.fee ?? 0)).toLocaleString()} XAF via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange'}
-                        </Text>
-                        <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-2`}>
-                    Upon payment, your order will show 'Pending' until approved by the admin.
-                  </Text>
-                </View>
-              )}
+                )}
             </ScrollView>
           </View>
         </View>
