@@ -2,38 +2,74 @@
 node_modules/
 .pnp
 .pnp.js
+.npm/
+.yarn/
 
-# Production builds
+# Production builds & Caches
 dist/
 build/
+*.tsbuildinfo
+.metro-health-check*
 
 # Expo & React Native
 .expo/
 web-build/
+expo-env.d.ts
+
+# Generated native platforms (if prebuilt)
+/ios/
+/android/
+apps/mobile/ios/
+apps/mobile/android/
+.gradle/
+.kotlin/
+
+# Mobile binaries
+*.apk
+*.aab
+*.ipa
+
+# Security, Certificates & Keystores (CRITICAL)
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
+*.pem
+*.crt
+*.cer
+*.der
 *.mobileprovision
 *.orig.*
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Firebase / Push notification configs containing API keys
+google-services.json
+GoogleService-Info.plist
 
-# Server env
-apps/server/.env
+# Environment variables (CRITICAL)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Agent / Tooling worktrees & local metadata
+.kilo/
+.kilocode/
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# System
+# System & IDEs
 .DS_Store
 Thumbs.db
+.idea/
+*.swp
+*~
+
 
