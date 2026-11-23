@@ -9,19 +9,20 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import StaffScreen from './src/screens/StaffScreen';
+import SalesScreen from './src/screens/SalesScreen';
 
 // Automatically resolve backend host IP from the Expo development server
 const hostUri = Constants.expoConfig?.hostUri;
 const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
 const API_URL = `http://${hostIp}:5000`;
 
-export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin' | 'admin-login' | 'staff';
+export type AppScreen = 'splash' | 'welcome' | 'login' | 'signup' | 'dashboard' | 'admin' | 'admin-login' | 'staff' | 'sales';
 
 function MainApp() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('splash');
   const [userEmail, setUserEmail] = useState<string>('customer@bestcream.com');
   const [userName, setUserName] = useState<string>('Sweet Tooth');
-  const [userRole, setUserRole] = useState<'admin' | 'staff' | 'customer'>('customer');
+  const [userRole, setUserRole] = useState<'admin' | 'sales' | 'staff' | 'customer'>('customer');
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   const handleGlobalLogout = () => {
@@ -30,7 +31,6 @@ function MainApp() {
     setUserName('Sweet Tooth');
     setCurrentScreen('welcome');
   };
-
   // 1. Splash Screen (8-second branded entrance)
   if (currentScreen === 'splash') {
     return <SplashScreen onFinish={() => setCurrentScreen('welcome')} />;
@@ -56,11 +56,13 @@ function MainApp() {
           if (user.email) setUserEmail(user.email);
           if (user.name) setUserName(user.name);
           const role = user.role || 'customer';
-          setUserRole(role);
+          setUserRole(role as any);
           setIsNewUser(false);
 
           if (role === 'admin') {
             setCurrentScreen('admin');
+          } else if (role === 'sales') {
+            setCurrentScreen('sales');
           } else if (role === 'staff') {
             setCurrentScreen('staff');
           } else {
@@ -132,7 +134,38 @@ function MainApp() {
     );
   }
 
-  // 7. Staff Screen — Kitchen & fulfillment tickets
+  // 7. Sales Screen — Protected route for sales personnel (cashier / counter rep)
+  if (currentScreen === 'sales') {
+    if (userRole !== 'sales') {
+      // Guard: only sales or admin role can access this screen
+      return (
+        <LoginScreen
+          apiUrl={API_URL}
+          onLoginSuccess={(user) => {
+            if (user.email) setUserEmail(user.email);
+            if (user.name) setUserName(user.name);
+            const role = user.role || 'customer';
+            setUserRole(role as any);
+            if (role === 'admin') setCurrentScreen('admin');
+            else if (role === 'sales') setCurrentScreen('sales');
+            else setCurrentScreen('dashboard');
+          }}
+          onGoToSignUp={() => setCurrentScreen('signup')}
+          onGoToAdminLogin={() => setCurrentScreen('admin-login')}
+        />
+      );
+    }
+    return (
+      <SalesScreen
+        apiUrl={API_URL}
+        salesName={userName}
+        salesEmail={userEmail}
+        onLogout={handleGlobalLogout}
+      />
+    );
+  }
+
+  // 8. Staff Screen — Kitchen & fulfillment tickets
   if (currentScreen === 'staff') {
     return (
       <StaffScreen
@@ -143,7 +176,7 @@ function MainApp() {
     );
   }
 
-  // 8. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
+  // 9. Dashboard Screen (Products, Ice Creams, Pancakes, Cart, Orders & Status)
   return (
     <DashboardScreen
       apiUrl={API_URL}

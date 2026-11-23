@@ -132,7 +132,7 @@ interface LoginFormValues {
 export interface LoginUserData {
   name?: string;
   email: string;
-  role?: 'admin' | 'customer' | 'staff';
+  role?: 'admin' | 'sales' | 'customer' | 'staff';
 }
 
 interface LoginScreenProps {
@@ -169,15 +169,17 @@ export default function LoginScreen({
   const handleLoginSubmit = async (values: LoginFormValues) => {
     setAuthError(null);
     let resolvedName = '';
-    let resolvedRole: 'admin' | 'customer' | 'staff' = 'customer';
-    const cleanEmail = values.email.trim();
+    let resolvedRole: 'admin' | 'sales' | 'customer' | 'staff' = 'customer';
+    const cleanEmail = values.email.trim().toLowerCase();
     const fallbackName = cleanEmail.split('@')[0].split(/[._-]/)[0];
     resolvedName = fallbackName
       ? fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1)
       : 'Customer';
 
-    if (cleanEmail === 'alex@bestcream.com' || cleanEmail.includes('admin@bestcream.com')) {
+    if (cleanEmail === 'admin@bestcream.com' || cleanEmail === 'alex@bestcream.com' || cleanEmail.includes('admin')) {
       resolvedRole = 'admin';
+    } else if (cleanEmail === 'sales@bestcream.com' || cleanEmail.includes('sales')) {
+      resolvedRole = 'sales';
     } else if (cleanEmail === 'staff@bestcream.com') {
       resolvedRole = 'staff';
     }
@@ -314,20 +316,47 @@ export default function LoginScreen({
 
                 return (
                   <View>
-                    {/* Quick Demo Fill Pill */}
-                    <TouchableOpacity
-                      style={tw`flex-row items-center gap-1 self-end bg-butterYellowLight px-2.5 py-1 rounded-xl mb-3 border border-butterYellow/50`}
-                      onPress={() => {
-                        setFieldValue('email', 'alex@bestcream.com');
-                        setFieldValue('password', 'password123');
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="sparkles" size={12} color="#854D0E" />
-                      <Text style={tw`text-[11px] font-bold text-amber-900`}>
-                        {t('quickDemo')}
-                      </Text>
-                    </TouchableOpacity>
+                    {/* Quick Role Fill Pills */}
+                    <View style={tw`flex-row items-center justify-between mb-3.5 bg-surfaceBright p-1.5 rounded-2xl border border-borderSubtle`}>
+                      <TouchableOpacity
+                        style={tw`flex-1 items-center py-1.5 rounded-xl ${values.email === 'admin@bestcream.com' ? 'bg-chocolateBrown' : 'bg-transparent'}`}
+                        onPress={() => {
+                          setFieldValue('email', 'admin@bestcream.com');
+                          setFieldValue('password', 'admin123');
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={tw`text-[10px] font-black ${values.email === 'admin@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                          👑 Admin
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={tw`flex-1 items-center py-1.5 rounded-xl mx-1 ${values.email === 'sales@bestcream.com' ? 'bg-strawberryPink' : 'bg-transparent'}`}
+                        onPress={() => {
+                          setFieldValue('email', 'sales@bestcream.com');
+                          setFieldValue('password', 'sales123');
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={tw`text-[10px] font-black ${values.email === 'sales@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                          💼 Sales
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={tw`flex-1 items-center py-1.5 rounded-xl ${values.email === 'sam@bestcream.com' ? 'bg-emerald-600' : 'bg-transparent'}`}
+                        onPress={() => {
+                          setFieldValue('email', 'sam@bestcream.com');
+                          setFieldValue('password', 'password123');
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={tw`text-[10px] font-black ${values.email === 'sam@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                          👤 Customer
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
 
                     {/* Email Input Field */}
                     <View style={tw`mb-3.5`}>

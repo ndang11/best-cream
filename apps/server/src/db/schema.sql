@@ -6,7 +6,7 @@
 
 -- 1. Create custom role enum if not exists
 DO $$ BEGIN
-  CREATE TYPE public.user_role AS ENUM ('customer', 'staff', 'admin');
+  CREATE TYPE public.user_role AS ENUM ('customer', 'staff', 'sales', 'admin');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT NOT NULL,
   full_name TEXT,
   phone TEXT,
-  role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'staff', 'admin')),
+  role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'staff', 'sales', 'admin')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -74,9 +74,12 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT OR UPDATE ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 7. Helper: Grant initial admin role to the store owner
--- (e.g. alex@bestcream.com or your admin email)
+-- 7. Helper: Grant initial admin and sales roles to store staff
 UPDATE public.profiles
 SET role = 'admin'
-WHERE email = 'alex@bestcream.com';
+WHERE email IN ('alex@bestcream.com', 'admin@bestcream.com');
+
+UPDATE public.profiles
+SET role = 'sales'
+WHERE email IN ('sales@bestcream.com', 'staff@bestcream.com');
 
