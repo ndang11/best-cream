@@ -1283,7 +1283,7 @@ export default function DashboardScreen({
               <Text style={tw`text-xs text-chocolateBrownMuted font-semibold`}>Loading fresh treats...</Text>
             </View>
           ) : (
-            <View style={tw`flex-row flex-wrap justify-between mt-2`}>
+            <View style={tw`flex-row flex-wrap justify-between mt-1`}>
               {filteredProducts.map((product) => {
                 const qtyInCart = cart
                   .filter((ci) => ci.menuItemId === product.id)
@@ -1293,14 +1293,14 @@ export default function DashboardScreen({
                     key={product.id}
                     style={[
                       { width: CARD_WIDTH },
-                      tw`bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSubtle mb-4`,
+                      tw`bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSubtle mb-3`,
                     ]}
                   >
                     {/* Image & Tags (Tappable to customize) */}
                     <TouchableOpacity
                       activeOpacity={0.9}
                       onPress={() => setSelectedProductForDetails(product)}
-                      style={tw`w-full h-40 bg-surfaceBright relative`}
+                      style={tw`w-full h-32 bg-surfaceBright relative`}
                     >
                       <Image
                         source={{ uri: product.imageUrl }}
@@ -1308,52 +1308,46 @@ export default function DashboardScreen({
                         resizeMode="cover"
                       />
                       {product.isSpecialOffer && (
-                        <View style={tw`absolute top-2.5 left-2.5 bg-butterYellow px-2.5 py-1 rounded-xl shadow-sm`}>
-                          <Text style={tw`text-[10px] font-black text-chocolateBrown uppercase tracking-wider`}>
+                        <View style={tw`absolute top-2 left-2 bg-butterYellow px-2 py-0.5 rounded-lg shadow-xs`}>
+                          <Text style={tw`text-[9px] font-black text-chocolateBrown uppercase tracking-wider`}>
                             {product.offerTag || 'Special'}
                           </Text>
                         </View>
                       )}
-                      <View style={tw`absolute top-2.5 right-2.5 flex-row items-center gap-1 bg-white/95 px-2 py-0.5 rounded-full shadow-sm`}>
-                        <Ionicons name="star" size={11} color={COLORS.butterYellow} />
-                        <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
+                      <View style={tw`absolute top-2 right-2 flex-row items-center gap-1 bg-white/95 px-1.5 py-0.5 rounded-full shadow-xs`}>
+                        <Ionicons name="star" size={10} color={COLORS.butterYellow} />
+                        <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
                           {product.rating || '4.9'}
                         </Text>
                       </View>
                     </TouchableOpacity>
 
-                    {/* Body Details */}
-                    <View style={tw`p-3.5 flex-1 justify-between`}>
+                    {/* Body Details (Tight, well-spaced) */}
+                    <View style={tw`p-2.5`}>
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={() => setSelectedProductForDetails(product)}
                       >
-                        <Text style={tw`text-sm font-black text-chocolateBrown mb-0.5 tracking-tight`} numberOfLines={1}>
+                        <Text style={tw`text-[13px] font-black text-chocolateBrown tracking-tight`} numberOfLines={1}>
                           {product.name}
                         </Text>
-                        <Text style={tw`text-[11px] text-chocolateBrownLight mb-1`} numberOfLines={1}>
-                          <Text style={tw`font-bold text-strawberryPink`}>Flavor: </Text>
+                        <Text style={tw`text-[11px] font-bold text-strawberryPink mt-0.5`} numberOfLines={1}>
                           {product.flavor}
                         </Text>
                         {product.description ? (
-                          <Text style={tw`text-[11px] text-chocolateBrownMuted leading-3.5 mb-2.5`} numberOfLines={2}>
+                          <Text style={tw`text-[10px] text-chocolateBrownMuted leading-3.5 mt-0.5`} numberOfLines={1}>
                             {product.description}
                           </Text>
                         ) : null}
                       </TouchableOpacity>
 
-                      {/* Price & Add to Cart Row */}
-                      <View style={tw`mt-2 pt-2 border-t border-borderSubtle`}>
-                        <View style={tw`flex-row items-center justify-between mb-2`}>
-                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                      {/* Compact Price & Add to Cart Row */}
+                      <View style={tw`flex-row items-center justify-between mt-2 pt-1.5 border-t border-borderSubtle`}>
+                        <View>
+                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
                             {product.price.toLocaleString()} XAF
                           </Text>
-                          <View
-                            style={[
-                              tw`flex-row items-center gap-1 px-1.5 py-0.5 rounded-md`,
-                              product.inStock ? tw`bg-pistachioGreenLight` : tw`bg-outOfStockBg`,
-                            ]}
-                          >
+                          <View style={tw`flex-row items-center gap-1 mt-0.5`}>
                             <View style={[tw`w-1.5 h-1.5 rounded-full`, product.inStock ? tw`bg-pistachioGreen` : tw`bg-errorRed`]} />
                             <Text
                               style={[
@@ -1368,36 +1362,36 @@ export default function DashboardScreen({
 
                         {/* Add to Cart Actions */}
                         {qtyInCart > 0 ? (
-                          <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-xl border border-borderSubtle p-1`}>
+                          <View style={tw`flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-0.5 gap-1.5`}>
                             <TouchableOpacity
-                              style={tw`w-7 h-7 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
+                              style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
                               onPress={() => removeFromCartSimple(product.id)}
                             >
-                              <Feather name="minus" size={13} color={COLORS.chocolateBrown} />
+                              <Feather name="minus" size={11} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
-                            <Text style={tw`text-xs font-black text-chocolateBrown min-w-5 text-center`}>
+                            <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
                               {qtyInCart}
                             </Text>
                             <TouchableOpacity
-                              style={tw`w-7 h-7 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
+                              style={tw`w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
                               onPress={() => addToCartSimple(product.id)}
                             >
-                              <Feather name="plus" size={13} color={COLORS.white} />
+                              <Feather name="plus" size={11} color={COLORS.white} />
                             </TouchableOpacity>
                           </View>
                         ) : (
                           <TouchableOpacity
                             style={[
-                              tw`flex-row items-center justify-center gap-1 bg-strawberryPink py-2 rounded-xl shadow-sm`,
-                              !product.inStock && tw`bg-borderSubtle opacity-60`,
+                              tw`flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1.5 rounded-xl shadow-xs`,
+                              !product.inStock && tw`bg-borderSubtle opacity-50`,
                             ]}
                             disabled={!product.inStock}
                             onPress={() => addToCartSimple(product.id)}
                             activeOpacity={0.85}
                           >
-                            <Ionicons name="cart" size={13} color={COLORS.white} />
-                            <Text style={tw`text-xs font-black text-white`}>
-                              {t('addToCartBtn')}
+                            <Ionicons name="cart" size={11} color={COLORS.white} />
+                            <Text style={tw`text-[11px] font-black text-white`}>
+                              Add
                             </Text>
                           </TouchableOpacity>
                         )}

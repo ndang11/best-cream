@@ -1,8 +1,8 @@
 export const COLORS = {
   // Core Brand Colors
-  pageBg: '#F8F9FA',              // Crisp, bright modern page background
-  surfaceBright: '#FAFAF9',       // Bright surface
-  borderSubtle: '#F0ECE9',        // Subtle card border
+  pageBg: '#FFF0F3',              // Bright, eye-catching strawberry gelato blush background
+  surfaceBright: '#FFF9FA',       // Ultra-bright surface
+  borderSubtle: '#FFE2E6',        // Soft pastel border that complements bright background
   vanillaCream: '#FFFDF0',        // Warm vanilla accent
   vanillaCreamDark: '#F7F2DE',    // Slightly deeper vanilla for borders/accents
   strawberryPink: '#FF6584',      // Primary brand buttons & selected nav icon

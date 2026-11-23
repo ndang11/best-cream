@@ -2,9 +2,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        pageBg: '#F8F9FA',
-        surfaceBright: '#FAFAF9',
-        borderSubtle: '#F0ECE9',
+        pageBg: '#FFF0F3',
+        surfaceBright: '#FFF9FA',
+        borderSubtle: '#FFE2E6',
         vanillaCream: '#FFFDF0',
         vanillaCreamDark: '#F7F2DE',
         strawberryPink: '#FF6584',
