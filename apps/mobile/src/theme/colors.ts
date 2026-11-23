@@ -1,14 +1,17 @@
 export const COLORS = {
   // Core Brand Colors
-  vanillaCream: '#FFFDF0',        // App background & bottom navigation
+  pageBg: '#F8F9FA',              // Crisp, bright modern page background
+  surfaceBright: '#FAFAF9',       // Bright surface
+  borderSubtle: '#F0ECE9',        // Subtle card border
+  vanillaCream: '#FFFDF0',        // Warm vanilla accent
   vanillaCreamDark: '#F7F2DE',    // Slightly deeper vanilla for borders/accents
-  strawberryPink: '#FF6584',      // Primary buttons & selected nav icon
+  strawberryPink: '#FF6584',      // Primary brand buttons & selected nav icon
   strawberryPinkDark: '#E84E6E',  // Pressed state
   strawberryPinkLight: '#FFEBF0', // Subtle pink pill/badge backgrounds
   chocolateBrown: '#3E2723',      // Headings, button text, price labels
   chocolateBrownLight: '#6D4C41', // Secondary text & subtitles
   chocolateBrownMuted: '#9E857E', // Hint text & subtle borders
-  white: '#FFFFFF',               // Product cards
+  white: '#FFFFFF',               // Product cards & pure white surfaces
   butterYellow: '#FFD166',        // Special offers badge
   butterYellowLight: '#FFF6D9',   // Warm butter background
   pistachioGreen: '#70C184',      // Available stock indicator

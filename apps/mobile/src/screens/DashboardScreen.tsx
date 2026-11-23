@@ -13,6 +13,7 @@ import {
   Platform,
   RefreshControl,
   StatusBar as RNStatusBar,
+  Dimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
@@ -37,6 +38,9 @@ import {
   YAOUNDE_LANDMARKS,
   type DeliveryTier,
 } from '../utils/location';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 44) / 2;
 
 // Cart item type — preserves full customization
 interface CartItem {
@@ -742,22 +746,22 @@ export default function DashboardScreen({
     Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
+    <SafeAreaView style={tw`flex-1 bg-pageBg`}>
       <StatusBar style="dark" />
 
       {/* ── Top Header Bar ── */}
       <View
         style={[
-          tw`flex-row items-center justify-between px-5 pb-2.5 bg-vanillaCream`,
+          tw`flex-row items-center justify-between px-5 pb-3 bg-white border-b border-borderSubtle`,
           { paddingTop: topInset },
         ]}
       >
         <View style={tw`flex-row items-center gap-3 flex-1 mr-3`}>
-          <View style={tw`w-11 h-11 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}>
+          <View style={tw`w-11 h-11 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20 shadow-sm`}>
             <Text style={tw`text-2xl`}>🍦</Text>
           </View>
           <View style={tw`flex-1`}>
-            <Text style={tw`text-lg font-black text-chocolateBrown tracking-wide`} numberOfLines={1}>
+            <Text style={tw`text-lg font-black text-chocolateBrown tracking-tight`} numberOfLines={1}>
               {isNewUser ? `${t('welcomeUser')} ${userName}` : `${t('welcomeBackUser')} ${userName}`}
             </Text>
             <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-0.5`} numberOfLines={1}>
@@ -770,21 +774,21 @@ export default function DashboardScreen({
         <View style={tw`flex-row items-center gap-2`}>
           {/* 1. Cart Button */}
           <TouchableOpacity
-            style={tw`w-10 h-10 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}
+            style={tw`w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm`}
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="cart" size={20} color={COLORS.chocolateBrown} />
+            <Ionicons name="cart" size={19} color={COLORS.chocolateBrown} />
             {totalCartCount > 0 && (
-              <View style={tw`absolute -top-1 -right-1 bg-strawberryPink min-w-4 h-4 rounded-full items-center justify-center px-1`}>
-                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>{totalCartCount}</Text>
+              <View style={tw`absolute -top-1.5 -right-1.5 bg-strawberryPink min-w-5 h-5 rounded-full items-center justify-center px-1 shadow-sm`}>
+                <Text style={tw`text-[10px] font-black text-white`}>{totalCartCount}</Text>
               </View>
             )}
           </TouchableOpacity>
 
           {/* 2. Notification Button */}
           <TouchableOpacity
-            style={tw`w-10 h-10 rounded-full bg-white items-center justify-center border border-vanillaCreamDark shadow-sm relative`}
+            style={tw`w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm relative`}
             onPress={() =>
               Alert.alert(
                 '🔔 Notifications',
@@ -793,7 +797,7 @@ export default function DashboardScreen({
             }
             activeOpacity={0.8}
           >
-            <Ionicons name="notifications-outline" size={20} color={COLORS.chocolateBrown} />
+            <Ionicons name="notifications-outline" size={19} color={COLORS.chocolateBrown} />
             <View style={tw`absolute top-2 right-2 w-2 h-2 rounded-full bg-strawberryPink`} />
           </TouchableOpacity>
         </View>
@@ -801,20 +805,20 @@ export default function DashboardScreen({
 
       {/* ── Prominent Location Bar (Yaoundé Store & Delivery Destination) ── */}
       <TouchableOpacity
-        style={tw`flex-row items-center justify-between bg-white mx-5 mb-2 px-3.5 py-2.5 rounded-2xl border border-vanillaCreamDark shadow-sm`}
+        style={tw`flex-row items-center justify-between bg-white mx-4 mt-3 mb-2 px-3.5 py-2.5 rounded-2xl border border-borderSubtle shadow-sm`}
         onPress={() => setIsLocationModalVisible(true)}
         activeOpacity={0.8}
       >
         <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
-          <View style={tw`w-8 h-8 rounded-full bg-strawberryPinkLight items-center justify-center`}>
-            <Ionicons name="location" size={17} color={COLORS.strawberryPink} />
+          <View style={tw`w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+            <Ionicons name="location" size={18} color={COLORS.strawberryPink} />
           </View>
           <View style={tw`flex-1`}>
             <View style={tw`flex-row items-center gap-1.5`}>
               <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
                 Delivery Destination
               </Text>
-              <Text style={tw`text-[9px] bg-vanillaCream text-chocolateBrown font-bold px-1.5 py-0.2 rounded-md border border-vanillaCreamDark`}>
+              <Text style={tw`text-[9px] bg-strawberryPinkLight text-strawberryPink font-bold px-1.5 py-0.2 rounded-md`}>
                 Yaoundé
               </Text>
             </View>
@@ -829,7 +833,7 @@ export default function DashboardScreen({
           </View>
         </View>
 
-        <View style={tw`flex-row items-center gap-1 bg-vanillaCream px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark`}>
+        <View style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1.5 rounded-xl border border-borderSubtle`}>
           <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
             {locationResult ? 'Change' : 'Set 📍'}
           </Text>
@@ -844,10 +848,10 @@ export default function DashboardScreen({
           contentContainerStyle={tw`px-5 pt-2 pb-28`}
         >
           {/* Search Bar */}
-          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-2.5 my-2 border border-vanillaCreamDark shadow-sm`}>
-            <Ionicons name="search" size={18} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
+          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-3 my-2 border border-borderSubtle shadow-sm`}>
+            <Ionicons name="search" size={18} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
             <TextInput
-              style={tw`flex-1 text-sm font-medium text-chocolateBrown`}
+              style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
               placeholder={t('searchPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={searchQuery}
@@ -861,9 +865,9 @@ export default function DashboardScreen({
           </View>
 
           {/* Sort & Availability Controls */}
-          <View style={tw`flex-row items-center justify-between my-2 px-1`}>
+          <View style={tw`flex-row items-center justify-between my-1 px-1`}>
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1.5 bg-white px-4 py-2 rounded-xl border border-vanillaCreamDark shadow-sm`}
+              style={tw`flex-row items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-borderSubtle shadow-sm`}
               onPress={() => {
                 Alert.alert(
                   t('sortBy'),
@@ -880,7 +884,7 @@ export default function DashboardScreen({
               }}
               activeOpacity={0.8}
             >
-              <Ionicons name="funnel" size={16} color={COLORS.chocolateBrownMuted} />
+              <Ionicons name="funnel-outline" size={15} color={COLORS.strawberryPink} />
               <Text style={tw`text-xs font-bold text-chocolateBrown`}>
                 {t('sortBy')}:{' '}
                 <Text style={tw`text-strawberryPink font-black`}>
@@ -895,7 +899,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1 px-3 py-1.5 rounded-xl border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1 px-3 py-2 rounded-xl border border-borderSubtle bg-white shadow-sm`,
                 showUnavailable && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setShowUnavailable((prev) => !prev)}
@@ -908,8 +912,8 @@ export default function DashboardScreen({
               />
               <Text
                 style={[
-                  tw`text-[10px] font-bold`,
-                  showUnavailable ? tw`text-white` : tw`text-chocolateBrownMuted`,
+                  tw`text-[11px] font-bold`,
+                  showUnavailable ? tw`text-white font-black` : tw`text-chocolateBrownMuted`,
                 ]}
               >
                 {showUnavailable ? t('hideUnavailable') : t('showUnavailable')}
@@ -918,7 +922,7 @@ export default function DashboardScreen({
           </View>
 
           {/* ── Interactive Yaoundé Map Card on Main Dashboard ── */}
-          <View style={tw`bg-white rounded-3xl p-3.5 my-2 border border-vanillaCreamDark shadow-sm`}>
+          <View style={tw`bg-white rounded-3xl p-3.5 my-2 border border-borderSubtle shadow-sm`}>
             <View style={tw`flex-row justify-between items-center mb-2.5 px-0.5`}>
               <View style={tw`flex-row items-center gap-2`}>
                 <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
@@ -933,7 +937,7 @@ export default function DashboardScreen({
               </View>
 
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1 bg-vanillaCream px-2.5 py-1 rounded-xl border border-vanillaCreamDark`}
+                style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1 rounded-xl border border-borderSubtle`}
                 onPress={() => setIsMapExpanded(!isMapExpanded)}
                 activeOpacity={0.8}
               >
@@ -995,7 +999,7 @@ export default function DashboardScreen({
                       <TouchableOpacity
                         key={quarter}
                         style={[
-                          tw`px-2.5 py-1 rounded-xl border border-vanillaCreamDark bg-vanillaCream mr-1.5`,
+                          tw`px-2.5 py-1 rounded-xl border border-borderSubtle bg-surfaceBright mr-1.5`,
                           isSel && tw`bg-strawberryPink border-strawberryPink`,
                         ]}
                         onPress={() => selectQuarter(quarter)}
@@ -1016,26 +1020,44 @@ export default function DashboardScreen({
             )}
           </View>
 
-          {/* Special Offer Banner (Butter Yellow) */}
-          <View style={tw`bg-butterYellow rounded-3xl p-4 my-2 shadow-md`}>
-            <View style={tw`flex-row items-center self-start bg-white px-2.5 py-1 rounded-xl gap-1 mb-2`}>
-              <Ionicons name="sparkles" size={12} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-black text-chocolateBrown tracking-wider`}>
-                TODAY'S SPECIAL
-              </Text>
-            </View>
-            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
-              Double Scoop & Pancake Combo!
-            </Text>
-            <Text style={tw`text-xs font-semibold text-chocolateBrown opacity-90 leading-4`}>
-              Get 20% off when you pair any fresh ice cream scoop with a warm chocolate pancake.
-            </Text>
-            <View style={tw`mt-3 flex-row items-center`}>
-              <View style={tw`bg-white/70 px-2.5 py-1 rounded-lg`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                  📱 MTN MoMo & Orange Money Accepted
+          {/* Hero Promotional Banner (Artisanal Sweets & Today's Special) */}
+          <View style={tw`bg-chocolateBrown rounded-3xl p-5 my-2 shadow-lg relative overflow-hidden`}>
+            {/* Soft decorative accent shapes */}
+            <View style={tw`absolute -right-8 -top-8 w-32 h-32 rounded-full bg-strawberryPink/20`} />
+            <View style={tw`absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-butterYellow/15`} />
+
+            <View style={tw`flex-row items-center justify-between mb-2.5`}>
+              <View style={tw`flex-row items-center bg-strawberryPink px-3 py-1 rounded-full gap-1.5 shadow-sm`}>
+                <Ionicons name="sparkles" size={12} color={COLORS.white} />
+                <Text style={tw`text-[10px] font-black text-white tracking-wider uppercase`}>
+                  TODAY'S SPECIAL
                 </Text>
               </View>
+              <View style={tw`bg-white/15 px-2.5 py-1 rounded-full`}>
+                <Text style={tw`text-[11px] font-bold text-butterYellow`}>20% OFF COMBO</Text>
+              </View>
+            </View>
+
+            <Text style={tw`text-lg font-black text-white mb-1 tracking-tight`}>
+              Double Scoop & Hot Pancake Combo! 🍦🥞
+            </Text>
+            <Text style={tw`text-xs font-medium text-white/80 leading-4 mb-3.5`}>
+              Pair any fresh artisanal ice cream scoop with warm fluffy pancakes. Freshly prepared to order.
+            </Text>
+
+            <View style={tw`flex-row items-center justify-between`}>
+              <View style={tw`flex-row items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl`}>
+                <Text style={tw`text-[11px] font-bold text-white/90`}>
+                  📱 MTN MoMo & Orange Money
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={tw`bg-strawberryPink px-3.5 py-1.5 rounded-xl shadow-sm`}
+                onPress={() => setSelectedCategory('combo')}
+                activeOpacity={0.85}
+              >
+                <Text style={tw`text-xs font-black text-white`}>Order Now →</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -1047,7 +1069,7 @@ export default function DashboardScreen({
           >
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'all' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('all')}
@@ -1060,7 +1082,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'all' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'all' && tw`text-white font-black`,
                 ]}
               >
                 {t('allTreats')}
@@ -1069,7 +1091,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'ice-cream' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('ice-cream')}
@@ -1082,7 +1104,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'ice-cream' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'ice-cream' && tw`text-white font-black`,
                 ]}
               >
                 {t('iceCream')}
@@ -1091,7 +1113,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'pancake' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('pancake')}
@@ -1104,7 +1126,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'pancake' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'pancake' && tw`text-white font-black`,
                 ]}
               >
                 {t('pancakeCategory')}
@@ -1113,7 +1135,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'topping' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('topping')}
@@ -1126,7 +1148,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'topping' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'topping' && tw`text-white font-black`,
                 ]}
               >
                 Toppings
@@ -1135,7 +1157,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'drink' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('drink')}
@@ -1148,7 +1170,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'drink' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'drink' && tw`text-white font-black`,
                 ]}
               >
                 Drinks
@@ -1157,7 +1179,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'special-offer' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('special-offer')}
@@ -1170,7 +1192,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'special-offer' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'special-offer' && tw`text-white font-black`,
                 ]}
               >
                 Special Offers
@@ -1179,7 +1201,7 @@ export default function DashboardScreen({
 
             <TouchableOpacity
               style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-vanillaCreamDark`,
+                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
                 selectedCategory === 'combo' && tw`bg-strawberryPink border-strawberryPink`,
               ]}
               onPress={() => setSelectedCategory('combo')}
@@ -1192,7 +1214,7 @@ export default function DashboardScreen({
               <Text
                 style={[
                   tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'combo' && tw`text-chocolateBrown font-black`,
+                  selectedCategory === 'combo' && tw`text-white font-black`,
                 ]}
               >
                 {t('combosCategory')}
@@ -1202,21 +1224,26 @@ export default function DashboardScreen({
 
           {/* Today's Ice Cream Flavours Banner if published */}
           {dailyMenu && dailyMenu.availableFlavors && dailyMenu.availableFlavors.length > 0 && (
-            <View style={tw`my-2 p-3.5 bg-vanillaCream rounded-2xl border border-strawberryPink/30`}>
-              <View style={tw`flex-row items-center justify-between mb-2`}>
-                <View style={tw`flex-row items-center gap-1.5`}>
-                  <Text style={tw`text-base`}>🍦</Text>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Today's Fresh Churned Flavours</Text>
+            <View style={tw`my-2 p-4 bg-white rounded-3xl border border-borderSubtle shadow-sm`}>
+              <View style={tw`flex-row items-center justify-between mb-2.5`}>
+                <View style={tw`flex-row items-center gap-2`}>
+                  <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+                    <Text style={tw`text-base`}>🍦</Text>
+                  </View>
+                  <View>
+                    <Text style={tw`text-xs font-black text-chocolateBrown`}>Today's Fresh Churned Flavours</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted font-medium`}>Handcrafted fresh every morning</Text>
+                  </View>
                 </View>
-                <View style={tw`bg-strawberryPink px-2 py-0.5 rounded-full`}>
-                  <Text style={tw`text-[10px] font-bold text-white`}>{dailyMenu.availableFlavors.length} today</Text>
+                <View style={tw`bg-strawberryPinkLight px-2.5 py-1 rounded-full`}>
+                  <Text style={tw`text-[10px] font-black text-strawberryPink`}>{dailyMenu.availableFlavors.length} today</Text>
                 </View>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={tw`flex-row gap-1.5`}>
+                <View style={tw`flex-row gap-2`}>
                   {dailyMenu.availableFlavors.map((flv) => (
-                    <View key={flv} style={tw`bg-white px-3 py-1.5 rounded-full border border-vanillaCreamDark shadow-sm flex-row items-center gap-1`}>
-                      <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen`} />
+                    <View key={flv} style={tw`bg-surfaceBright px-3 py-1.5 rounded-full border border-borderSubtle shadow-xs flex-row items-center gap-1.5`}>
+                      <View style={tw`w-2 h-2 rounded-full bg-pistachioGreen`} />
                       <Text style={tw`text-xs font-bold text-chocolateBrown`}>{flv}</Text>
                     </View>
                   ))}
@@ -1242,19 +1269,21 @@ export default function DashboardScreen({
                 ? 'Special Offers & Bundles'
                 : 'Special Combo Stacks'}
             </Text>
-            <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
-              {filteredProducts.length} items
-            </Text>
+            <View style={tw`bg-surfaceBright px-2.5 py-1 rounded-full border border-borderSubtle`}>
+              <Text style={tw`text-xs font-black text-chocolateBrownMuted`}>
+                {filteredProducts.length} items
+              </Text>
+            </View>
           </View>
 
           {/* Products List */}
           {loading ? (
             <View style={tw`items-center py-12 gap-2`}>
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs text-chocolateBrownMuted`}>Loading fresh treats...</Text>
+              <Text style={tw`text-xs text-chocolateBrownMuted font-semibold`}>Loading fresh treats...</Text>
             </View>
           ) : (
-            <View style={tw`flex-row flex-wrap gap-4 mt-2`}>
+            <View style={tw`flex-row flex-wrap justify-between mt-2`}>
               {filteredProducts.map((product) => {
                 const qtyInCart = cart
                   .filter((ci) => ci.menuItemId === product.id)
@@ -1263,14 +1292,15 @@ export default function DashboardScreen({
                   <View
                     key={product.id}
                     style={[
-                      tw`w-[calc(50%-8px)] bg-white rounded-3xl overflow-hidden shadow-md border border-vanillaCreamDark`,
+                      { width: CARD_WIDTH },
+                      tw`bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSubtle mb-4`,
                     ]}
                   >
                     {/* Image & Tags (Tappable to customize) */}
                     <TouchableOpacity
                       activeOpacity={0.9}
                       onPress={() => setSelectedProductForDetails(product)}
-                      style={tw`w-full h-44 bg-vanillaCreamDark relative`}
+                      style={tw`w-full h-40 bg-surfaceBright relative`}
                     >
                       <Image
                         source={{ uri: product.imageUrl }}
@@ -1279,59 +1309,55 @@ export default function DashboardScreen({
                       />
                       {product.isSpecialOffer && (
                         <View style={tw`absolute top-2.5 left-2.5 bg-butterYellow px-2.5 py-1 rounded-xl shadow-sm`}>
-                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                          <Text style={tw`text-[10px] font-black text-chocolateBrown uppercase tracking-wider`}>
                             {product.offerTag || 'Special'}
                           </Text>
                         </View>
                       )}
-                      <View style={tw`absolute top-2.5 right-2.5 flex-row items-center gap-1 bg-white/90 px-2 py-1 rounded-xl`}>
-                        <Ionicons name="star" size={12} color={COLORS.butterYellow} />
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                      <View style={tw`absolute top-2.5 right-2.5 flex-row items-center gap-1 bg-white/95 px-2 py-0.5 rounded-full shadow-sm`}>
+                        <Ionicons name="star" size={11} color={COLORS.butterYellow} />
+                        <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
                           {product.rating || '4.9'}
                         </Text>
                       </View>
                     </TouchableOpacity>
 
-                    {/* Body Details (Tappable to customize) */}
-                    <View style={tw`p-4`}>
+                    {/* Body Details */}
+                    <View style={tw`p-3.5 flex-1 justify-between`}>
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={() => setSelectedProductForDetails(product)}
                       >
-                        <Text style={tw`text-lg font-black text-chocolateBrown mb-0.5`}>
+                        <Text style={tw`text-sm font-black text-chocolateBrown mb-0.5 tracking-tight`} numberOfLines={1}>
                           {product.name}
                         </Text>
-                        <Text style={tw`text-xs text-chocolateBrownLight mb-1.5`}>
+                        <Text style={tw`text-[11px] text-chocolateBrownLight mb-1`} numberOfLines={1}>
                           <Text style={tw`font-bold text-strawberryPink`}>Flavor: </Text>
                           {product.flavor}
                         </Text>
                         {product.description ? (
-                          <Text style={tw`text-xs text-chocolateBrownMuted leading-4 mb-3`} numberOfLines={2}>
+                          <Text style={tw`text-[11px] text-chocolateBrownMuted leading-3.5 mb-2.5`} numberOfLines={2}>
                             {product.description}
                           </Text>
                         ) : null}
                       </TouchableOpacity>
 
-                      {/* Price & Stock Row */}
-                      <View style={tw`flex-row justify-between items-center mt-1`}>
-                        <View>
-                          <Text style={tw`text-base font-black text-chocolateBrown`}>
+                      {/* Price & Add to Cart Row */}
+                      <View style={tw`mt-2 pt-2 border-t border-borderSubtle`}>
+                        <View style={tw`flex-row items-center justify-between mb-2`}>
+                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
                             {product.price.toLocaleString()} XAF
                           </Text>
                           <View
                             style={[
-                              tw`flex-row items-center gap-1 px-2 py-0.5 rounded-lg mt-1`,
+                              tw`flex-row items-center gap-1 px-1.5 py-0.5 rounded-md`,
                               product.inStock ? tw`bg-pistachioGreenLight` : tw`bg-outOfStockBg`,
                             ]}
                           >
-                            <Ionicons
-                              name={product.inStock ? 'checkmark-circle' : 'close-circle'}
-                              size={12}
-                              color={product.inStock ? COLORS.chocolateBrown : COLORS.errorRed}
-                            />
+                            <View style={[tw`w-1.5 h-1.5 rounded-full`, product.inStock ? tw`bg-pistachioGreen` : tw`bg-errorRed`]} />
                             <Text
                               style={[
-                                tw`text-xs font-bold`,
+                                tw`text-[9px] font-bold`,
                                 product.inStock ? tw`text-chocolateBrown` : tw`text-errorRed`,
                               ]}
                             >
@@ -1342,35 +1368,37 @@ export default function DashboardScreen({
 
                         {/* Add to Cart Actions */}
                         {qtyInCart > 0 ? (
-                          <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark p-1 gap-2`}>
+                          <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-xl border border-borderSubtle p-1`}>
                             <TouchableOpacity
-                              style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
+                              style={tw`w-7 h-7 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
                               onPress={() => removeFromCartSimple(product.id)}
                             >
-                              <Feather name="minus" size={14} color={COLORS.chocolateBrown} />
+                              <Feather name="minus" size={13} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
-                            <Text style={tw`text-sm font-black text-chocolateBrown min-w-4 text-center`}>
+                            <Text style={tw`text-xs font-black text-chocolateBrown min-w-5 text-center`}>
                               {qtyInCart}
                             </Text>
                             <TouchableOpacity
-                              style={tw`w-7 h-7 rounded-xl bg-white items-center justify-center shadow-sm`}
+                              style={tw`w-7 h-7 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
                               onPress={() => addToCartSimple(product.id)}
                             >
-                              <Feather name="plus" size={14} color={COLORS.chocolateBrown} />
+                              <Feather name="plus" size={13} color={COLORS.white} />
                             </TouchableOpacity>
                           </View>
                         ) : (
                           <TouchableOpacity
                             style={[
-                              tw`flex-row items-center gap-1 bg-strawberryPink px-4 py-2 rounded-xl shadow`,
-                              !product.inStock && tw`bg-vanillaCreamDark opacity-60`,
+                              tw`flex-row items-center justify-center gap-1 bg-strawberryPink py-2 rounded-xl shadow-sm`,
+                              !product.inStock && tw`bg-borderSubtle opacity-60`,
                             ]}
                             disabled={!product.inStock}
                             onPress={() => addToCartSimple(product.id)}
                             activeOpacity={0.85}
                           >
-                            <Ionicons name="add" size={18} color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-xs font-black text-chocolateBrown`}>Add</Text>
+                            <Ionicons name="cart" size={13} color={COLORS.white} />
+                            <Text style={tw`text-xs font-black text-white`}>
+                              {t('addToCartBtn')}
+                            </Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -1407,7 +1435,7 @@ export default function DashboardScreen({
             </View>
             <TouchableOpacity
               onPress={handleRefreshOrders}
-              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-vanillaCreamDark shadow-sm`}
+              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-borderSubtle shadow-sm`}
               activeOpacity={0.7}
             >
               {refreshingOrders ? (
@@ -1421,7 +1449,7 @@ export default function DashboardScreen({
           {/* 2. Quick Stat Overview Cards */}
           <View style={tw`flex-row gap-2.5 mb-3.5`}>
             {/* Total Orders */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
                   {t('totalPlaced')}
@@ -1433,7 +1461,7 @@ export default function DashboardScreen({
             </View>
 
             {/* In Progress */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-pistachioGreen uppercase tracking-wider`}>
                   {t('activeOrders')}
@@ -1445,7 +1473,7 @@ export default function DashboardScreen({
             </View>
 
             {/* Completed */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
               <View style={tw`flex-row items-center justify-between mb-1`}>
                 <Text style={tw`text-[10px] font-black text-blue-600 uppercase tracking-wider`}>
                   {t('completedOrders')}
@@ -1458,10 +1486,10 @@ export default function DashboardScreen({
           </View>
 
           {/* 3. Search Bar */}
-          <View style={tw`flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3.5 py-2 mb-3 shadow-sm`}>
+          <View style={tw`flex-row items-center bg-white border border-borderSubtle rounded-2xl px-3.5 py-2.5 mb-3 shadow-sm`}>
             <Ionicons name="search-outline" size={17} color={COLORS.chocolateBrownMuted} />
             <TextInput
-              style={tw`flex-1 text-xs text-chocolateBrown ml-2`}
+              style={tw`flex-1 text-xs text-chocolateBrown ml-2 font-medium`}
               placeholder={t('searchOrdersPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={orderSearchQuery}
@@ -1495,7 +1523,7 @@ export default function DashboardScreen({
                     tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-2xl border`,
                     active
                       ? tw`bg-strawberryPink border-strawberryPink shadow-sm`
-                      : tw`bg-white border-vanillaCreamDark`,
+                      : tw`bg-white border-borderSubtle shadow-sm`,
                   ]}
                   onPress={() => setOrderFilter(tab.id as OrderFilterType)}
                   activeOpacity={0.8}
@@ -1503,7 +1531,7 @@ export default function DashboardScreen({
                   <Text
                     style={[
                       tw`text-xs font-black`,
-                      active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                      active ? tw`text-white` : tw`text-chocolateBrown`,
                     ]}
                   >
                     {tab.label}
@@ -1511,13 +1539,13 @@ export default function DashboardScreen({
                   <View
                     style={[
                       tw`px-1.5 py-0.2 rounded-full`,
-                      active ? tw`bg-white/80` : tw`bg-vanillaCream`,
+                      active ? tw`bg-white/30` : tw`bg-surfaceBright border border-borderSubtle`,
                     ]}
                   >
                     <Text
                       style={[
                         tw`text-[10px] font-black`,
-                        active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                        active ? tw`text-white` : tw`text-chocolateBrownMuted`,
                       ]}
                     >
                       {tab.count}
@@ -1530,7 +1558,7 @@ export default function DashboardScreen({
 
           {/* 5. Order List or Empty State */}
           {filteredOrders.length === 0 ? (
-            <View style={tw`bg-white rounded-3xl p-8 items-center justify-center border border-vanillaCreamDark mt-2 shadow-sm`}>
+            <View style={tw`bg-white rounded-3xl p-8 items-center justify-center border border-borderSubtle mt-2 shadow-sm`}>
               <Text style={tw`text-5xl mb-3`}>
                 {orderFilter === 'completed'
                   ? '🎉'
@@ -1563,8 +1591,8 @@ export default function DashboardScreen({
                 }}
                 activeOpacity={0.85}
               >
-                <Ionicons name="sparkles" size={14} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                <Ionicons name="sparkles" size={14} color={COLORS.white} />
+                <Text style={tw`text-xs font-black text-white`}>
                   {t('exploreMenu')}
                 </Text>
               </TouchableOpacity>
@@ -1577,10 +1605,10 @@ export default function DashboardScreen({
               return (
                 <View
                   key={order.id}
-                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-vanillaCreamDark shadow-sm`}
+                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}
                 >
                   {/* Card Header: ID, Date & Status Badge */}
-                  <View style={tw`flex-row justify-between items-start pb-2.5 border-b border-vanillaCreamDark/60`}>
+                  <View style={tw`flex-row justify-between items-start pb-2.5 border-b border-borderSubtle`}>
                     <View>
                       <View style={tw`flex-row items-center gap-1.5`}>
                         <Text style={tw`text-xs text-strawberryPink`}>🧾</Text>
@@ -1615,13 +1643,13 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Visual 3-Stage Progress Timeline */}
-                  <View style={tw`flex-row items-center justify-between bg-vanillaCream/50 rounded-2xl px-3 py-2 mt-2.5 mb-2`}>
+                  <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-2xl px-3 py-2 mt-2.5 mb-2 border border-borderSubtle`}>
                     {/* Step 1: Placed */}
                     <View style={tw`flex-row items-center gap-1`}>
                       <View
                         style={[
                           tw`w-4 h-4 rounded-full items-center justify-center`,
-                          statusInfo.step >= 1 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
+                          statusInfo.step >= 1 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
                         ]}
                       >
                         <Ionicons name="checkmark" size={10} color={COLORS.white} />
@@ -1640,7 +1668,7 @@ export default function DashboardScreen({
                     <View
                       style={[
                         tw`flex-1 h-0.5 mx-1.5`,
-                        statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
+                        statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
                       ]}
                     />
 
@@ -1649,7 +1677,7 @@ export default function DashboardScreen({
                       <View
                         style={[
                           tw`w-4 h-4 rounded-full items-center justify-center`,
-                          statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-vanillaCreamDark`,
+                          statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
                         ]}
                       >
                         <Ionicons
@@ -1672,7 +1700,7 @@ export default function DashboardScreen({
                     <View
                       style={[
                         tw`flex-1 h-0.5 mx-1.5`,
-                        statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-vanillaCreamDark`,
+                        statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-borderSubtle`,
                       ]}
                     />
 
@@ -1681,7 +1709,7 @@ export default function DashboardScreen({
                       <View
                         style={[
                           tw`w-4 h-4 rounded-full items-center justify-center`,
-                          statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-vanillaCreamDark`,
+                          statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-borderSubtle`,
                         ]}
                       >
                         <Ionicons
@@ -1722,7 +1750,7 @@ export default function DashboardScreen({
                       return (
                         <View
                           key={idx}
-                          style={tw`bg-vanillaCream/40 px-2.5 py-2 rounded-xl border border-vanillaCreamDark/40`}
+                          style={tw`bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle`}
                         >
                           <View style={tw`flex-row items-center`}>
                             <Text style={tw`text-sm mr-2`}>{emoji}</Text>
@@ -1752,14 +1780,14 @@ export default function DashboardScreen({
                                 </View>
                               )}
                               {item.sizeOption && (
-                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
                                   <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
                                     {item.sizeOption}
                                   </Text>
                                 </View>
                               )}
                               {item.pancakeStyle && (
-                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
                                   <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
                                     {item.pancakeStyle}
                                   </Text>
@@ -1789,7 +1817,7 @@ export default function DashboardScreen({
 
                   {/* Delivery Address Pill (if destination specified) */}
                   {order.deliveryAddress ? (
-                    <View style={tw`flex-row items-center justify-between bg-vanillaCream/60 px-3 py-2 rounded-xl mt-1 border border-vanillaCreamDark/60`}>
+                    <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mt-1 border border-borderSubtle`}>
                       <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
                         <Ionicons name="location-sharp" size={13} color={COLORS.strawberryPink} />
                         <Text style={tw`text-[11px] font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
@@ -1797,7 +1825,7 @@ export default function DashboardScreen({
                         </Text>
                       </View>
                       {order.distanceKm ? (
-                        <View style={tw`bg-white px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
+                        <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
                           <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
                             {order.distanceKm.toFixed(1)} km
                           </Text>
@@ -1807,10 +1835,10 @@ export default function DashboardScreen({
                   ) : null}
 
                   {/* Card Footer: Total Paid & Action Buttons */}
-                  <View style={tw`border-t border-vanillaCreamDark pt-2.5 mt-2`}>
+                  <View style={tw`border-t border-borderSubtle pt-2.5 mt-2`}>
                     <View style={tw`flex-row justify-between items-center mb-2.5`}>
                       <View style={tw`flex-row items-center gap-2`}>
-                        <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-lg border border-vanillaCreamDark`}>
+                        <View style={tw`bg-surfaceBright px-2 py-0.5 rounded-lg border border-borderSubtle`}>
                           <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
                             {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                           </Text>
@@ -1838,9 +1866,9 @@ export default function DashboardScreen({
                       onPress={() => setSelectedOrderForTracking(order)}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="map" size={15} color={COLORS.chocolateBrown} />
+                      <Ionicons name="map" size={15} color={COLORS.white} />
                       <Text
-                        style={tw`text-xs font-black text-chocolateBrown tracking-wide`}
+                        style={tw`text-xs font-black text-white tracking-wide`}
                         numberOfLines={1}
                       >
                         {t('trackLive')}
@@ -1851,7 +1879,7 @@ export default function DashboardScreen({
                     <View style={tw`flex-row items-center gap-2`}>
                       {/* Download Receipt Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-borderSubtle shadow-sm`}
                         onPress={() => handleDownloadReceipt(order)}
                         disabled={downloadingOrderId === order.id}
                         activeOpacity={0.8}
@@ -1873,7 +1901,7 @@ export default function DashboardScreen({
 
                       {/* Reorder Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-vanillaCream py-2.5 rounded-xl border border-vanillaCreamDark`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-surfaceBright py-2.5 rounded-xl border border-borderSubtle`}
                         onPress={() => handleReorder(order)}
                         activeOpacity={0.8}
                       >
@@ -1888,7 +1916,7 @@ export default function DashboardScreen({
 
                       {/* Delete Button */}
                       <TouchableOpacity
-                        style={tw`w-10 h-10 rounded-xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}
+                        style={tw`w-10 h-10 rounded-xl bg-surfaceBright items-center justify-center border border-borderSubtle`}
                         onPress={() => deleteOrder(order.id)}
                         activeOpacity={0.7}
                       >
@@ -1973,15 +2001,15 @@ export default function DashboardScreen({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
-          <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-vanillaCreamDark shadow-sm`}>
-            <View style={tw`w-20 h-20 rounded-full bg-strawberryPinkLight items-center justify-center mb-3`}>
-              <Ionicons name="person" size={40} color={COLORS.strawberryPink} />
+          <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm`}>
+            <View style={tw`w-20 h-20 rounded-full bg-strawberryPinkLight items-center justify-center mb-3 border border-strawberryPink/20`}>
+              <Ionicons name="person" size={38} color={COLORS.strawberryPink} />
             </View>
             <Text style={tw`text-xl font-black text-chocolateBrown`}>{userName}</Text>
             <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
               {userEmail || 'customer@bestcream.com'}
             </Text>
-            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2.5`}>
+            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2.5 border border-butterYellow/40`}>
               <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>
                 {t('verifiedSweetTooth')}
               </Text>
@@ -1989,7 +2017,7 @@ export default function DashboardScreen({
           </View>
 
           {/* Language Switcher Setting Card */}
-          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
+          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
             <View style={tw`flex-row justify-between items-center`}>
               <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="language-outline" size={20} color={COLORS.chocolateBrown} />
@@ -2001,11 +2029,11 @@ export default function DashboardScreen({
             </View>
           </View>
 
-          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
+          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
               {t('paymentPreferences')}
             </Text>
-            <View style={tw`flex-row justify-between items-center py-2.5 border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row justify-between items-center py-2.5 border-b border-borderSubtle`}>
               <View style={tw`flex-row items-center gap-2.5`}>
                 <Ionicons name="phone-portrait-outline" size={20} color={COLORS.chocolateBrown} />
                 <Text style={tw`text-xs font-semibold text-chocolateBrown`}>MTN Mobile Money</Text>
@@ -2023,12 +2051,12 @@ export default function DashboardScreen({
 
           {/* ── Business & Store Information Card ── */}
           {businessSettings && (
-            <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-vanillaCreamDark shadow-sm`}>
-              <View style={tw`flex-row items-center gap-3 mb-3 pb-3 border-b border-vanillaCreamDark/60`}>
+            <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
+              <View style={tw`flex-row items-center gap-3 mb-3 pb-3 border-b border-borderSubtle`}>
                 {businessSettings.logoUrl ? (
                   <Image source={{ uri: businessSettings.logoUrl }} style={tw`w-12 h-12 rounded-xl`} resizeMode="cover" />
                 ) : (
-                  <View style={tw`w-12 h-12 rounded-xl bg-vanillaCream items-center justify-center`}>
+                  <View style={tw`w-12 h-12 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
                     <Text style={tw`text-2xl`}>🍦</Text>
                   </View>
                 )}
@@ -2064,7 +2092,7 @@ export default function DashboardScreen({
                 </View>
               </View>
 
-              <View style={tw`flex-row gap-2 mt-3 pt-3 border-t border-vanillaCreamDark/60`}>
+              <View style={tw`flex-row gap-2 mt-3 pt-3 border-t border-borderSubtle`}>
                 <View style={[tw`flex-1 py-1.5 px-2 rounded-xl items-center`, businessSettings.isDeliveryAvailable ? tw`bg-pistachioGreen/15 border border-pistachioGreen/30` : tw`bg-gray-100`]}>
                   <Text style={[tw`text-[10px] font-bold`, businessSettings.isDeliveryAvailable ? tw`text-green-800` : tw`text-gray-500`]}>
                     {businessSettings.isDeliveryAvailable ? '🛵 Delivery Open' : 'Delivery Closed'}
@@ -2079,7 +2107,7 @@ export default function DashboardScreen({
             </View>
           )}
 
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark shadow-sm`}>
+          <View style={tw`bg-white rounded-2xl p-4 border border-borderSubtle shadow-sm`}>
             <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
               {t('accountActions')}
             </Text>
@@ -2093,42 +2121,49 @@ export default function DashboardScreen({
 
       {/* ── Floating Cart Checkout Bar (When Cart Has Items) ── */}
       {totalCartCount > 0 && activeTab === 'menu' && (
-        <View style={tw`absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-xl`}>
-          <View>
-            <Text style={tw`text-xs font-bold text-vanillaCreamDark uppercase tracking-wider`}>
-              {totalCartCount} {t('itemsInCart')}
-            </Text>
-            <Text style={tw`text-base font-black text-white`}>
-              Total: {totalCartPrice.toLocaleString()} XAF
-            </Text>
+        <View style={tw`absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl p-3 shadow-2xl flex-row items-center justify-between`}>
+          <View style={tw`flex-row items-center gap-3 ml-1`}>
+            <View style={tw`w-10 h-10 rounded-xl bg-strawberryPink items-center justify-center shadow-sm`}>
+              <Ionicons name="cart" size={19} color={COLORS.white} />
+            </View>
+            <View>
+              <Text style={tw`text-[11px] font-bold text-white/70 uppercase tracking-wider`}>
+                {totalCartCount} {t('itemsInCart')}
+              </Text>
+              <Text style={tw`text-sm font-black text-white`}>
+                {totalCartPrice.toLocaleString()} XAF
+              </Text>
+            </View>
           </View>
           <TouchableOpacity
-            style={tw`flex-row items-center gap-1 bg-strawberryPink px-4 py-2 rounded-xl shadow-sm`}
+            style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-4 py-2.5 rounded-xl shadow-sm`}
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('viewCartAndPay')}</Text>
-            <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrown} />
+            <Text style={tw`text-xs font-black text-white`}>{t('viewCartAndPay')}</Text>
+            <Ionicons name="chevron-forward" size={14} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       )}
 
       {/* ── Bottom Navigation Bar ── */}
-      {/* Background: Vanilla Cream | Selected icon: Strawberry Pink */}
-      <View style={tw`absolute bottom-0 left-0 right-0 h-16 bg-vanillaCream border-t border-vanillaCreamDark flex-row items-center justify-around shadow-md`}>
+      {/* Background: Pure Crisp White | Subtle Top Border | Selected: Strawberry Pink */}
+      <View style={tw`absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-borderSubtle flex-row items-center justify-around shadow-lg`}>
         <TouchableOpacity
           style={tw`items-center justify-center py-1 px-3`}
           onPress={() => setActiveTab('menu')}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={activeTab === 'menu' ? 'ice-cream' : 'ice-cream-outline'}
-            size={22}
-            color={activeTab === 'menu' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
-          />
+          <View style={[tw`p-1 rounded-xl`, activeTab === 'menu' && tw`bg-strawberryPinkLight`]}>
+            <Ionicons
+              name={activeTab === 'menu' ? 'ice-cream' : 'ice-cream-outline'}
+              size={20}
+              color={activeTab === 'menu' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
+            />
+          </View>
           <Text
             style={[
-              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
               activeTab === 'menu' && tw`text-strawberryPink font-black`,
             ]}
           >
@@ -2141,14 +2176,16 @@ export default function DashboardScreen({
           onPress={() => setActiveTab('orders')}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={activeTab === 'orders' ? 'receipt' : 'receipt-outline'}
-            size={22}
-            color={activeTab === 'orders' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
-          />
+          <View style={[tw`p-1 rounded-xl`, activeTab === 'orders' && tw`bg-strawberryPinkLight`]}>
+            <Ionicons
+              name={activeTab === 'orders' ? 'receipt' : 'receipt-outline'}
+              size={20}
+              color={activeTab === 'orders' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
+            />
+          </View>
           <Text
             style={[
-              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
               activeTab === 'orders' && tw`text-strawberryPink font-black`,
             ]}
           >
@@ -2161,14 +2198,16 @@ export default function DashboardScreen({
           onPress={() => setActiveTab('deals')}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={activeTab === 'deals' ? 'pricetag' : 'pricetag-outline'}
-            size={22}
-            color={activeTab === 'deals' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
-          />
+          <View style={[tw`p-1 rounded-xl`, activeTab === 'deals' && tw`bg-strawberryPinkLight`]}>
+            <Ionicons
+              name={activeTab === 'deals' ? 'pricetag' : 'pricetag-outline'}
+              size={20}
+              color={activeTab === 'deals' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
+            />
+          </View>
           <Text
             style={[
-              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
               activeTab === 'deals' && tw`text-strawberryPink font-black`,
             ]}
           >
@@ -2181,14 +2220,16 @@ export default function DashboardScreen({
           onPress={() => setActiveTab('profile')}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={activeTab === 'profile' ? 'person' : 'person-outline'}
-            size={22}
-            color={activeTab === 'profile' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
-          />
+          <View style={[tw`p-1 rounded-xl`, activeTab === 'profile' && tw`bg-strawberryPinkLight`]}>
+            <Ionicons
+              name={activeTab === 'profile' ? 'person' : 'person-outline'}
+              size={20}
+              color={activeTab === 'profile' ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
+            />
+          </View>
           <Text
             style={[
-              tw`text-xs font-bold text-chocolateBrownMuted mt-0.5`,
+              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
               activeTab === 'profile' && tw`text-strawberryPink font-black`,
             ]}
           >
@@ -2207,7 +2248,7 @@ export default function DashboardScreen({
         <View style={tw`flex-1 bg-black/50 justify-end`}>
           <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8`}>
             {/* Modal Header */}
-            <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-borderSubtle`}>
               <View>
                 <Text style={tw`text-lg font-black text-chocolateBrown`}>Your Order Cart 🛒</Text>
                 <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
@@ -2216,7 +2257,7 @@ export default function DashboardScreen({
               </View>
               <TouchableOpacity
                 onPress={() => setIsCartModalVisible(false)}
-                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
+                style={tw`w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle`}
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
@@ -2234,7 +2275,7 @@ export default function DashboardScreen({
                 </View>
               ) : (
                 cart.map((ci, idx) => (
-                  <View key={idx} style={tw`flex-row items-center py-3 border-b border-vanillaCreamDark`}>
+                  <View key={idx} style={tw`flex-row items-center py-3 border-b border-borderSubtle`}>
                     <View style={tw`flex-1`}>
                       <Text style={tw`text-sm font-black text-chocolateBrown`}>{ci.name}</Text>
                       {ci.flavor && (
@@ -2272,9 +2313,9 @@ export default function DashboardScreen({
                         {ci.price.toLocaleString()} XAF each
                       </Text>
                     </View>
-                    <View style={tw`flex-row items-center bg-vanillaCream rounded-xl border border-vanillaCreamDark p-1 gap-2`}>
+                    <View style={tw`flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-1 gap-2`}>
                       <TouchableOpacity
-                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
+                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
                         onPress={() => removeFromCartByIndex(idx)}
                       >
                         <Feather name="minus" size={12} color={COLORS.chocolateBrown} />
@@ -2283,7 +2324,7 @@ export default function DashboardScreen({
                         {ci.quantity}
                       </Text>
                       <TouchableOpacity
-                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-sm`}
+                        style={tw`w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
                         onPress={() =>
                           setCart((prev) =>
                             prev.map((c, i) =>
@@ -2292,7 +2333,7 @@ export default function DashboardScreen({
                           )
                         }
                       >
-                        <Feather name="plus" size={12} color={COLORS.chocolateBrown} />
+                        <Feather name="plus" size={12} color={COLORS.white} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -2307,7 +2348,7 @@ export default function DashboardScreen({
                     <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
                       {t('customerName')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
                       <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
                       <TextInput
                         style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
@@ -2324,7 +2365,7 @@ export default function DashboardScreen({
                     <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
                       {t('phoneNumberLabel')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
                       <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
                       <TextInput
                         style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
@@ -2348,7 +2389,7 @@ export default function DashboardScreen({
                           tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
                           orderType === 'delivery'
                             ? tw`bg-strawberryPinkLight border-strawberryPink`
-                            : tw`bg-vanillaCream border-vanillaCreamDark`,
+                            : tw`bg-surfaceBright border-borderSubtle`,
                         ]}
                         onPress={() => setOrderType('delivery')}
                         activeOpacity={0.8}
@@ -2366,7 +2407,7 @@ export default function DashboardScreen({
                           tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
                           orderType === 'pickup'
                             ? tw`bg-strawberryPinkLight border-strawberryPink`
-                            : tw`bg-vanillaCream border-vanillaCreamDark`,
+                            : tw`bg-surfaceBright border-borderSubtle`,
                         ]}
                         onPress={() => setOrderType('pickup')}
                         activeOpacity={0.8}
@@ -2414,7 +2455,7 @@ export default function DashboardScreen({
                           </Text>
                         </TouchableOpacity>
 
-                        <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5`}>
+                        <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5`}>
                           <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
                           <TextInput
                             style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1`}
@@ -2505,7 +2546,7 @@ export default function DashboardScreen({
                     <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
                       {t('preferredTime')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
                       <Text style={{ fontSize: 16, marginRight: 8 }}>⏰</Text>
                       <TextInput
                         style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
@@ -2522,7 +2563,7 @@ export default function DashboardScreen({
                     <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
                       {t('orderInstructions')}
                     </Text>
-                    <View style={tw`bg-vanillaCream rounded-2xl border border-vanillaCreamDark`}>
+                    <View style={tw`bg-surfaceBright rounded-2xl border border-borderSubtle`}>
                       <TextInput
                         style={tw`text-sm font-medium text-chocolateBrown p-3`}
                         value={orderInstructions}
@@ -2548,7 +2589,7 @@ export default function DashboardScreen({
                   <View style={tw`flex-row gap-2.5 mb-3.5`}>
                     <TouchableOpacity
                       style={[
-                        tw`flex-1 border-2 border-vanillaCreamDark rounded-2xl p-3 items-center bg-vanillaCream relative`,
+                        tw`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative`,
                         paymentMethod === 'mtn-momo' && tw`border-strawberryPink bg-strawberryPinkLight`,
                       ]}
                       onPress={() => setPaymentMethod('mtn-momo')}
@@ -2564,7 +2605,7 @@ export default function DashboardScreen({
 
                     <TouchableOpacity
                       style={[
-                        tw`flex-1 border-2 border-vanillaCreamDark rounded-2xl p-3 items-center bg-vanillaCream relative`,
+                        tw`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative`,
                         paymentMethod === 'orange-money' && tw`border-strawberryPink bg-strawberryPinkLight`,
                       ]}
                       onPress={() => setPaymentMethod('orange-money')}
@@ -2580,7 +2621,7 @@ export default function DashboardScreen({
                   </View>
 
                     {/* Summary */}
-                    <View style={tw`bg-vanillaCream rounded-2xl p-3.5 mb-4 gap-1.5`}>
+                    <View style={tw`bg-surfaceBright rounded-2xl p-3.5 mb-4 gap-1.5 border border-borderSubtle`}>
                       <View style={tw`flex-row justify-between`}>
                         <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
                         <Text style={tw`text-xs font-bold text-chocolateBrown`}>
@@ -2602,7 +2643,7 @@ export default function DashboardScreen({
                           {cartDeliveryFee === 0 ? 'FREE' : formatXAF(cartDeliveryFee)}
                         </Text>
                       </View>
-                      <View style={tw`flex-row justify-between border-t border-vanillaCreamDark pt-2 mt-1`}>
+                      <View style={tw`flex-row justify-between border-t border-borderSubtle pt-2 mt-1`}>
                         <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
                         <View style={tw`items-end`}>
                           <Text style={tw`text-base font-black text-chocolateBrown`}>
@@ -2658,7 +2699,7 @@ export default function DashboardScreen({
         <View style={tw`flex-1 bg-black/50 justify-end`}>
           <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8 px-5 pt-4`}>
             {/* Modal Header */}
-            <View style={tw`flex-row justify-between items-center pb-3 border-b border-vanillaCreamDark`}>
+            <View style={tw`flex-row justify-between items-center pb-3 border-b border-borderSubtle`}>
               <View>
                 <Text style={tw`text-lg font-black text-chocolateBrown`}>Set Delivery Destination 📍</Text>
                 <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
@@ -2667,7 +2708,7 @@ export default function DashboardScreen({
               </View>
               <TouchableOpacity
                 onPress={() => setIsLocationModalVisible(false)}
-                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
+                style={tw`w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle`}
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
@@ -2703,7 +2744,7 @@ export default function DashboardScreen({
               <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
                 Or Type Your Quarter in Yaoundé:
               </Text>
-              <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-1.5 mb-3`}>
+              <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5 mb-3`}>
                 <Ionicons name="search" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
                 <TextInput
                   style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1.5`}
@@ -2738,7 +2779,7 @@ export default function DashboardScreen({
                     <TouchableOpacity
                       key={quarter}
                       style={[
-                        tw`px-3 py-2 rounded-xl border border-vanillaCreamDark bg-vanillaCream`,
+                        tw`px-3 py-2 rounded-xl border border-borderSubtle bg-surfaceBright`,
                         isSelected && tw`bg-strawberryPink border-strawberryPink`,
                       ]}
                       onPress={() => selectQuarter(quarter)}
