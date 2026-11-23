@@ -922,27 +922,27 @@ export default function DashboardScreen({
           </View>
 
           {/* ── Interactive Yaoundé Map Card on Main Dashboard ── */}
-          <View style={tw`bg-white rounded-3xl p-3.5 my-2 border border-borderSubtle shadow-sm`}>
-            <View style={tw`flex-row justify-between items-center mb-2.5 px-0.5`}>
-              <View style={tw`flex-row items-center gap-2`}>
-                <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
-                  <Ionicons name="map" size={15} color={COLORS.strawberryPink} />
+          <View style={tw`bg-white rounded-3xl p-4 my-2 border border-borderSubtle shadow-md`}>
+            <View style={tw`flex-row justify-between items-center mb-3 px-0.5`}>
+              <View style={tw`flex-row items-center gap-2.5`}>
+                <View style={tw`w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
+                  <Ionicons name="map" size={17} color={COLORS.strawberryPink} />
                 </View>
                 <View>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Yaoundé Delivery Map</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted font-semibold`}>
-                    Best Cream Centre-ville • Delivering Across Yaoundé
+                  <Text style={tw`text-sm font-black text-chocolateBrown`}>Yaoundé Delivery Map</Text>
+                  <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                    Best Cream Centre-ville ➔ Destination
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1 rounded-xl border border-borderSubtle`}
+                style={tw`flex-row items-center gap-1 bg-strawberryPinkLight px-3 py-1.5 rounded-xl border border-strawberryPink/30`}
                 onPress={() => setIsMapExpanded(!isMapExpanded)}
                 activeOpacity={0.8}
               >
-                <Ionicons name={isMapExpanded ? 'chevron-up' : 'chevron-down'} size={13} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                <Ionicons name={isMapExpanded ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.strawberryPink} />
+                <Text style={tw`text-[11px] font-black text-strawberryPink`}>
                   {isMapExpanded ? 'Hide' : 'View Map'}
                 </Text>
               </TouchableOpacity>
@@ -950,46 +950,73 @@ export default function DashboardScreen({
 
             {isMapExpanded && (
               <>
+                {/* Dual-Point Delivery Route Header Strip */}
+                <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-2.5 border border-borderSubtle`}>
+                  <View style={tw`flex-row items-center gap-1.5`}>
+                    <View style={tw`w-2.5 h-2.5 rounded-full bg-strawberryPink shadow-sm`} />
+                    <Text style={tw`text-[11px] font-black text-chocolateBrown`}>🍦 Best Cream Shop</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={12} color={COLORS.strawberryPink} />
+                  <View style={tw`flex-row items-center gap-1.5 flex-1 justify-end ml-2`}>
+                    <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm`} />
+                    <Text style={tw`text-[11px] font-black text-emerald-800`} numberOfLines={1}>
+                      📍 {locationResult ? locationResult.displayName : 'Select Destination'}
+                    </Text>
+                  </View>
+                </View>
+
                 <YaoundeMapView
                   userLatitude={locationResult?.latitude}
                   userLongitude={locationResult?.longitude}
                   userAddress={locationResult?.displayName || 'Delivery Destination'}
                   onSelectCoordinates={handleMapSelectCoordinates}
-                  height={185}
+                  height={220}
                 />
 
                 {/* Status bar under map */}
                 {locationResult ? (
-                  <View style={tw`flex-row justify-between items-center bg-pistachioGreenLight mt-2.5 px-3 py-2 rounded-2xl border border-pistachioGreen/40`}>
-                    <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-                      <Text style={tw`text-sm`}>{locationResult.tier.emoji}</Text>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
-                        {locationResult.displayName}
+                  <View style={tw`flex-row justify-between items-center bg-emerald-50 mt-2.5 px-3.5 py-2.5 rounded-2xl border border-emerald-200`}>
+                    <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
+                      <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
+                      <View>
+                        <Text style={tw`text-xs font-black text-emerald-950`} numberOfLines={1}>
+                          {locationResult.displayName}
+                        </Text>
+                        <Text style={tw`text-[10px] font-bold text-emerald-700`}>
+                          {locationResult.tier.label} • ~{locationResult.tier.estimatedMinutes}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={tw`items-end`}>
+                      <Text style={tw`text-xs font-black text-emerald-900`}>
+                        {locationResult.tier.fee === 0 ? 'FREE DELIVERY' : formatXAF(locationResult.tier.fee)}
+                      </Text>
+                      <Text style={tw`text-[10px] font-bold text-emerald-600`}>
+                        {formatDistance(locationResult.distanceKm)} away
                       </Text>
                     </View>
-                    <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                      {formatDistance(locationResult.distanceKm)} • {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
-                    </Text>
                   </View>
                 ) : (
-                  <Text style={tw`text-[11px] text-chocolateBrownMuted mt-2 px-1`}>
-                    💡 Tap anywhere on the map or select a quarter below:
-                  </Text>
+                  <View style={tw`bg-surfaceBright rounded-xl p-2.5 mt-2 border border-borderSubtle`}>
+                    <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                      💡 Tap anywhere on the map or pick a Yaoundé quarter below to see delivery route & fees:
+                    </Text>
+                  </View>
                 )}
 
                 {/* Quick Yaoundé Quarter Chips directly under map */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-2`}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-2.5`}>
                   <TouchableOpacity
                     style={[
-                      tw`flex-row items-center gap-1 bg-strawberryPinkLight border border-strawberryPink/30 px-2.5 py-1 rounded-xl mr-1.5`,
+                      tw`flex-row items-center gap-1.5 bg-strawberryPinkLight border border-strawberryPink/40 px-3 py-1.5 rounded-xl mr-2`,
                       locationLoading && tw`opacity-70`,
                     ]}
                     onPress={detectGPSLocation}
                     disabled={locationLoading}
                   >
-                    <Ionicons name="navigate" size={11} color={COLORS.strawberryPink} />
+                    <Ionicons name="navigate" size={12} color={COLORS.strawberryPink} />
                     <Text style={tw`text-[10px] font-black text-strawberryPink`}>
-                      {locationLoading ? 'GPS...' : 'My GPS'}
+                      {locationLoading ? 'Locating...' : 'My GPS'}
                     </Text>
                   </TouchableOpacity>
 
@@ -999,8 +1026,8 @@ export default function DashboardScreen({
                       <TouchableOpacity
                         key={quarter}
                         style={[
-                          tw`px-2.5 py-1 rounded-xl border border-borderSubtle bg-surfaceBright mr-1.5`,
-                          isSel && tw`bg-strawberryPink border-strawberryPink`,
+                          tw`px-3 py-1.5 rounded-xl border border-borderSubtle bg-white mr-2 shadow-xs`,
+                          isSel && tw`bg-strawberryPink border-strawberryPink shadow-sm`,
                         ]}
                         onPress={() => selectQuarter(quarter)}
                       >

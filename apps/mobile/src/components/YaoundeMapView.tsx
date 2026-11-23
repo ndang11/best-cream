@@ -57,24 +57,32 @@ export default function YaoundeMapView({
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body, #map { width: 100%; height: 100%; background: #FFFDF0; }
-    .custom-store-pin {
-      background: #FF6584;
-      color: white;
-      border: 2px solid #FFFDF0;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
+    html, body, #map { width: 100%; height: 100%; background: #FFF0F3; }
+
+    /* Custom Store Pin & Label */
+    .pin-wrapper {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 4px 10px rgba(62,39,35,0.4);
+      cursor: pointer;
     }
-    .custom-user-pin {
-      background: #3E2723;
-      color: white;
-      border: 2px solid #FFFDF0;
+    .store-label {
+      background: #FF6584;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 900;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(255, 101, 132, 0.45);
+      border: 2px solid #FFFFFF;
+      margin-bottom: 2px;
+    }
+    .store-circle {
+      background: #FF6584;
+      color: #FFFFFF;
+      border: 2.5px solid #FFFFFF;
       border-radius: 50%;
       width: 34px;
       height: 34px;
@@ -82,16 +90,49 @@ export default function YaoundeMapView({
       align-items: center;
       justify-content: center;
       font-size: 17px;
-      box-shadow: 0 4px 10px rgba(62,39,35,0.4);
+      box-shadow: 0 4px 10px rgba(62, 39, 35, 0.35);
     }
-    .leaflet-popup-content-wrapper {
-      background: #FFFDF0;
-      color: #3E2723;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      border-radius: 12px;
-      font-weight: bold;
+
+    /* Custom Destination Pin & Label */
+    .dest-label {
+      background: #059669;
+      color: #FFFFFF;
       font-size: 11px;
-      box-shadow: 0 3px 12px rgba(62,39,35,0.25);
+      font-weight: 900;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.45);
+      border: 2px solid #FFFFFF;
+      margin-bottom: 2px;
+    }
+    .dest-circle {
+      background: #059669;
+      color: #FFFFFF;
+      border: 2.5px solid #FFFFFF;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      box-shadow: 0 4px 10px rgba(62, 39, 35, 0.35);
+    }
+
+    /* Landmark Quarter Badges */
+    .landmark-badge {
+      background: #FFFFFF;
+      color: #3E2723;
+      border: 1.5px solid #FF6584;
+      border-radius: 10px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -104,7 +145,7 @@ export default function YaoundeMapView({
       const userCoords = hasUser ? [${userLatitude || storeLat}, ${userLongitude || storeLon}] : null;
 
       const initialCenter = hasUser ? userCoords : storeCoords;
-      const initialZoom = hasUser ? 13 : 14;
+      const initialZoom = hasUser ? 13 : 13;
 
       const map = L.map('map', {
         zoomControl: false,
@@ -115,39 +156,65 @@ export default function YaoundeMapView({
         maxZoom: 19
       }).addTo(map);
 
-      // 1. Store Marker (Best Cream Shop)
+      // 1. Business Store Marker (Centre-ville) with prominent label
       const storeIcon = L.divIcon({
         className: '',
-        html: '<div class="custom-store-pin">🍦</div>',
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
+        html: '<div class="pin-wrapper"><div class="store-label">🍦 Best Cream Shop</div><div class="store-circle">🏪</div></div>',
+        iconSize: [140, 60],
+        iconAnchor: [70, 56]
       });
-      const storeMarker = L.marker(storeCoords, { icon: storeIcon }).addTo(map);
-      storeMarker.bindPopup('<b>Best Cream Shop</b><br/>Centre-ville, Yaoundé');
+      L.marker(storeCoords, { icon: storeIcon, zIndexOffset: 1000 }).addTo(map);
 
-      // 2. User Location Marker + Route Line
+      // 2. User Delivery Destination Marker + Connecting Trajectory
       if (hasUser && userCoords) {
-        const userIcon = L.divIcon({
+        const destIcon = L.divIcon({
           className: '',
-          html: '<div class="custom-user-pin">📍</div>',
-          iconSize: [34, 34],
-          iconAnchor: [17, 17]
+          html: '<div class="pin-wrapper"><div class="dest-label">📍 Destination</div><div class="dest-circle">🛵</div></div>',
+          iconSize: [140, 60],
+          iconAnchor: [70, 56]
         });
-        const userMarker = L.marker(userCoords, { icon: userIcon }).addTo(map);
-        userMarker.bindPopup('${userAddress.replace(/'/g, "\\'")}').openPopup();
+        L.marker(userCoords, { icon: destIcon, zIndexOffset: 2000 }).addTo(map);
 
+        // Dashed delivery route connecting business to delivery destination
         L.polyline([storeCoords, userCoords], {
           color: '#FF6584',
           weight: 4,
-          dashArray: '6, 8',
-          opacity: 0.9
+          dashArray: '8, 8',
+          opacity: 0.95
         }).addTo(map);
 
+        // Fit bounds to display BOTH the business and the destination simultaneously
         const bounds = L.latLngBounds([storeCoords, userCoords]);
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        setTimeout(function() {
+          map.invalidateSize();
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }, 300);
+      } else {
+        // Show surrounding popular Yaoundé quarters if no destination chosen yet
+        const landmarks = ${JSON.stringify(YAOUNDE_LANDMARKS)};
+        Object.keys(landmarks).slice(0, 6).forEach(function(name) {
+          const lm = landmarks[name];
+          const lmIcon = L.divIcon({
+            className: '',
+            html: '<div class="landmark-badge">📍 ' + name + '</div>',
+            iconSize: [80, 24],
+            iconAnchor: [40, 12]
+          });
+          L.marker([lm.lat, lm.lon], { icon: lmIcon }).addTo(map).on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'MAP_CLICK',
+                latitude: lm.lat,
+                longitude: lm.lon
+              }));
+            }
+          });
+        });
       }
 
-      // 3. Tap on map to select delivery location
+      // Tap on map to select delivery destination
       map.on('click', function(e) {
         if (window.ReactNativeWebView) {
           window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -278,13 +345,13 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: '#F7F2DE',
-    backgroundColor: '#FFFDF0',
+    borderColor: '#FFE2E6',
+    backgroundColor: '#FFF0F3',
     position: 'relative',
   },
   webView: {
     flex: 1,
-    backgroundColor: '#FFFDF0',
+    backgroundColor: '#FFF0F3',
   },
   loadingContainer: {
     position: 'absolute',
@@ -292,7 +359,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FFFDF0',
+    backgroundColor: '#FFF0F3',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -306,12 +373,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 253, 240, 0.94)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     paddingHorizontal: 8,
     paddingVertical: 3.5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#F7F2DE',
+    borderColor: '#FFE2E6',
+    shadowColor: '#FF6584',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   badgeText: {
     fontSize: 9,
@@ -322,7 +393,7 @@ const styles = StyleSheet.create({
   fallbackContainer: {
     flex: 1,
     padding: 12,
-    backgroundColor: '#FFFDF0',
+    backgroundColor: '#FFF0F3',
     justifyContent: 'space-between',
   },
   fallbackHeader: {
@@ -339,7 +410,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#FFEBF0',
+    backgroundColor: '#FFE2E6',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -361,7 +432,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#F7F2DE',
+    borderColor: '#FFE2E6',
   },
   storeBadgeEmoji: {
     fontSize: 20,
@@ -379,11 +450,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#EAF7EE',
+    backgroundColor: '#ECFDF5',
     padding: 8,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#70C184',
+    borderColor: '#A7F3D0',
   },
   userBadgeEmoji: {
     fontSize: 18,
@@ -391,11 +462,11 @@ const styles = StyleSheet.create({
   userBadgeTitle: {
     fontSize: 11,
     fontWeight: '900',
-    color: '#3E2723',
+    color: '#065F46',
   },
   userBadgeSub: {
     fontSize: 9,
-    color: '#70C184',
+    color: '#059669',
     fontWeight: 'bold',
   },
   quarterPills: {
@@ -410,7 +481,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#F7F2DE',
+    borderColor: '#FFE2E6',
   },
   quarterPillText: {
     fontSize: 10,
