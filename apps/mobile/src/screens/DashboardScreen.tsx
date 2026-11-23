@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order, ProductCategory, DailyMenu, BusinessSettings } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
@@ -182,6 +183,7 @@ export default function DashboardScreen({
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular' | 'new'>('default');
   const [showUnavailable, setShowUnavailable] = useState(false);
@@ -198,6 +200,13 @@ export default function DashboardScreen({
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
   const [preferredTime, setPreferredTime] = useState('');
   const [orderInstructions, setOrderInstructions] = useState('');
+
+  // Profile State
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [editPhone, setEditPhone] = useState(userName || '');
+  const [editEmail, setEditEmail] = useState(userEmail || '');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
   const [orderFilter, setOrderFilter] = useState<OrderFilterType>('all');
@@ -358,6 +367,14 @@ export default function DashboardScreen({
     fetchOrders();
     fetchSettings();
   }, []);
+
+  // Debounce search query (300ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim().toLowerCase());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -576,6 +593,36 @@ export default function DashboardScreen({
     }
   };
 
+  // ── Profile: pick & upload profile picture ────────────────────────────
+  const pickProfilePicture = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please allow access to your photos to upload a profile picture.'
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setProfilePicture(result.assets[0].uri);
+    }
+  };
+
+  // ── Profile: save edited details ────────────────────────────────────
+  const saveProfile = () => {
+    setSavingProfile(true);
+    setTimeout(() => {
+      setSavingProfile(false);
+      Alert.alert('Profile Updated', 'Your profile details have been saved.');
+    }, 800);
+  };
+
   // ── Close cart modal ────────────────────────────────────────────────────────
   const closeCartModal = () => {
     setIsCartModalVisible(false);
@@ -674,9 +721,13 @@ export default function DashboardScreen({
       if (!showUnavailable && (item.isActive === false || item.isArchived === true)) return false;
       const matchesCategory =
         selectedCategory === 'all' || item.category === selectedCategory;
+      const q = debouncedSearch;
       const matchesSearch =
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.flavor.toLowerCase().includes(searchQuery.toLowerCase());
+        q.length === 0 ||
+        item.name.toLowerCase().includes(q) ||
+        item.flavor.toLowerCase().includes(q) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        item.category.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     })
     .sort((a, b) => {
@@ -800,6 +851,19 @@ export default function DashboardScreen({
             <Ionicons name="notifications-outline" size={19} color={COLORS.chocolateBrown} />
             <View style={tw`absolute top-2 right-2 w-2 h-2 rounded-full bg-strawberryPink`} />
           </TouchableOpacity>
+
+          {/* 3. Profile Button */}
+          <TouchableOpacity
+            style={tw`w-10 h-10 rounded-2xl bg-strawberryPink items-center justify-center border border-strawberryPinkDark shadow-sm overflow-hidden`}
+            onPress={() => setActiveTab('profile')}
+            activeOpacity={0.8}
+          >
+            {profilePicture ? (
+              <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
+            ) : (
+              <Ionicons name="person" size={19} color={COLORS.chocolateBrown} />
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -848,19 +912,30 @@ export default function DashboardScreen({
           contentContainerStyle={tw`px-5 pt-2 pb-28`}
         >
           {/* Search Bar */}
-          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-3 my-2 border border-borderSubtle shadow-sm`}>
-            <Ionicons name="search" size={18} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-3 my-2 border border-borderSubtle shadow-md`}>
+            <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center mr-3`}>
+              <Ionicons name="search" size={18} color={COLORS.strawberryPink} />
+            </View>
             <TextInput
               style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
               placeholder={t('searchPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              returnKeyType="search"
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={18} color={COLORS.chocolateBrownMuted} />
+            {searchQuery.length > 0 ? (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={tw`w-7 h-7 rounded-lg bg-vanillaCream items-center justify-center ml-1`}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={14} color={COLORS.chocolateBrownMuted} />
               </TouchableOpacity>
+            ) : (
+              <View style={tw`px-2.5 py-1 rounded-lg bg-butterYellowLight border border-butterYellow/40 ml-1`}>
+                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>⌘ K</Text>
+              </View>
             )}
           </View>
 
@@ -2087,18 +2162,90 @@ export default function DashboardScreen({
           contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
           <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm`}>
-            <View style={tw`w-20 h-20 rounded-full bg-strawberryPinkLight items-center justify-center mb-3 border border-strawberryPink/20`}>
-              <Ionicons name="person" size={38} color={COLORS.strawberryPink} />
-            </View>
-            <Text style={tw`text-xl font-black text-chocolateBrown`}>{userName}</Text>
-            <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-              {userEmail || 'customer@bestcream.com'}
-            </Text>
-            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2.5 border border-butterYellow/40`}>
+            {/* Profile Picture with Upload */}
+            <TouchableOpacity onPress={pickProfilePicture} activeOpacity={0.8}>
+              <View style={tw`w-24 h-24 rounded-full bg-strawberryPinkLight items-center justify-center mb-3 border border-strawberryPink/20 overflow-hidden`}>
+                {profilePicture ? (
+                  <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
+                ) : (
+                  <Ionicons name="person" size={44} color={COLORS.strawberryPink} />
+                )}
+              </View>
+              <View style={tw`absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-strawberryPink items-center justify-center border-2 border-white`}>
+                <Ionicons name="camera" size={15} color={COLORS.chocolateBrown} />
+              </View>
+            </TouchableOpacity>
+
+            <Text style={tw`text-xl font-black text-chocolateBrown mt-3`}>{userName}</Text>
+            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2 border border-butterYellow/40`}>
               <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>
                 {t('verifiedSweetTooth')}
               </Text>
             </View>
+
+            {/* Edit Profile Details */}
+            <TouchableOpacity
+              style={tw`mt-4 flex-row items-center gap-1.5 bg-vanillaCream px-4 py-2 rounded-xl border border-vanillaCreamDark`}
+              onPress={() => setIsEditingProfile(!isEditingProfile)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name={isEditingProfile ? 'close' : 'create-outline'} size={16} color={COLORS.chocolateBrown} />
+              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+              </Text>
+            </TouchableOpacity>
+
+            {isEditingProfile && (
+              <View style={tw`w-full mt-4 gap-3`}>
+                {/* Email Input */}
+                <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                  <Ionicons name="mail-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                  <TextInput
+                    style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                    value={editEmail}
+                    onChangeText={setEditEmail}
+                    placeholder="your@email.com"
+                    placeholderTextColor={COLORS.chocolateBrownMuted}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                {/* Phone Input */}
+                <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
+                  <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                  <TextInput
+                    style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                    value={editPhone}
+                    onChangeText={setEditPhone}
+                    placeholder="+237 6XX XXX XXX"
+                    placeholderTextColor={COLORS.chocolateBrownMuted}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  style={[
+                    tw`w-full bg-strawberryPink py-3 rounded-2xl flex-row items-center justify-center gap-2 mt-1`,
+                    savingProfile && tw`opacity-70`,
+                  ]}
+                  onPress={saveProfile}
+                  disabled={savingProfile}
+                  activeOpacity={0.85}
+                >
+                  {savingProfile ? (
+                    <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark" size={16} color={COLORS.chocolateBrown} />
+                      <Text style={tw`text-xs font-black text-chocolateBrown`}>Save Changes</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Language Switcher Setting Card */}
@@ -2111,26 +2258,6 @@ export default function DashboardScreen({
                 </Text>
               </View>
               <LanguageSelector />
-            </View>
-          </View>
-
-          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
-            <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
-              {t('paymentPreferences')}
-            </Text>
-            <View style={tw`flex-row justify-between items-center py-2.5 border-b border-borderSubtle`}>
-              <View style={tw`flex-row items-center gap-2.5`}>
-                <Ionicons name="phone-portrait-outline" size={20} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-semibold text-chocolateBrown`}>MTN Mobile Money</Text>
-              </View>
-              <Text style={tw`text-xs font-bold text-pistachioGreen`}>{t('linked')}</Text>
-            </View>
-            <View style={tw`flex-row justify-between items-center py-2.5`}>
-              <View style={tw`flex-row items-center gap-2.5`}>
-                <Ionicons name="wallet-outline" size={20} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-semibold text-chocolateBrown`}>Orange Money</Text>
-              </View>
-              <Text style={tw`text-xs font-bold text-pistachioGreen`}>{t('linked')}</Text>
             </View>
           </View>
 

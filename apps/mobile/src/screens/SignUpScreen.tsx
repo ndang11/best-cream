@@ -38,17 +38,17 @@ function IceCreamEmblemSmall() {
 
 const emblemStyles = StyleSheet.create({
   wrapper: {
-    width: 56,
-    height: 72,
+    width: 52,
+    height: 66,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   cone: {
     width: 0,
     height: 0,
-    borderLeftWidth: 18,
-    borderRightWidth: 18,
-    borderTopWidth: 34,
+    borderLeftWidth: 17,
+    borderRightWidth: 17,
+    borderTopWidth: 32,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: '#D4854A',
@@ -58,32 +58,32 @@ const emblemStyles = StyleSheet.create({
     borderRadius: 50,
   },
   scoopBottom: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     backgroundColor: COLORS.strawberryPink,
-    bottom: 24,
+    bottom: 22,
   },
   scoopMiddle: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     backgroundColor: '#F9C6D0',
-    bottom: 42,
+    bottom: 38,
   },
   scoopTop: {
-    width: 26,
-    height: 26,
+    width: 24,
+    height: 24,
     backgroundColor: COLORS.vanillaCream,
-    bottom: 56,
+    bottom: 52,
     borderWidth: 2,
     borderColor: COLORS.vanillaCreamDark,
   },
   cherry: {
     position: 'absolute',
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 4,
     backgroundColor: '#E53935',
-    bottom: 80,
+    bottom: 74,
   },
 });
 
@@ -195,55 +195,58 @@ export default function SignUpScreen({
   const validationSchema = getSignUpSchema(t);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
+    <SafeAreaView style={[styles.safeArea, tw`flex-1`]}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={tw`flex-1`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={tw`flex-grow px-6 pt-3 pb-8 items-center`}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
           {/* ── Top Bar with Back & Language Selector ── */}
-          <View style={tw`w-full flex-row items-center justify-between mb-2`}>
+          <View style={styles.topBar}>
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1 bg-white px-3.5 py-1.5 rounded-2xl border border-vanillaCreamDark shadow-sm`}
+              style={styles.backBtn}
               onPress={onGoToLogin}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="chevron-back" size={14} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('back')}</Text>
+              <Ionicons name="chevron-back" size={16} color={COLORS.chocolateBrown} />
+              <Text style={styles.backBtnText}>{t('back')}</Text>
             </TouchableOpacity>
 
             <LanguageSelector />
           </View>
 
-          {/* ── Header with Logo ── */}
-          <View style={tw`items-center mb-3 mt-1`}>
-            <View style={tw`w-16 h-16 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-md mb-2`}>
+          {/* ── Hero Header ── */}
+          <View style={styles.heroHeader}>
+            <View style={styles.heroCircle}>
               <IceCreamEmblemSmall />
             </View>
-            <Text style={tw`text-2xl font-black text-chocolateBrown tracking-wide`}>
-              {t('joinTitle')}
-            </Text>
-            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5`}>
-              {t('joinSubtitle')}
-            </Text>
+            <Text style={styles.heroTitle}>{t('joinTitle')}</Text>
+            <Text style={styles.heroSubtitle}>{t('joinSubtitle')}</Text>
           </View>
 
-          {/* ── Offer Pill Banner ── */}
-          <View style={tw`flex-row items-center gap-2 bg-butterYellowLight border border-butterYellow/60 rounded-2xl px-4 py-2 mb-4 shadow-sm`}>
-            <Text style={tw`text-sm`}>🎉</Text>
-            <Text style={tw`text-xs font-black text-amber-900`}>
-              {t('offerBanner')}
-            </Text>
+          {/* ── Offer Banner ── */}
+          <View style={styles.offerBanner}>
+            <View style={styles.offerBannerLeft}>
+              <View style={styles.offerIconWrap}>
+                <Text style={{ fontSize: 16 }}>🎉</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.offerTitle}>
+                  {t('offerBanner')}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* ── Formik Form Card ── */}
-          <View style={tw`w-full bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-lg`}>
+          <View style={styles.formCard}>
             <Formik
               enableReinitialize
               initialValues={{
@@ -273,18 +276,18 @@ export default function SignUpScreen({
                 return (
                   <View>
                     {/* 1. Full Name */}
-                    <View style={tw`mb-3`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>
                         {t('fullNameLabel')}
                       </Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.fullName && errors.fullName
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isFieldValid('fullName')
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -297,10 +300,10 @@ export default function SignUpScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('fullNamePlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.fullName}
@@ -319,9 +322,9 @@ export default function SignUpScreen({
                         )}
                       </View>
                       {touched.fullName && errors.fullName && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                          <Text style={styles.fieldErrorText}>
                             {errors.fullName}
                           </Text>
                         </View>
@@ -329,18 +332,18 @@ export default function SignUpScreen({
                     </View>
 
                     {/* 2. Email Address */}
-                    <View style={tw`mb-3`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>
                         {t('emailLabel')}
                       </Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.email && errors.email
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isFieldValid('email')
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -353,10 +356,10 @@ export default function SignUpScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('emailPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.email}
@@ -376,9 +379,9 @@ export default function SignUpScreen({
                         )}
                       </View>
                       {touched.email && errors.email && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                          <Text style={styles.fieldErrorText}>
                             {errors.email}
                           </Text>
                         </View>
@@ -386,18 +389,18 @@ export default function SignUpScreen({
                     </View>
 
                     {/* 3. Phone Number */}
-                    <View style={tw`mb-3`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>
                         {t('phoneLabel')}
                       </Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.phone && errors.phone
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isFieldValid('phone')
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -410,10 +413,10 @@ export default function SignUpScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('phonePlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.phone}
@@ -431,9 +434,9 @@ export default function SignUpScreen({
                         )}
                       </View>
                       {touched.phone && errors.phone && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                          <Text style={styles.fieldErrorText}>
                             {errors.phone}
                           </Text>
                         </View>
@@ -441,18 +444,18 @@ export default function SignUpScreen({
                     </View>
 
                     {/* 4. Password with Strength Meter */}
-                    <View style={tw`mb-3`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>
                         {t('passwordLabel')}
                       </Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.password && errors.password
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isFieldValid('password')
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -465,10 +468,10 @@ export default function SignUpScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder="Min. 6 characters"
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.password}
@@ -491,11 +494,11 @@ export default function SignUpScreen({
 
                       {/* Live Password Strength Meter */}
                       {values.password.length > 0 && (
-                        <View style={tw`flex-row items-center mt-2 gap-2`}>
-                          <View style={tw`flex-1 h-1.5 bg-vanillaCreamDark rounded-full overflow-hidden`}>
+                        <View style={styles.strengthRow}>
+                          <View style={styles.strengthTrack}>
                             <View
                               style={[
-                                tw`h-full rounded-full`,
+                                styles.strengthFill,
                                 {
                                   width: `${strength.pct * 100}%` as unknown as number,
                                   backgroundColor: strength.color,
@@ -505,7 +508,7 @@ export default function SignUpScreen({
                           </View>
                           <Text
                             style={[
-                              tw`text-[11px] font-black text-right`,
+                              styles.strengthLabel,
                               { color: strength.color },
                             ]}
                           >
@@ -515,9 +518,9 @@ export default function SignUpScreen({
                       )}
 
                       {touched.password && errors.password && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                          <Text style={styles.fieldErrorText}>
                             {errors.password}
                           </Text>
                         </View>
@@ -525,18 +528,18 @@ export default function SignUpScreen({
                     </View>
 
                     {/* 5. Confirm Password */}
-                    <View style={tw`mb-4`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>
                         {t('confirmPasswordLabel')}
                       </Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.confirmPassword && errors.confirmPassword
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isFieldValid('confirmPassword')
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -549,10 +552,10 @@ export default function SignUpScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('confirmPasswordPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.confirmPassword}
@@ -574,9 +577,9 @@ export default function SignUpScreen({
                         </Pressable>
                       </View>
                       {touched.confirmPassword && errors.confirmPassword && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
+                          <Text style={styles.fieldErrorText}>
                             {errors.confirmPassword}
                           </Text>
                         </View>
@@ -584,19 +587,19 @@ export default function SignUpScreen({
                     </View>
 
                     {/* Terms note */}
-                    <Text style={tw`text-[11px] text-chocolateBrownMuted text-center mb-4 leading-4`}>
+                    <Text style={styles.termsText}>
                       {t('termsPre')}{' '}
-                      <Text style={tw`text-strawberryPink font-bold`}>{t('termsOfService')}</Text>
+                      <Text style={styles.termsLink}>{t('termsOfService')}</Text>
                       {' '}{t('and')}{' '}
-                      <Text style={tw`text-strawberryPink font-bold`}>{t('privacyPolicy')}</Text>.
+                      <Text style={styles.termsLink}>{t('privacyPolicy')}</Text>.
                     </Text>
 
                     {/* Submit Button */}
                     <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                       <TouchableOpacity
                         style={[
-                          tw`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 shadow-md`,
-                          isSubmitting && tw`opacity-70`,
+                          styles.submitBtn,
+                          isSubmitting && styles.submitBtnDisabled,
                         ]}
                         onPress={() => handleSubmit()}
                         onPressIn={() => animatePress(0.97)}
@@ -607,14 +610,14 @@ export default function SignUpScreen({
                         {isSubmitting ? (
                           <>
                             <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
+                            <Text style={styles.submitBtnText}>
                               {t('creatingAccount')}
                             </Text>
                           </>
                         ) : (
                           <>
-                            <Ionicons name="sparkles" size={16} color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
+                            <Ionicons name="sparkles" size={17} color={COLORS.chocolateBrown} />
+                            <Text style={styles.submitBtnText}>
                               {t('createAccountBtn')}
                             </Text>
                           </>
@@ -627,12 +630,12 @@ export default function SignUpScreen({
             </Formik>
 
             {/* Login Link */}
-            <View style={tw`flex-row justify-center items-center mt-5`}>
-              <Text style={tw`text-xs font-semibold text-chocolateBrownLight`}>
+            <View style={styles.loginLinkRow}>
+              <Text style={styles.loginPromptText}>
                 {t('alreadyHaveAccount')}{' '}
               </Text>
               <TouchableOpacity onPress={onGoToLogin} activeOpacity={0.7}>
-                <Text style={tw`text-xs font-black text-strawberryPink`}>
+                <Text style={styles.loginLinkText}>
                   {t('logIn')}
                 </Text>
               </TouchableOpacity>
@@ -643,3 +646,262 @@ export default function SignUpScreen({
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.pageBg,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
+  topBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderSubtle,
+    shadowColor: COLORS.chocolateBrown,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  backBtnText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+  },
+
+  // ── Hero Header ──
+  heroHeader: {
+    alignItems: 'center',
+    marginBottom: 14,
+    marginTop: 6,
+  },
+  heroCircle: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: COLORS.strawberryPinkLight,
+    marginBottom: 8,
+    shadowColor: COLORS.strawberryPink,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  heroTitle: {
+    fontSize: 27,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: -0.4,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.chocolateBrownMuted,
+    marginTop: 2,
+  },
+
+  // ── Offer Banner ──
+  offerBanner: {
+    backgroundColor: COLORS.butterYellowLight,
+    borderWidth: 1.5,
+    borderColor: COLORS.butterYellow,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  offerBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  offerIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: COLORS.butterYellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offerTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#92400E',
+    flex: 1,
+    lineHeight: 16,
+  },
+
+  // ── Form Card ──
+  formCard: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: 28,
+    paddingHorizontal: 22,
+    paddingVertical: 22,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    shadowColor: COLORS.chocolateBrown,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+
+  // Input fields
+  fieldWrap: {
+    marginBottom: 13,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    marginBottom: 6,
+    marginLeft: 2,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderWidth: 1.5,
+  },
+  inputDefault: {
+    backgroundColor: COLORS.pageBg,
+    borderColor: COLORS.borderSubtle,
+  },
+  inputValid: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.pistachioGreen,
+  },
+  inputError: {
+    backgroundColor: COLORS.errorRedLight,
+    borderColor: COLORS.errorRedBorder,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.chocolateBrown,
+  },
+  fieldErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 5,
+    marginLeft: 2,
+  },
+  fieldErrorText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.errorRed,
+  },
+
+  // Password strength meter
+  strengthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  strengthTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: COLORS.pageBg,
+    borderRadius: 3,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+  },
+  strengthFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  strengthLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    minWidth: 60,
+    textAlign: 'right',
+  },
+
+  // Terms
+  termsText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.chocolateBrownMuted,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 16,
+  },
+  termsLink: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.strawberryPink,
+  },
+
+  // Submit button
+  submitBtn: {
+    width: '100%',
+    backgroundColor: COLORS.strawberryPink,
+    paddingVertical: 15,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: COLORS.strawberryPink,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  submitBtnDisabled: {
+    opacity: 0.7,
+  },
+  submitBtnText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: 0.3,
+  },
+
+  // Login link
+  loginLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  loginPromptText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.chocolateBrownLight,
+  },
+  loginLinkText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.strawberryPink,
+  },
+});

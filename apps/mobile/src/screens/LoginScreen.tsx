@@ -42,20 +42,20 @@ function IceCreamEmblem() {
 
 const emblemStyles = StyleSheet.create({
   wrapper: {
-    width: 72,
-    height: 90,
+    width: 64,
+    height: 80,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   cone: {
     width: 0,
     height: 0,
-    borderLeftWidth: 24,
-    borderRightWidth: 24,
-    borderTopWidth: 44,
+    borderLeftWidth: 22,
+    borderRightWidth: 22,
+    borderTopWidth: 40,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: '#C47C3E',
+    borderTopColor: '#D4854A',
     marginTop: 'auto' as unknown as number,
   },
   scoop: {
@@ -63,51 +63,51 @@ const emblemStyles = StyleSheet.create({
     borderRadius: 50,
   },
   scoopBottom: {
-    width: 46,
-    height: 46,
-    backgroundColor: COLORS.strawberryPink,
-    bottom: 32,
-  },
-  scoopMiddle: {
     width: 42,
     height: 42,
+    backgroundColor: COLORS.strawberryPink,
+    bottom: 28,
+  },
+  scoopMiddle: {
+    width: 38,
+    height: 38,
     backgroundColor: '#F9C6D0',
-    bottom: 54,
+    bottom: 48,
   },
   scoopTop: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     backgroundColor: COLORS.vanillaCream,
-    bottom: 72,
+    bottom: 66,
     borderWidth: 2,
     borderColor: COLORS.vanillaCreamDark,
   },
   cherry: {
     position: 'absolute',
-    width: 10,
-    height: 10,
+    width: 9,
+    height: 9,
     borderRadius: 5,
     backgroundColor: '#E53935',
-    bottom: 102,
+    bottom: 92,
   },
   drizzle1: {
     position: 'absolute',
-    width: 18,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.chocolateBrown,
-    bottom: 68,
-    left: 10,
-    transform: [{ rotate: '-20deg' }],
-  },
-  drizzle2: {
-    position: 'absolute',
-    width: 12,
+    width: 16,
     height: 3,
     borderRadius: 2,
     backgroundColor: COLORS.chocolateBrown,
     bottom: 60,
-    right: 12,
+    left: 9,
+    transform: [{ rotate: '-20deg' }],
+  },
+  drizzle2: {
+    position: 'absolute',
+    width: 11,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.chocolateBrown,
+    bottom: 54,
+    right: 10,
     transform: [{ rotate: '15deg' }],
   },
 });
@@ -243,55 +243,54 @@ export default function LoginScreen({
   const validationSchema = getLoginSchema(t);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
+    <SafeAreaView style={[styles.safeArea, tw`flex-1`]}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={tw`flex-1`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={tw`flex-grow px-6 pt-3 pb-8 items-center justify-center`}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
-          {/* ── Top Bar: Language Selector (English / French) ── */}
-          <View style={tw`w-full flex-row justify-end mb-2`}>
+          {/* ── Top Bar: Language Selector ── */}
+          <View style={styles.topBar}>
             <LanguageSelector />
           </View>
 
-          {/* ── Brand Logo & Header ── */}
-          <View style={tw`items-center mb-4`}>
-            <View style={tw`w-24 h-24 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg mb-2`}>
+          {/* ── Hero Header with Gradient ── */}
+          <View style={styles.heroHeader}>
+            <View style={styles.heroCircle}>
               <IceCreamEmblem />
             </View>
-            <Text style={tw`text-3xl font-black text-chocolateBrown tracking-wide`}>
-              {t('brandName')}
-            </Text>
-            <View style={tw`flex-row items-center gap-1.5 mt-1`}>
-              <Text style={tw`text-xs font-bold text-strawberryPink`}>{t('gelato')}</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted`}>•</Text>
-              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>{t('pancakes')}</Text>
+            <Text style={styles.heroTitle}>{t('brandName')}</Text>
+            <View style={styles.heroTaglineRow}>
+              <Text style={styles.heroTaglineGelato}>{t('gelato')}</Text>
+              <Text style={styles.heroTaglineDot}>•</Text>
+              <Text style={styles.heroTaglinePancakes}>{t('pancakes')}</Text>
             </View>
           </View>
 
           {/* ── Formik Form Card ── */}
-          <View style={tw`w-full bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-lg`}>
-            <View style={tw`flex-row justify-between items-start mb-4`}>
-              <View>
-                <Text style={tw`text-2xl font-black text-chocolateBrown`}>
-                  {t('welcomeBack')}
-                </Text>
-                <Text style={tw`text-xs font-medium text-chocolateBrownMuted mt-0.5`}>
-                  {t('loginSubtitle')}
-                </Text>
+          <View style={styles.formCard}>
+            {/* Card Header */}
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIconWrap}>
+                <Ionicons name="log-in-outline" size={22} color={COLORS.strawberryPink} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{t('welcomeBack')}</Text>
+                <Text style={styles.cardSubtitle}>{t('loginSubtitle')}</Text>
               </View>
             </View>
 
             {/* Error Banner */}
             {authError && (
-              <View style={tw`bg-red-50 border border-red-300 rounded-2xl p-3 mb-3 flex-row items-center gap-2`}>
-                <Ionicons name="alert-circle" size={18} color="#DC2626" />
-                <Text style={tw`text-xs text-red-700 font-bold flex-1`}>{authError}</Text>
+              <View style={styles.errorBanner}>
+                <Ionicons name="alert-circle" size={18} color={COLORS.errorRed} />
+                <Text style={styles.errorBannerText}>{authError}</Text>
               </View>
             )}
 
@@ -317,60 +316,94 @@ export default function LoginScreen({
                 return (
                   <View>
                     {/* Quick Role Fill Pills */}
-                    <View style={tw`flex-row items-center justify-between mb-3.5 bg-surfaceBright p-1.5 rounded-2xl border border-borderSubtle`}>
+                    <View style={styles.rolePillsRow}>
                       <TouchableOpacity
-                        style={tw`flex-1 items-center py-1.5 rounded-xl ${values.email === 'admin@bestcream.com' ? 'bg-chocolateBrown' : 'bg-transparent'}`}
+                        style={[
+                          styles.rolePill,
+                          values.email === 'admin@bestcream.com'
+                            ? styles.rolePillActiveAdmin
+                            : styles.rolePillInactive,
+                        ]}
                         onPress={() => {
                           setFieldValue('email', 'admin@bestcream.com');
                           setFieldValue('password', 'admin123');
                         }}
                         activeOpacity={0.7}
                       >
-                        <Text style={tw`text-[10px] font-black ${values.email === 'admin@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                        <Text
+                          style={[
+                            styles.rolePillText,
+                            values.email === 'admin@bestcream.com'
+                              ? styles.rolePillTextActive
+                              : styles.rolePillTextInactive,
+                          ]}
+                        >
                           👑 Admin
                         </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={tw`flex-1 items-center py-1.5 rounded-xl mx-1 ${values.email === 'sales@bestcream.com' ? 'bg-strawberryPink' : 'bg-transparent'}`}
+                        style={[
+                          styles.rolePill,
+                          values.email === 'sales@bestcream.com'
+                            ? styles.rolePillActiveSales
+                            : styles.rolePillInactive,
+                        ]}
                         onPress={() => {
                           setFieldValue('email', 'sales@bestcream.com');
                           setFieldValue('password', 'sales123');
                         }}
                         activeOpacity={0.7}
                       >
-                        <Text style={tw`text-[10px] font-black ${values.email === 'sales@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                        <Text
+                          style={[
+                            styles.rolePillText,
+                            values.email === 'sales@bestcream.com'
+                              ? styles.rolePillTextActive
+                              : styles.rolePillTextInactive,
+                          ]}
+                        >
                           💼 Sales
                         </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={tw`flex-1 items-center py-1.5 rounded-xl ${values.email === 'sam@bestcream.com' ? 'bg-emerald-600' : 'bg-transparent'}`}
+                        style={[
+                          styles.rolePill,
+                          values.email === 'sam@bestcream.com'
+                            ? styles.rolePillActiveCustomer
+                            : styles.rolePillInactive,
+                        ]}
                         onPress={() => {
                           setFieldValue('email', 'sam@bestcream.com');
                           setFieldValue('password', 'password123');
                         }}
                         activeOpacity={0.7}
                       >
-                        <Text style={tw`text-[10px] font-black ${values.email === 'sam@bestcream.com' ? 'text-white' : 'text-chocolateBrown'}`}>
+                        <Text
+                          style={[
+                            styles.rolePillText,
+                            values.email === 'sam@bestcream.com'
+                              ? styles.rolePillTextActive
+                              : styles.rolePillTextInactive,
+                          ]}
+                        >
                           👤 Customer
                         </Text>
                       </TouchableOpacity>
                     </View>
 
                     {/* Email Input Field */}
-                    <View style={tw`mb-3.5`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        {t('emailLabel')}
-                      </Text>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>{t('emailLabel')}</Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.email && errors.email
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isEmailValid
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -383,10 +416,10 @@ export default function LoginScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('emailPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.email}
@@ -406,28 +439,24 @@ export default function LoginScreen({
                         )}
                       </View>
                       {touched.email && errors.email && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
-                            {errors.email}
-                          </Text>
+                          <Text style={styles.fieldErrorText}>{errors.email}</Text>
                         </View>
                       )}
                     </View>
 
                     {/* Password Input Field */}
-                    <View style={tw`mb-2`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
-                        {t('passwordLabel')}
-                      </Text>
+                    <View style={styles.fieldWrap}>
+                      <Text style={styles.fieldLabel}>{t('passwordLabel')}</Text>
                       <View
                         style={[
-                          tw`flex-row items-center bg-vanillaCream rounded-2xl border px-3.5 py-3`,
+                          styles.inputWrap,
                           touched.password && errors.password
-                            ? tw`border-errorRed bg-errorRedLight/40`
+                            ? styles.inputError
                             : isPasswordValid
-                            ? tw`border-pistachioGreen bg-white`
-                            : tw`border-vanillaCreamDark`,
+                            ? styles.inputValid
+                            : styles.inputDefault,
                         ]}
                       >
                         <Ionicons
@@ -440,10 +469,10 @@ export default function LoginScreen({
                               ? COLORS.pistachioGreen
                               : COLORS.chocolateBrownMuted
                           }
-                          style={tw`mr-2.5`}
+                          style={{ marginRight: 10 }}
                         />
                         <TextInput
-                          style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                          style={styles.inputText}
                           placeholder={t('passwordPlaceholder')}
                           placeholderTextColor={COLORS.chocolateBrownMuted}
                           value={values.password}
@@ -465,18 +494,16 @@ export default function LoginScreen({
                         </Pressable>
                       </View>
                       {touched.password && errors.password && (
-                        <View style={tw`flex-row items-center gap-1 mt-1 ml-1`}>
+                        <View style={styles.fieldErrorRow}>
                           <Ionicons name="alert-circle" size={13} color={COLORS.errorRed} />
-                          <Text style={tw`text-xs text-errorRed font-semibold`}>
-                            {errors.password}
-                          </Text>
+                          <Text style={styles.fieldErrorText}>{errors.password}</Text>
                         </View>
                       )}
                     </View>
 
                     {/* Forgot password */}
                     <TouchableOpacity
-                      style={tw`self-end my-2.5`}
+                      style={styles.forgotBtn}
                       activeOpacity={0.7}
                       onPress={() => {
                         setForgotEmail(values.email);
@@ -484,17 +511,15 @@ export default function LoginScreen({
                         setForgotModalVisible(true);
                       }}
                     >
-                      <Text style={tw`text-xs font-bold text-strawberryPink`}>
-                        {t('forgotPassword')}
-                      </Text>
+                      <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
                     </TouchableOpacity>
 
                     {/* Submit Button */}
                     <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                       <TouchableOpacity
                         style={[
-                          tw`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 shadow-md mt-1`,
-                          isSubmitting && tw`opacity-70`,
+                          styles.submitBtn,
+                          isSubmitting && styles.submitBtnDisabled,
                         ]}
                         onPress={() => handleSubmit()}
                         onPressIn={() => animatePress(0.97)}
@@ -505,16 +530,12 @@ export default function LoginScreen({
                         {isSubmitting ? (
                           <>
                             <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              {t('loggingIn')}
-                            </Text>
+                            <Text style={styles.submitBtnText}>{t('loggingIn')}</Text>
                           </>
                         ) : (
                           <>
                             <Ionicons name="log-in-outline" size={18} color={COLORS.chocolateBrown} />
-                            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-                              {t('logIn')}
-                            </Text>
+                            <Text style={styles.submitBtnText}>{t('logIn')}</Text>
                           </>
                         )}
                       </TouchableOpacity>
@@ -525,36 +546,30 @@ export default function LoginScreen({
             </Formik>
 
             {/* Divider */}
-            <View style={tw`flex-row items-center my-4`}>
-              <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
-              <Text style={tw`mx-3 text-xs font-semibold text-chocolateBrownMuted`}>
-                {t('or')}
-              </Text>
-              <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>{t('or')}</Text>
+              <View style={styles.dividerLine} />
             </View>
 
             {/* Sign up link */}
-            <View style={tw`flex-row justify-center items-center`}>
-              <Text style={tw`text-xs font-semibold text-chocolateBrownLight`}>
-                {t('dontHaveAccount')}{' '}
-              </Text>
+            <View style={styles.signupLinkRow}>
+              <Text style={styles.signupPromptText}>{t('dontHaveAccount')}{' '}</Text>
               <TouchableOpacity onPress={onGoToSignUp} activeOpacity={0.7}>
-                <Text style={tw`text-xs font-black text-strawberryPink`}>
-                  {t('createAccount')}
-                </Text>
+                <Text style={styles.signupLinkText}>{t('createAccount')}</Text>
               </TouchableOpacity>
             </View>
 
             {/* Admin / Staff Portal Shortcut */}
             {onGoToAdminLogin && (
-              <View style={tw`mt-4 pt-3 border-t border-vanillaCreamDark items-center`}>
+              <View style={styles.staffPortalWrap}>
                 <TouchableOpacity
                   onPress={onGoToAdminLogin}
-                  style={tw`flex-row items-center gap-1.5 bg-vanillaCream px-3.5 py-1.5 rounded-full border border-vanillaCreamDark`}
+                  style={styles.staffPortalBtn}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="shield-checkmark" size={14} color={COLORS.chocolateBrown} />
-                  <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
+                  <Text style={styles.staffPortalText}>
                     Store Staff & Admin Portal 🛡️
                   </Text>
                 </TouchableOpacity>
@@ -571,24 +586,24 @@ export default function LoginScreen({
         animationType="fade"
         onRequestClose={() => setForgotModalVisible(false)}
       >
-        <View style={tw`flex-1 bg-black/60 items-center justify-center p-5`}>
-          <View style={tw`w-full max-w-sm bg-white rounded-3xl p-6 border border-vanillaCreamDark shadow-2xl`}>
-            <View style={tw`w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center mb-3`}>
-              <Ionicons name="key-outline" size={24} color={COLORS.strawberryPink} />
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="key-outline" size={26} color={COLORS.strawberryPink} />
             </View>
-            <Text style={tw`text-xl font-black text-chocolateBrown`}>Reset Password</Text>
-            <Text style={tw`text-xs text-chocolateBrownMuted mt-1 mb-4`}>
+            <Text style={styles.modalTitle}>Reset Password</Text>
+            <Text style={styles.modalSubtitle}>
               Enter your email address and we'll send you instructions to reset your password.
             </Text>
 
             {forgotMessage && (
-              <View style={tw`bg-emerald-50 border border-emerald-300 rounded-xl p-3 mb-3`}>
-                <Text style={tw`text-xs text-emerald-800 font-semibold`}>{forgotMessage}</Text>
+              <View style={styles.modalMessage}>
+                <Text style={styles.modalMessageText}>{forgotMessage}</Text>
               </View>
             )}
 
             <TextInput
-              style={tw`w-full bg-vanillaCream border border-vanillaCreamDark rounded-2xl px-4 py-3 text-sm font-semibold text-chocolateBrown mb-4`}
+              style={styles.modalInput}
               placeholder="your@email.com"
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={forgotEmail}
@@ -598,24 +613,24 @@ export default function LoginScreen({
               autoCorrect={false}
             />
 
-            <View style={tw`flex-row gap-2`}>
+            <View style={styles.modalBtnRow}>
               <TouchableOpacity
                 onPress={() => setForgotModalVisible(false)}
-                style={tw`flex-1 py-3 rounded-2xl bg-vanillaCream border border-vanillaCreamDark items-center`}
+                style={styles.modalCancelBtn}
                 activeOpacity={0.7}
               >
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>Cancel</Text>
+                <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleForgotPasswordSubmit}
-                style={tw`flex-1 py-3 rounded-2xl bg-strawberryPink items-center justify-center`}
+                style={styles.modalSendBtn}
                 activeOpacity={0.8}
                 disabled={forgotLoading}
               >
                 {forgotLoading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
+                  <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                 ) : (
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Send Link</Text>
+                  <Text style={styles.modalSendText}>Send Link</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -625,3 +640,434 @@ export default function LoginScreen({
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.pageBg,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
+  topBar: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+
+  // ── Hero Header ──
+  heroHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  heroCircle: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: COLORS.strawberryPinkLight,
+    marginBottom: 10,
+    shadowColor: COLORS.strawberryPink,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: -0.5,
+  },
+  heroTaglineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 3,
+  },
+  heroTaglineGelato: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.strawberryPink,
+  },
+  heroTaglinePancakes: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.chocolateBrownLight,
+  },
+  heroTaglineDot: {
+    fontSize: 12,
+    color: COLORS.chocolateBrownMuted,
+  },
+
+  // ── Form Card ──
+  formCard: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: 28,
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    shadowColor: COLORS.chocolateBrown,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+
+  // Card header
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 18,
+  },
+  cardHeaderIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.strawberryPinkLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: -0.3,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.chocolateBrownMuted,
+    marginTop: 1,
+  },
+
+  // Error banner
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.errorRedLight,
+    borderWidth: 1,
+    borderColor: COLORS.errorRedBorder,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  errorBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.errorRed,
+    flex: 1,
+  },
+
+  // Role pills
+  rolePillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 16,
+  },
+  rolePill: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  rolePillInactive: {
+    backgroundColor: COLORS.surfaceBright,
+    borderColor: COLORS.borderSubtle,
+  },
+  rolePillActiveAdmin: {
+    backgroundColor: COLORS.chocolateBrown,
+    borderColor: COLORS.chocolateBrown,
+  },
+  rolePillActiveSales: {
+    backgroundColor: COLORS.strawberryPink,
+    borderColor: COLORS.strawberryPink,
+  },
+  rolePillActiveCustomer: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  rolePillText: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  rolePillTextActive: {
+    color: COLORS.white,
+  },
+  rolePillTextInactive: {
+    color: COLORS.chocolateBrown,
+  },
+
+  // Input fields
+  fieldWrap: {
+    marginBottom: 14,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    marginBottom: 6,
+    marginLeft: 2,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderWidth: 1.5,
+  },
+  inputDefault: {
+    backgroundColor: COLORS.pageBg,
+    borderColor: COLORS.borderSubtle,
+  },
+  inputValid: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.pistachioGreen,
+  },
+  inputError: {
+    backgroundColor: COLORS.errorRedLight,
+    borderColor: COLORS.errorRedBorder,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.chocolateBrown,
+  },
+  fieldErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 5,
+    marginLeft: 2,
+  },
+  fieldErrorText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.errorRed,
+  },
+
+  // Forgot password
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 14,
+  },
+  forgotText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.strawberryPink,
+  },
+
+  // Submit button
+  submitBtn: {
+    width: '100%',
+    backgroundColor: COLORS.strawberryPink,
+    paddingVertical: 15,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 2,
+    shadowColor: COLORS.strawberryPink,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  submitBtnDisabled: {
+    opacity: 0.7,
+  },
+  submitBtnText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: 0.3,
+  },
+
+  // Divider
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 18,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.borderSubtle,
+  },
+  dividerText: {
+    marginHorizontal: 14,
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.chocolateBrownMuted,
+  },
+
+  // Sign up link
+  signupLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signupPromptText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.chocolateBrownLight,
+  },
+  signupLinkText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.strawberryPink,
+  },
+
+  // Staff portal
+  staffPortalWrap: {
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderSubtle,
+    alignItems: 'center',
+  },
+  staffPortalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.pageBg,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+  },
+  staffPortalText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+  },
+
+  // ── Modal ──
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(62, 39, 35, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: COLORS.white,
+    borderRadius: 26,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    shadowColor: COLORS.chocolateBrown,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  modalIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: COLORS.strawberryPinkLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+    letterSpacing: -0.3,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.chocolateBrownMuted,
+    marginTop: 4,
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  modalMessage: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  modalMessageText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#065F46',
+  },
+  modalInput: {
+    width: '100%',
+    backgroundColor: COLORS.pageBg,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderSubtle,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.chocolateBrown,
+    marginBottom: 16,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: COLORS.pageBg,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.chocolateBrown,
+  },
+  modalSendBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: COLORS.strawberryPink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.strawberryPink,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modalSendText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: COLORS.chocolateBrown,
+  },
+});
