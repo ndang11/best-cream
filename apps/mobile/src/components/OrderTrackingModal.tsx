@@ -27,7 +27,7 @@ import type { Order } from '@best-cream/shared';
 import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import YaoundeMapView from './YaoundeMapView';
-import { STORE_LOCATION, formatDistance, formatXAF } from '../utils/location';
+import { STORE_LOCATION, formatDistance, formatXAF, YAOUNDE_LANDMARKS } from '../utils/location';
 import { downloadReceiptPdf } from '../utils/receipt';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -42,6 +42,20 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
 
   const { t, language } = useLanguage();
   const [downloading, setDownloading] = useState(false);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+
+  // Coordinate resolution fallback if coordinates were not explicitly attached
+  let resolvedLat = order.latitude;
+  let resolvedLon = order.longitude;
+  if ((!resolvedLat || !resolvedLon) && order.deliveryAddress) {
+    const match = Object.entries(YAOUNDE_LANDMARKS).find(([quarter]) =>
+      order.deliveryAddress?.toLowerCase().includes(quarter.toLowerCase())
+    );
+    if (match) {
+      resolvedLat = match[1].lat;
+      resolvedLon = match[1].lon;
+    }
+  }
 
   const isPending = order.status === 'pending';
   const isAccepted = order.status === 'accepted' || (order.status as string) === 'approved';
@@ -262,46 +276,125 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               })}
             </View>
 
-            {/* ── Interactive Map of Delivery Route ── */}
-            <View style={tw`mb-4`}>
-              <View style={tw`flex-row justify-between items-center mb-1.5`}>
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                  {t('liveRiderMap')} 🗺️
-                </Text>
-                {order.distanceKm ? (
-                  <View style={tw`bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300`}>
-                    <Text style={tw`text-[10px] font-black text-emerald-900`}>
-                      {formatDistance(order.distanceKm)} {t('fromCenterVille')}
+            {/* ── Interactive Map of Delivery Route (Enlarged & Elevated) ── */}
+            <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-md`}>
+              {/* Header */}
+              <View style={tw`flex-row justify-between items-center mb-3 px-0.5`}>
+                <View style={tw`flex-row items-center gap-2.5`}>
+                  <View style={tw`w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
+                    <Ionicons name="map" size={17} color={COLORS.strawberryPink} />
+                  </View>
+                  <View>
+                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                      {t('liveRiderMap')}
+                    </Text>
+                    <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                      Centre-ville Shop ➔ Destination
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  {order.distanceKm ? (
+                    <View style={tw`bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-300`}>
+                      <Text style={tw`text-[10px] font-black text-emerald-900`}>
+                        {formatDistance(order.distanceKm)}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  <TouchableOpacity
+                    style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1 rounded-xl border border-borderSubtle`}
+                    onPress={() => setIsMapExpanded(!isMapExpanded)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={isMapExpanded ? 'contract-outline' : 'expand-outline'}
+                      size={13}
+                      color={COLORS.chocolateBrown}
+                    />
+                    <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                      {isMapExpanded ? 'Compact' : 'Larger'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Dual-Point Delivery Route Header Strip */}
+              <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-2.5 border border-borderSubtle`}>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <View style={tw`w-2.5 h-2.5 rounded-full bg-strawberryPink shadow-sm`} />
+                  <Text style={tw`text-[11px] font-black text-chocolateBrown`}>🍦 Best Cream Shop</Text>
+                </View>
+                <View style={tw`flex-row items-center gap-1`}>
+                  <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                    {isOutForDelivery ? '🛵 On Road' : isReady ? '📦 Ready' : isPreparing ? '👨‍🍳 In Prep' : '➔'}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={12} color={COLORS.strawberryPink} />
+                </View>
+                <View style={tw`flex-row items-center gap-1.5 flex-1 justify-end ml-2`}>
+                  <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm`} />
+                  <Text style={tw`text-[11px] font-black text-emerald-800`} numberOfLines={1}>
+                    📍 {order.deliveryAddress || t('destination')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* OpenStreetMap Canvas (Spacious & Clear) */}
+              <YaoundeMapView
+                userLatitude={resolvedLat}
+                userLongitude={resolvedLon}
+                userAddress={order.deliveryAddress || t('destination')}
+                height={isMapExpanded ? 380 : 270}
+              />
+
+              {/* Delivery Status & Destination Card below map */}
+              <View style={tw`bg-emerald-50 mt-3 p-3.5 rounded-2xl border border-emerald-200`}>
+                <View style={tw`flex-row items-center justify-between`}>
+                  <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
+                    <View style={tw`w-8 h-8 rounded-xl bg-emerald-100 items-center justify-center`}>
+                      <Ionicons
+                        name={order.deliveryAddress ? 'bicycle' : 'storefront'}
+                        size={17}
+                        color="#059669"
+                      />
+                    </View>
+                    <View style={tw`flex-1`}>
+                      <Text style={tw`text-xs font-black text-emerald-950`} numberOfLines={1}>
+                        {order.deliveryAddress || 'Pickup at Centre-ville Shop'}
+                      </Text>
+                      <Text style={tw`text-[10px] font-bold text-emerald-700 mt-0.5`}>
+                        {isOutForDelivery
+                          ? '🛵 Courier is on the way to your delivery address'
+                          : isReady
+                          ? '📦 Packed and ready for courier dispatch / pickup'
+                          : isPreparing
+                          ? '👨‍🍳 Freshly crafting in Centre-ville kitchen'
+                          : '📋 Order placed & being scheduled'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={tw`bg-emerald-600 px-3 py-1.5 rounded-xl flex-row items-center gap-1 shadow-xs`}
+                    onPress={handleCallShop}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="call" size={12} color="#FFFFFF" />
+                    <Text style={tw`text-[11px] font-black text-white`}>Shop</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {order.phoneNumber ? (
+                  <View style={tw`flex-row items-center gap-1.5 mt-2 pt-2 border-t border-emerald-200/60`}>
+                    <Ionicons name="phone-portrait-outline" size={12} color="#059669" />
+                    <Text style={tw`text-[10px] font-bold text-emerald-800`}>
+                      Customer Contact: {order.phoneNumber}
                     </Text>
                   </View>
                 ) : null}
               </View>
-
-              <YaoundeMapView
-                userLatitude={order.latitude}
-                userLongitude={order.longitude}
-                userAddress={order.deliveryAddress || t('destination')}
-                height={160}
-              />
             </View>
-
-            {/* ── Delivery Destination Info Card ── */}
-            {order.deliveryAddress ? (
-              <View style={tw`bg-emerald-50/80 rounded-2xl p-3.5 mb-4 border border-emerald-200 shadow-xs`}>
-                <View style={tw`flex-row items-center gap-2 mb-1`}>
-                  <View style={tw`w-6 h-6 rounded-lg bg-emerald-100 items-center justify-center`}>
-                    <Ionicons name="location" size={14} color="#059669" />
-                  </View>
-                  <Text style={tw`text-xs font-black text-emerald-950`}>{t('destination')}</Text>
-                </View>
-                <Text style={tw`text-xs font-bold text-emerald-900 pl-8`}>
-                  {order.deliveryAddress}
-                </Text>
-                <Text style={tw`text-[11px] text-emerald-700 pl-8 mt-0.5`}>
-                  {t('accountLabel')}: {order.phoneNumber}
-                </Text>
-              </View>
-            ) : null}
 
             {/* ── Order Items Summary ── */}
             <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-borderSubtle shadow-xs`}>
