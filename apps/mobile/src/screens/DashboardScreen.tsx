@@ -1422,68 +1422,70 @@ export default function DashboardScreen({
           {/* 1. Header & Title */}
           <View style={tw`flex-row justify-between items-center mb-3`}>
             <View>
-              <Text style={tw`text-2xl font-black text-chocolateBrown`}>{t('myOrders')}</Text>
+              <Text style={tw`text-2xl font-black text-chocolateBrown`}>{t('myOrders')} 🧾</Text>
               <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
                 {t('ordersSubtitle')}
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleRefreshOrders}
-              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-borderSubtle shadow-sm`}
+              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-strawberryPink/30 shadow-xs`}
               activeOpacity={0.7}
             >
               {refreshingOrders ? (
                 <ActivityIndicator size="small" color={COLORS.strawberryPink} />
               ) : (
-                <Ionicons name="reload-outline" size={18} color={COLORS.chocolateBrown} />
+                <Ionicons name="reload-outline" size={18} color={COLORS.strawberryPink} />
               )}
             </TouchableOpacity>
           </View>
 
-          {/* 2. Quick Stat Overview Cards */}
+          {/* 2. Quick Stat Overview Cards (Vibrant, Eye-Catching Triad) */}
           <View style={tw`flex-row gap-2.5 mb-3.5`}>
-            {/* Total Orders */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
-              <View style={tw`flex-row items-center justify-between mb-1`}>
-                <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
-                  {t('totalPlaced')}
-                </Text>
-                <Text style={tw`text-sm`}>🧾</Text>
+            {/* Total Orders (Strawberry Pink) */}
+            <View style={tw`flex-1 bg-white p-3 rounded-2xl border-2 border-strawberryPink/30 shadow-xs`}>
+              <View style={tw`flex-row items-center justify-between mb-1.5`}>
+                <View style={tw`w-7 h-7 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+                  <Text style={tw`text-xs`}>🧾</Text>
+                </View>
+                <View style={tw`bg-strawberryPinkLight px-1.5 py-0.2 rounded-md`}>
+                  <Text style={tw`text-[9px] font-black text-strawberryPink`}>ALL</Text>
+                </View>
               </View>
-              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.all}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('placedOrders')}</Text>
+              <Text style={tw`text-2xl font-black text-strawberryPink`}>{orderCounts.all}</Text>
+              <Text style={tw`text-[10px] font-black text-chocolateBrown uppercase tracking-wider mt-0.5`}>{t('totalPlaced')}</Text>
             </View>
 
-            {/* In Progress */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
-              <View style={tw`flex-row items-center justify-between mb-1`}>
-                <Text style={tw`text-[10px] font-black text-pistachioGreen uppercase tracking-wider`}>
-                  {t('activeOrders')}
-                </Text>
-                <View style={tw`w-2 h-2 rounded-full bg-pistachioGreen`} />
+            {/* In Progress (Warm Radiant Amber / Gold) */}
+            <View style={tw`flex-1 bg-amber-50/90 p-3 rounded-2xl border-2 border-amber-300 shadow-xs`}>
+              <View style={tw`flex-row items-center justify-between mb-1.5`}>
+                <View style={tw`w-7 h-7 rounded-xl bg-amber-100 items-center justify-center`}>
+                  <Text style={tw`text-xs`}>🛵</Text>
+                </View>
+                <View style={tw`w-2 h-2 rounded-full bg-amber-500`} />
               </View>
-              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.active}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('inKitchenTransit')}</Text>
+              <Text style={tw`text-2xl font-black text-amber-700`}>{orderCounts.active}</Text>
+              <Text style={tw`text-[10px] font-black text-amber-900 uppercase tracking-wider mt-0.5`}>{t('activeOrders')}</Text>
             </View>
 
-            {/* Completed */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border border-borderSubtle shadow-sm`}>
-              <View style={tw`flex-row items-center justify-between mb-1`}>
-                <Text style={tw`text-[10px] font-black text-blue-600 uppercase tracking-wider`}>
-                  {t('completedOrders')}
-                </Text>
-                <Text style={tw`text-sm`}>🎉</Text>
+            {/* Completed (Fresh Emerald Celebration) */}
+            <View style={tw`flex-1 bg-emerald-50/90 p-3 rounded-2xl border-2 border-emerald-300 shadow-xs`}>
+              <View style={tw`flex-row items-center justify-between mb-1.5`}>
+                <View style={tw`w-7 h-7 rounded-xl bg-emerald-100 items-center justify-center`}>
+                  <Text style={tw`text-xs`}>🎉</Text>
+                </View>
+                <View style={tw`w-2 h-2 rounded-full bg-emerald-500`} />
               </View>
-              <Text style={tw`text-xl font-black text-chocolateBrown`}>{orderCounts.completed}</Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>{t('delivered')}</Text>
+              <Text style={tw`text-2xl font-black text-emerald-700`}>{orderCounts.completed}</Text>
+              <Text style={tw`text-[10px] font-black text-emerald-900 uppercase tracking-wider mt-0.5`}>{t('completedOrders')}</Text>
             </View>
           </View>
 
           {/* 3. Search Bar */}
-          <View style={tw`flex-row items-center bg-white border border-borderSubtle rounded-2xl px-3.5 py-2.5 mb-3 shadow-sm`}>
-            <Ionicons name="search-outline" size={17} color={COLORS.chocolateBrownMuted} />
+          <View style={tw`flex-row items-center bg-white border border-borderSubtle rounded-2xl px-3.5 py-2.5 mb-3 shadow-xs`}>
+            <Ionicons name="search" size={16} color={COLORS.strawberryPink} />
             <TextInput
-              style={tw`flex-1 text-xs text-chocolateBrown ml-2 font-medium`}
+              style={tw`flex-1 text-xs text-chocolateBrown ml-2 font-semibold`}
               placeholder={t('searchOrdersPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={orderSearchQuery}
@@ -1517,7 +1519,7 @@ export default function DashboardScreen({
                     tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-2xl border`,
                     active
                       ? tw`bg-strawberryPink border-strawberryPink shadow-sm`
-                      : tw`bg-white border-borderSubtle shadow-sm`,
+                      : tw`bg-white border-borderSubtle shadow-xs`,
                   ]}
                   onPress={() => setOrderFilter(tab.id as OrderFilterType)}
                   activeOpacity={0.8}
@@ -1533,13 +1535,13 @@ export default function DashboardScreen({
                   <View
                     style={[
                       tw`px-1.5 py-0.2 rounded-full`,
-                      active ? tw`bg-white/30` : tw`bg-surfaceBright border border-borderSubtle`,
+                      active ? tw`bg-white/25` : tw`bg-strawberryPinkLight`,
                     ]}
                   >
                     <Text
                       style={[
                         tw`text-[10px] font-black`,
-                        active ? tw`text-white` : tw`text-chocolateBrownMuted`,
+                        active ? tw`text-white` : tw`text-strawberryPink`,
                       ]}
                     >
                       {tab.count}
@@ -1599,36 +1601,78 @@ export default function DashboardScreen({
               return (
                 <View
                   key={order.id}
-                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}
+                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-md relative overflow-hidden`}
                 >
-                  {/* Card Header: ID, Date & Status Badge */}
-                  <View style={tw`flex-row justify-between items-start pb-2.5 border-b border-borderSubtle`}>
-                    <View>
-                      <View style={tw`flex-row items-center gap-1.5`}>
-                        <Text style={tw`text-xs text-strawberryPink`}>🧾</Text>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
+                  {/* Top Status Accent Stripe */}
+                  <View
+                    style={[
+                      tw`h-1.5 w-full absolute top-0 left-0 right-0`,
+                      order.status === 'completed' || (order.status as string) === 'received'
+                        ? tw`bg-emerald-500`
+                        : order.status === 'out-for-delivery'
+                        ? tw`bg-purple-500`
+                        : order.status === 'ready'
+                        ? tw`bg-blue-500`
+                        : order.status === 'preparing'
+                        ? tw`bg-orange-500`
+                        : order.status === 'accepted' || (order.status as string) === 'approved'
+                        ? tw`bg-pistachioGreen`
+                        : order.status === 'cancelled' || order.status === 'rejected'
+                        ? tw`bg-red-500`
+                        : tw`bg-amber-400`,
+                    ]}
+                  />
+
+                  {/* Card Header: ID, Date & Eye-Catching Status Badge */}
+                  <View style={tw`flex-row justify-between items-start pt-1 pb-2.5 border-b border-borderSubtle`}>
+                    <View style={tw`flex-row items-center gap-2`}>
+                      <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
+                        <Text style={tw`text-sm`}>🧾</Text>
                       </View>
-                      <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
-                        {formatOrderDate(order.createdAt, language)} • {itemCount} {language === 'fr' ? 'article(s)' : `item${itemCount > 1 ? 's' : ''}`}
-                      </Text>
+                      <View>
+                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
+                        <Text style={tw`text-[10px] font-semibold text-chocolateBrownMuted mt-0.2`}>
+                          {formatOrderDate(order.createdAt, language)} • {itemCount} {language === 'fr' ? 'article(s)' : `item${itemCount > 1 ? 's' : ''}`}
+                        </Text>
+                      </View>
                     </View>
 
                     {/* Status Pill Badge */}
                     <View
                       style={[
                         tw`flex-row items-center gap-1.5 px-3 py-1 rounded-xl border`,
-                        statusInfo.bg === 'bg-pistachioGreenLight' && tw`bg-pistachioGreenLight border-pistachioGreen`,
-                        statusInfo.bg === 'bg-blue-50' && tw`bg-blue-50 border-blue-300`,
-                        statusInfo.bg === 'bg-butterYellowLight' && tw`bg-butterYellowLight border-butterYellow`,
+                        order.status === 'completed' || (order.status as string) === 'received'
+                          ? tw`bg-emerald-50 border-emerald-300`
+                          : order.status === 'out-for-delivery'
+                          ? tw`bg-purple-50 border-purple-300`
+                          : order.status === 'ready'
+                          ? tw`bg-blue-50 border-blue-300`
+                          : order.status === 'preparing'
+                          ? tw`bg-orange-50 border-orange-300`
+                          : order.status === 'accepted' || (order.status as string) === 'approved'
+                          ? tw`bg-green-50 border-green-300`
+                          : order.status === 'cancelled' || order.status === 'rejected'
+                          ? tw`bg-red-50 border-red-300`
+                          : tw`bg-amber-50 border-amber-300`,
                       ]}
                     >
                       <Ionicons name={statusInfo.icon} size={13} color={statusInfo.iconColor} />
                       <Text
                         style={[
                           tw`text-[11px] font-black`,
-                          statusInfo.text === 'text-chocolateBrown' && tw`text-chocolateBrown`,
-                          statusInfo.text === 'text-blue-800' && tw`text-blue-800`,
-                          statusInfo.text === 'text-amber-800' && tw`text-amber-800`,
+                          order.status === 'completed' || (order.status as string) === 'received'
+                            ? tw`text-emerald-800`
+                            : order.status === 'out-for-delivery'
+                            ? tw`text-purple-800`
+                            : order.status === 'ready'
+                            ? tw`text-blue-800`
+                            : order.status === 'preparing'
+                            ? tw`text-orange-800`
+                            : order.status === 'accepted' || (order.status as string) === 'approved'
+                            ? tw`text-green-800`
+                            : order.status === 'cancelled' || order.status === 'rejected'
+                            ? tw`text-red-700`
+                            : tw`text-amber-800`,
                         ]}
                       >
                         {statusInfo.label}
@@ -1637,21 +1681,21 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Visual 3-Stage Progress Timeline */}
-                  <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-2xl px-3 py-2 mt-2.5 mb-2 border border-borderSubtle`}>
+                  <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-2xl px-3.5 py-2.5 mt-2.5 mb-2 border border-borderSubtle shadow-xs`}>
                     {/* Step 1: Placed */}
-                    <View style={tw`flex-row items-center gap-1`}>
+                    <View style={tw`flex-row items-center gap-1.5`}>
                       <View
                         style={[
-                          tw`w-4 h-4 rounded-full items-center justify-center`,
+                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
                           statusInfo.step >= 1 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
                         ]}
                       >
-                        <Ionicons name="checkmark" size={10} color={COLORS.white} />
+                        <Ionicons name="checkmark" size={11} color={COLORS.white} />
                       </View>
                       <Text
                         style={[
-                          tw`text-[10px] font-bold`,
-                          statusInfo.step >= 1 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                          tw`text-[10px] font-black`,
+                          statusInfo.step >= 1 ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
                         {t('placedStep')}
@@ -1661,29 +1705,29 @@ export default function DashboardScreen({
                     {/* Connector */}
                     <View
                       style={[
-                        tw`flex-1 h-0.5 mx-1.5`,
-                        statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
+                        tw`flex-1 h-0.5 mx-2`,
+                        statusInfo.step >= 2 ? tw`bg-amber-400` : tw`bg-borderSubtle`,
                       ]}
                     />
 
                     {/* Step 2: Kitchen */}
-                    <View style={tw`flex-row items-center gap-1`}>
+                    <View style={tw`flex-row items-center gap-1.5`}>
                       <View
                         style={[
-                          tw`w-4 h-4 rounded-full items-center justify-center`,
-                          statusInfo.step >= 2 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
+                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
+                          statusInfo.step >= 2 ? tw`bg-amber-500` : tw`bg-borderSubtle`,
                         ]}
                       >
                         <Ionicons
                           name={statusInfo.step >= 2 ? 'checkmark' : 'restaurant-outline'}
-                          size={10}
+                          size={11}
                           color={COLORS.white}
                         />
                       </View>
                       <Text
                         style={[
-                          tw`text-[10px] font-bold`,
-                          statusInfo.step >= 2 ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
+                          tw`text-[10px] font-black`,
+                          statusInfo.step >= 2 ? tw`text-amber-800` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
                         {t('kitchenStep')}
@@ -1693,29 +1737,29 @@ export default function DashboardScreen({
                     {/* Connector */}
                     <View
                       style={[
-                        tw`flex-1 h-0.5 mx-1.5`,
-                        statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-borderSubtle`,
+                        tw`flex-1 h-0.5 mx-2`,
+                        statusInfo.step >= 3 ? tw`bg-emerald-400` : tw`bg-borderSubtle`,
                       ]}
                     />
 
                     {/* Step 3: Delivered */}
-                    <View style={tw`flex-row items-center gap-1`}>
+                    <View style={tw`flex-row items-center gap-1.5`}>
                       <View
                         style={[
-                          tw`w-4 h-4 rounded-full items-center justify-center`,
-                          statusInfo.step >= 3 ? tw`bg-blue-600` : tw`bg-borderSubtle`,
+                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
+                          statusInfo.step >= 3 ? tw`bg-emerald-500` : tw`bg-borderSubtle`,
                         ]}
                       >
                         <Ionicons
                           name={statusInfo.step >= 3 ? 'checkmark-done' : 'bicycle-outline'}
-                          size={10}
+                          size={11}
                           color={COLORS.white}
                         />
                       </View>
                       <Text
                         style={[
-                          tw`text-[10px] font-bold`,
-                          statusInfo.step >= 3 ? tw`text-blue-800` : tw`text-chocolateBrownMuted`,
+                          tw`text-[10px] font-black`,
+                          statusInfo.step >= 3 ? tw`text-emerald-800` : tw`text-chocolateBrownMuted`,
                         ]}
                       >
                         {t('deliveredStep')}
@@ -1747,14 +1791,18 @@ export default function DashboardScreen({
                           style={tw`bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle`}
                         >
                           <View style={tw`flex-row items-center`}>
-                            <Text style={tw`text-sm mr-2`}>{emoji}</Text>
-                            <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
-                              {item.quantity}×
-                            </Text>
+                            <View style={tw`w-7 h-7 rounded-lg bg-white items-center justify-center border border-borderSubtle mr-2 shadow-xs`}>
+                              <Text style={tw`text-sm`}>{emoji}</Text>
+                            </View>
+                            <View style={tw`bg-strawberryPinkLight px-1.5 py-0.5 rounded-md mr-1.5`}>
+                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                                {item.quantity}×
+                              </Text>
+                            </View>
                             <View style={tw`flex-1`}>
                               <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
                               {item.flavor ? (
-                                <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>
+                                <Text style={tw`text-[10px] font-bold text-strawberryPink`} numberOfLines={1}>
                                   {item.flavor}
                                 </Text>
                               ) : null}
@@ -1765,9 +1813,9 @@ export default function DashboardScreen({
                           </View>
                           {/* Customization tags */}
                           {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
-                            <View style={tw`ml-6 flex-row flex-wrap gap-1 mt-1`}>
+                            <View style={tw`ml-9 flex-row flex-wrap gap-1 mt-1`}>
                               {item.servingStyle && (
-                                <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
+                                <View style={tw`bg-strawberryPinkLight border border-strawberryPink/30 px-2 py-0.5 rounded-md`}>
                                   <Text style={tw`text-[9px] font-bold text-strawberryPink`}>
                                     {item.servingStyle}
                                   </Text>
@@ -1781,15 +1829,15 @@ export default function DashboardScreen({
                                 </View>
                               )}
                               {item.pancakeStyle && (
-                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
-                                  <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                                <View style={tw`bg-butterYellowLight border border-butterYellow px-2 py-0.5 rounded-md`}>
+                                  <Text style={tw`text-[9px] font-bold text-amber-900`}>
                                     {item.pancakeStyle}
                                   </Text>
                                 </View>
                               )}
                               {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
-                                <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
-                                  <Text style={tw`text-[9px] text-amber-800`}>
+                                <View key={ti} style={tw`bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md`}>
+                                  <Text style={tw`text-[9px] font-bold text-amber-800`}>
                                     + {topping.name}
                                   </Text>
                                 </View>
@@ -1798,7 +1846,7 @@ export default function DashboardScreen({
                           )}
                           {/* Special notes */}
                           {item.specialNotes && (
-                            <View style={tw`ml-6 mt-1 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
+                            <View style={tw`ml-9 mt-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg`}>
                               <Text style={tw`text-[10px] font-bold text-red-700`}>
                                 📝 {item.specialNotes}
                               </Text>
@@ -1811,16 +1859,18 @@ export default function DashboardScreen({
 
                   {/* Delivery Address Pill (if destination specified) */}
                   {order.deliveryAddress ? (
-                    <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mt-1 border border-borderSubtle`}>
-                      <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-                        <Ionicons name="location-sharp" size={13} color={COLORS.strawberryPink} />
-                        <Text style={tw`text-[11px] font-semibold text-chocolateBrown flex-1`} numberOfLines={1}>
+                    <View style={tw`flex-row items-center justify-between bg-emerald-50/80 px-3 py-2 rounded-2xl mt-1.5 border border-emerald-200`}>
+                      <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
+                        <View style={tw`w-6 h-6 rounded-lg bg-emerald-100 items-center justify-center`}>
+                          <Ionicons name="location-sharp" size={13} color="#059669" />
+                        </View>
+                        <Text style={tw`text-[11px] font-bold text-emerald-950 flex-1`} numberOfLines={1}>
                           {order.deliveryAddress}
                         </Text>
                       </View>
                       {order.distanceKm ? (
-                        <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
-                          <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                        <View style={tw`bg-emerald-600 px-2 py-0.5 rounded-lg`}>
+                          <Text style={tw`text-[10px] font-black text-white`}>
                             {order.distanceKm.toFixed(1)} km
                           </Text>
                         </View>
@@ -1832,20 +1882,34 @@ export default function DashboardScreen({
                   <View style={tw`border-t border-borderSubtle pt-2.5 mt-2`}>
                     <View style={tw`flex-row justify-between items-center mb-2.5`}>
                       <View style={tw`flex-row items-center gap-2`}>
-                        <View style={tw`bg-surfaceBright px-2 py-0.5 rounded-lg border border-borderSubtle`}>
-                          <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                        <View
+                          style={[
+                            tw`px-2.5 py-1 rounded-xl border`,
+                            order.paymentMethod === 'mtn-momo'
+                              ? tw`bg-yellow-400/20 border-yellow-500/40`
+                              : tw`bg-orange-500/20 border-orange-500/40`,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              tw`text-[10px] font-black`,
+                              order.paymentMethod === 'mtn-momo'
+                                ? tw`text-yellow-950`
+                                : tw`text-orange-950`,
+                            ]}
+                          >
                             {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                           </Text>
                         </View>
                         {order.deliveryFee ? (
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
-                            + {formatXAF(order.deliveryFee)} deliv.
+                          <Text style={tw`text-[10px] font-bold text-pistachioGreen`}>
+                            + {formatXAF(order.deliveryFee)} delivery
                           </Text>
                         ) : null}
                       </View>
 
                       <View style={tw`items-end`}>
-                        <Text style={tw`text-[10px] uppercase font-bold text-chocolateBrownMuted`}>
+                        <Text style={tw`text-[9px] uppercase font-black text-chocolateBrownMuted`}>
                           {t('totalPaid')}
                         </Text>
                         <Text style={tw`text-base font-black text-chocolateBrown`}>
@@ -1854,7 +1918,7 @@ export default function DashboardScreen({
                       </View>
                     </View>
 
-                    {/* Primary Action Button: Track Live Order (Full width - no text overflow) */}
+                    {/* Primary Action Button: Track Live Order (Vibrant Pink CTA) */}
                     <TouchableOpacity
                       style={tw`w-full flex-row items-center justify-center gap-2 bg-strawberryPink py-3 rounded-2xl shadow-sm mb-2`}
                       onPress={() => setSelectedOrderForTracking(order)}
@@ -1873,7 +1937,7 @@ export default function DashboardScreen({
                     <View style={tw`flex-row items-center gap-2`}>
                       {/* Download Receipt Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-borderSubtle shadow-sm`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-borderSubtle shadow-xs`}
                         onPress={() => handleDownloadReceipt(order)}
                         disabled={downloadingOrderId === order.id}
                         activeOpacity={0.8}
@@ -1884,7 +1948,7 @@ export default function DashboardScreen({
                           <>
                             <Ionicons name="document-text-outline" size={14} color={COLORS.chocolateBrown} />
                             <Text
-                              style={tw`text-xs font-bold text-chocolateBrown`}
+                              style={tw`text-xs font-extrabold text-chocolateBrown`}
                               numberOfLines={1}
                             >
                               {t('receiptPdf')}
@@ -1895,13 +1959,13 @@ export default function DashboardScreen({
 
                       {/* Reorder Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-surfaceBright py-2.5 rounded-xl border border-borderSubtle`}
+                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-strawberryPinkLight py-2.5 rounded-xl border border-strawberryPink/30 shadow-xs`}
                         onPress={() => handleReorder(order)}
                         activeOpacity={0.8}
                       >
-                        <Ionicons name="repeat" size={14} color={COLORS.chocolateBrown} />
+                        <Ionicons name="repeat" size={14} color={COLORS.strawberryPink} />
                         <Text
-                          style={tw`text-xs font-bold text-chocolateBrown`}
+                          style={tw`text-xs font-black text-strawberryPink`}
                           numberOfLines={1}
                         >
                           {t('reorder')}
@@ -1910,11 +1974,11 @@ export default function DashboardScreen({
 
                       {/* Delete Button */}
                       <TouchableOpacity
-                        style={tw`w-10 h-10 rounded-xl bg-surfaceBright items-center justify-center border border-borderSubtle`}
+                        style={tw`w-10 h-10 rounded-xl bg-rose-50 items-center justify-center border border-rose-200`}
                         onPress={() => deleteOrder(order.id)}
                         activeOpacity={0.7}
                       >
-                        <Ionicons name="trash-outline" size={15} color={COLORS.chocolateBrownMuted} />
+                        <Ionicons name="trash-outline" size={15} color="#E11D48" />
                       </TouchableOpacity>
                     </View>
                   </View>

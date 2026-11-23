@@ -123,7 +123,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
       <View style={tw`flex-1 bg-black/60 justify-end`}>
         <View style={tw`bg-white rounded-t-3xl max-h-9/10 pb-6`}>
           {/* Header */}
-          <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-vanillaCreamDark`}>
+          <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-borderSubtle`}>
             <View>
               <View style={tw`flex-row items-center gap-2`}>
                 <Text style={tw`text-lg font-black text-chocolateBrown`}>{order.id}</Text>
@@ -139,10 +139,10 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                       : isPreparing
                       ? tw`bg-orange-50 border-orange-300`
                       : isAccepted
-                      ? tw`bg-pistachioGreenLight border-pistachioGreen`
+                      ? tw`bg-emerald-50 border-emerald-300`
                       : isCancelled
                       ? tw`bg-red-50 border-red-300`
-                      : tw`bg-butterYellowLight border-butterYellow`,
+                      : tw`bg-amber-50 border-amber-300`,
                   ]}
                 >
                   <Text
@@ -157,7 +157,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                         : isPreparing
                         ? tw`text-orange-800`
                         : isAccepted
-                        ? tw`text-green-800`
+                        ? tw`text-emerald-800`
                         : isCancelled
                         ? tw`text-red-700`
                         : tw`text-amber-800`,
@@ -181,7 +181,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               <TouchableOpacity
                 onPress={handleDownloadReceipt}
                 disabled={downloading}
-                style={tw`w-9 h-9 rounded-full bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center`}
+                style={tw`w-9 h-9 rounded-full bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center shadow-xs`}
                 activeOpacity={0.7}
               >
                 {downloading ? (
@@ -192,7 +192,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={onClose}
-                style={tw`w-9 h-9 rounded-full bg-vanillaCream items-center justify-center`}
+                style={tw`w-9 h-9 rounded-full bg-surfaceBright border border-borderSubtle items-center justify-center`}
                 activeOpacity={0.7}
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
@@ -201,8 +201,8 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
           </View>
 
           <ScrollView style={tw`px-5 pt-3`} showsVerticalScrollIndicator={false}>
-            {/* ── 4-Stage Live Delivery Progress Stepper ── */}
-            <View style={tw`bg-vanillaCream rounded-2xl p-4 mb-4 border border-vanillaCreamDark`}>
+            {/* ── 4-Stage Live Delivery Progress Stepper (Vibrant Eye-Catching Stepper) ── */}
+            <View style={tw`bg-surfaceBright rounded-2xl p-4 mb-4 border border-borderSubtle shadow-xs`}>
               <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
                 {t('liveOrderProgress')}
               </Text>
@@ -215,12 +215,12 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                     <View style={tw`items-center mr-3`}>
                       <View
                         style={[
-                          tw`w-7 h-7 rounded-full items-center justify-center border`,
+                          tw`w-7 h-7 rounded-full items-center justify-center border shadow-xs`,
                           s.done
-                            ? tw`bg-pistachioGreen border-pistachioGreen`
+                            ? tw`bg-emerald-500 border-emerald-500`
                             : s.active
                             ? tw`bg-strawberryPink border-strawberryPink`
-                            : tw`bg-white border-vanillaCreamDark`,
+                            : tw`bg-white border-borderSubtle`,
                         ]}
                       >
                         <Ionicons
@@ -233,7 +233,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                         <View
                           style={[
                             tw`w-0.5 h-7 my-0.5`,
-                            s.done ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`,
+                            s.done ? tw`bg-emerald-400` : tw`bg-borderSubtle`,
                           ]}
                         />
                       )}
@@ -245,7 +245,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                         style={[
                           tw`text-xs font-black`,
                           s.done
-                            ? tw`text-chocolateBrown`
+                            ? tw`text-emerald-900`
                             : s.active
                             ? tw`text-strawberryPink`
                             : tw`text-chocolateBrownMuted`,
@@ -269,8 +269,8 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                   {t('liveRiderMap')} 🗺️
                 </Text>
                 {order.distanceKm ? (
-                  <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-full border border-pistachioGreen/40`}>
-                    <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                  <View style={tw`bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300`}>
+                    <Text style={tw`text-[10px] font-black text-emerald-900`}>
                       {formatDistance(order.distanceKm)} {t('fromCenterVille')}
                     </Text>
                   </View>
@@ -287,34 +287,38 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
 
             {/* ── Delivery Destination Info Card ── */}
             {order.deliveryAddress ? (
-              <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-vanillaCreamDark shadow-sm`}>
+              <View style={tw`bg-emerald-50/80 rounded-2xl p-3.5 mb-4 border border-emerald-200 shadow-xs`}>
                 <View style={tw`flex-row items-center gap-2 mb-1`}>
-                  <Ionicons name="location" size={16} color={COLORS.strawberryPink} />
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>{t('destination')}</Text>
+                  <View style={tw`w-6 h-6 rounded-lg bg-emerald-100 items-center justify-center`}>
+                    <Ionicons name="location" size={14} color="#059669" />
+                  </View>
+                  <Text style={tw`text-xs font-black text-emerald-950`}>{t('destination')}</Text>
                 </View>
-                <Text style={tw`text-xs font-semibold text-chocolateBrownLight pl-6`}>
+                <Text style={tw`text-xs font-bold text-emerald-900 pl-8`}>
                   {order.deliveryAddress}
                 </Text>
-                <Text style={tw`text-[11px] text-chocolateBrownMuted pl-6 mt-1`}>
+                <Text style={tw`text-[11px] text-emerald-700 pl-8 mt-0.5`}>
                   {t('accountLabel')}: {order.phoneNumber}
                 </Text>
               </View>
             ) : null}
 
             {/* ── Order Items Summary ── */}
-            <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-vanillaCreamDark shadow-sm`}>
+            <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-borderSubtle shadow-xs`}>
               <Text style={tw`text-xs font-black text-chocolateBrown mb-2.5`}>{t('itemsInOrder')}</Text>
               {order.items.map((item, idx) => (
-                <View key={idx} style={tw`py-2 border-b border-vanillaCreamDark/60`}>
+                <View key={idx} style={tw`py-2 border-b border-borderSubtle`}>
                   <View style={tw`flex-row justify-between items-center`}>
                     <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                      <Text style={tw`text-xs font-black text-strawberryPink w-5`}>
-                        {item.quantity}×
-                      </Text>
+                      <View style={tw`bg-strawberryPinkLight px-1.5 py-0.5 rounded-md`}>
+                        <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                          {item.quantity}×
+                        </Text>
+                      </View>
                       <View style={tw`flex-1`}>
                         <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
                         {item.flavor && (
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.flavor}</Text>
+                          <Text style={tw`text-[10px] font-bold text-strawberryPink`}>{item.flavor}</Text>
                         )}
                       </View>
                     </View>
@@ -324,29 +328,35 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                   </View>
                   {/* Customization details */}
                   {item.servingStyle && (
-                    <View style={tw`flex-row items-center gap-1.5 ml-7 mt-1`}>
-                      <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
-                        {item.servingStyle}
-                      </Text>
+                    <View style={tw`flex-row items-center gap-1.5 ml-8 mt-1`}>
+                      <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
+                        <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                          {item.servingStyle}
+                        </Text>
+                      </View>
                     </View>
                   )}
                   {item.sizeOption && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-8`}>
                       {item.sizeOption}
                     </Text>
                   )}
                   {item.pancakeStyle && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
-                      {item.pancakeStyle}
-                    </Text>
+                    <View style={tw`ml-8 mt-0.5`}>
+                      <View style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md self-start border border-butterYellow`}>
+                        <Text style={tw`text-[10px] font-bold text-amber-900`}>
+                          {item.pancakeStyle}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {item.selectedToppings && item.selectedToppings.length > 0 && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-7`}>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-8 mt-0.5`}>
                       + {item.selectedToppings.map((t) => t.name).join(', ')}
                     </Text>
                   )}
                   {item.specialNotes && (
-                    <View style={tw`ml-7 mt-1 bg-strawberryPinkLight px-2.5 py-1.5 rounded-lg border border-strawberryPink/30`}>
+                    <View style={tw`ml-8 mt-1 bg-strawberryPinkLight px-2.5 py-1.5 rounded-lg border border-strawberryPink/30`}>
                       <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
                         📝 {item.specialNotes}
                       </Text>
@@ -360,16 +370,28 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
                 {order.deliveryFee ? (
                   <View style={tw`flex-row justify-between mb-1`}>
                     <Text style={tw`text-xs text-chocolateBrownMuted`}>{t('deliveryFeeLabel')}</Text>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                      {formatXAF(order.deliveryFee)}
+                    <Text style={tw`text-xs font-bold text-pistachioGreen`}>
+                      + {formatXAF(order.deliveryFee)}
                     </Text>
                   </View>
                 ) : null}
-                <View style={tw`flex-row justify-between items-center pt-1 border-t border-vanillaCreamDark`}>
+                <View style={tw`flex-row justify-between items-center pt-2 border-t border-borderSubtle`}>
                   <View style={tw`flex-row items-center gap-1.5`}>
                     <Text style={tw`text-sm font-black text-chocolateBrown`}>{t('totalPaidLabel')}</Text>
-                    <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-lg border border-vanillaCreamDark`}>
-                      <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                    <View
+                      style={[
+                        tw`px-2 py-0.5 rounded-lg border`,
+                        order.paymentMethod === 'mtn-momo'
+                          ? tw`bg-yellow-400/20 border-yellow-500/40`
+                          : tw`bg-orange-500/20 border-orange-500/40`,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          tw`text-[10px] font-black`,
+                          order.paymentMethod === 'mtn-momo' ? tw`text-yellow-950` : tw`text-orange-950`,
+                        ]}
+                      >
                         {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                       </Text>
                     </View>
@@ -384,7 +406,7 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             {/* ── Download Official PDF Receipt Button ── */}
             <TouchableOpacity
               style={[
-                tw`flex-row items-center justify-center gap-2 bg-strawberryPink py-3.5 rounded-2xl mb-3 shadow-sm`,
+                tw`flex-row items-center justify-center gap-2 bg-strawberryPink py-3.5 rounded-2xl mb-3 shadow-md`,
                 downloading && tw`opacity-70`,
               ]}
               disabled={downloading}
@@ -393,15 +415,15 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
             >
               {downloading ? (
                 <>
-                  <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                  <Text style={tw`text-xs font-black text-white`}>
                     {t('generatingPdfReceipt')}
                   </Text>
                 </>
               ) : (
                 <>
-                  <Ionicons name="document-text" size={17} color={COLORS.chocolateBrown} />
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  <Ionicons name="document-text" size={17} color={COLORS.white} />
+                  <Text style={tw`text-xs font-black text-white`}>
                     {t('downloadOfficialReceipt')}
                   </Text>
                 </>
@@ -410,12 +432,12 @@ export default function OrderTrackingModal({ order, visible, onClose }: OrderTra
 
             {/* ── Contact Shop Support Button ── */}
             <TouchableOpacity
-              style={tw`flex-row items-center justify-center gap-2 bg-vanillaCream border border-chocolateBrown/20 py-3 rounded-2xl mb-6`}
+              style={tw`flex-row items-center justify-center gap-2 bg-white border-2 border-strawberryPink/30 py-3 rounded-2xl mb-6 shadow-xs`}
               onPress={handleCallShop}
               activeOpacity={0.8}
             >
-              <Ionicons name="call" size={16} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+              <Ionicons name="call" size={16} color={COLORS.strawberryPink} />
+              <Text style={tw`text-xs font-black text-strawberryPink`}>
                 {t('callShopNumber')}
               </Text>
             </TouchableOpacity>
