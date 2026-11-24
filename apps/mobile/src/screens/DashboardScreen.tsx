@@ -204,7 +204,9 @@ export default function DashboardScreen({
 
   // Profile State
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [editPhone, setEditPhone] = useState(userName || '');
+  const [displayName, setDisplayName] = useState(userName || 'Sweet Tooth');
+  const [editName, setEditName] = useState(userName || 'Sweet Tooth');
+  const [editPhone, setEditPhone] = useState('+237 670 123 456');
   const [editEmail, setEditEmail] = useState(userEmail || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -630,8 +632,17 @@ export default function DashboardScreen({
                 } catch (_) { }
               }
             }
-            if (json.data.phone && !editPhone) {
+            if (json.data.name) {
+              setDisplayName(json.data.name);
+              setEditName(json.data.name);
+              setCustomerName(json.data.name);
+            }
+            if (json.data.phone) {
               setEditPhone(json.data.phone);
+              setPhoneNumber(json.data.phone);
+            }
+            if (json.data.email) {
+              setEditEmail(json.data.email);
             }
           }
         } catch (_) { }
@@ -713,15 +724,22 @@ export default function DashboardScreen({
   // ── Profile: save edited details ──────────────────────────────────────────
   const saveProfile = async () => {
     setSavingProfile(true);
+    const updatedName = editName.trim() || displayName;
+    const updatedPhone = editPhone.trim();
+    const updatedEmail = editEmail.trim() || userEmail;
+
+    setDisplayName(updatedName);
+    setCustomerName(updatedName);
+
     if (apiUrl) {
       try {
         await fetch(`${apiUrl}/api/profile`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: editEmail || userEmail,
-            name: userName,
-            phone: editPhone,
+            email: updatedEmail,
+            name: updatedName,
+            phone: updatedPhone,
             avatarUrl: profilePicture,
           }),
         });
@@ -2273,76 +2291,117 @@ export default function DashboardScreen({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw`px-5 pt-3 pb-28`}
         >
+          {/* 🌟 Profile Card Header with Gelato Hero Glow */}
           <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm`}>
-            {/* Profile Picture with Upload */}
-            <TouchableOpacity onPress={pickProfilePicture} activeOpacity={0.8} disabled={uploadingAvatar}>
-              <View style={tw`w-24 h-24 rounded-full bg-strawberryPinkLight items-center justify-center mb-3 border border-strawberryPink/20 overflow-hidden`}>
+            {/* Profile Avatar & Live Upload Button */}
+            <TouchableOpacity
+              onPress={pickProfilePicture}
+              activeOpacity={0.8}
+              disabled={uploadingAvatar}
+              style={tw`relative`}
+            >
+              <View style={tw`w-28 h-28 rounded-full bg-strawberryPinkLight items-center justify-center border-4 border-white shadow-md overflow-hidden`}>
                 {uploadingAvatar ? (
                   <ActivityIndicator size="small" color={COLORS.strawberryPink} />
                 ) : profilePicture ? (
                   <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
                 ) : (
-                  <Ionicons name="person" size={44} color={COLORS.strawberryPink} />
+                  <Ionicons name="person" size={54} color={COLORS.strawberryPink} />
                 )}
               </View>
-              <View style={tw`absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-strawberryPink items-center justify-center border-2 border-white`}>
-                <Ionicons name="camera" size={15} color={COLORS.chocolateBrown} />
+              <View style={tw`absolute bottom-0 right-0 w-9 h-9 rounded-full bg-strawberryPink items-center justify-center border-2 border-white shadow-md`}>
+                <Ionicons name="camera" size={17} color={COLORS.white} />
               </View>
             </TouchableOpacity>
 
-            <Text style={tw`text-xl font-black text-chocolateBrown mt-3`}>{userName}</Text>
-            <View style={tw`bg-butterYellowLight px-3 py-1 rounded-full mt-2 border border-butterYellow/40`}>
-              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>
-                {t('verifiedSweetTooth')}
-              </Text>
+            <Text style={tw`text-2xl font-black text-chocolateBrown mt-4 text-center`}>{displayName}</Text>
+            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5 text-center`}>{userEmail}</Text>
+
+            {/* Badges / Membership Tier */}
+            <View style={tw`flex-row items-center gap-2 mt-3`}>
+              <View style={tw`flex-row items-center gap-1.5 bg-butterYellowLight px-3 py-1 rounded-full border border-butterYellow/40 shadow-xs`}>
+                <Ionicons name="sparkles" size={12} color={COLORS.chocolateBrown} />
+                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  {t('verifiedSweetTooth')}
+                </Text>
+              </View>
+              <View style={tw`bg-strawberryPinkLight px-3 py-1 rounded-full border border-strawberryPink/20`}>
+                <Text style={tw`text-xs font-black text-strawberryPink`}>VIP Member</Text>
+              </View>
             </View>
 
-            {/* Edit Profile Details */}
+            {/* Edit / Cancel Profile Button */}
             <TouchableOpacity
-              style={tw`mt-4 flex-row items-center gap-1.5 bg-vanillaCream px-4 py-2 rounded-xl border border-vanillaCreamDark`}
+              style={tw`mt-4 flex-row items-center gap-2 bg-vanillaCream px-5 py-2.5 rounded-2xl border border-vanillaCreamDark shadow-xs`}
               onPress={() => setIsEditingProfile(!isEditingProfile)}
               activeOpacity={0.8}
             >
-              <Ionicons name={isEditingProfile ? 'close' : 'create-outline'} size={16} color={COLORS.chocolateBrown} />
+              <Ionicons
+                name={isEditingProfile ? 'close-circle-outline' : 'create-outline'}
+                size={16}
+                color={COLORS.chocolateBrown}
+              />
               <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+                {isEditingProfile ? 'Close Editor' : 'Edit Personal Info'}
               </Text>
             </TouchableOpacity>
 
+            {/* Inline Profile Editing Form */}
             {isEditingProfile && (
-              <View style={tw`w-full mt-4 gap-3`}>
-                {/* Email Input */}
-                <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
-                  <Ionicons name="mail-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
-                  <TextInput
-                    style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                    value={editEmail}
-                    onChangeText={setEditEmail}
-                    placeholder="your@email.com"
-                    placeholderTextColor={COLORS.chocolateBrownMuted}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
+              <View style={tw`w-full mt-4 gap-3 pt-3 border-t border-borderSubtle`}>
+                {/* Full Name Input */}
+                <View>
+                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>FULL NAME</Text>
+                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
+                    <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                    <TextInput
+                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      value={editName}
+                      onChangeText={setEditName}
+                      placeholder="Your Full Name"
+                      placeholderTextColor={COLORS.chocolateBrownMuted}
+                    />
+                  </View>
                 </View>
 
-                {/* Phone Input */}
-                <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 py-2.5`}>
-                  <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
-                  <TextInput
-                    style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
-                    value={editPhone}
-                    onChangeText={setEditPhone}
-                    placeholder="+237 6XX XXX XXX"
-                    placeholderTextColor={COLORS.chocolateBrownMuted}
-                    keyboardType="phone-pad"
-                  />
+                {/* Email Address */}
+                <View>
+                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>EMAIL ADDRESS</Text>
+                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
+                    <Ionicons name="mail-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                    <TextInput
+                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      value={editEmail}
+                      onChangeText={setEditEmail}
+                      placeholder="your@email.com"
+                      placeholderTextColor={COLORS.chocolateBrownMuted}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+
+                {/* Phone Number */}
+                <View>
+                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>PHONE NUMBER (MOMO / ORANGE)</Text>
+                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
+                    <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                    <TextInput
+                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      value={editPhone}
+                      onChangeText={setEditPhone}
+                      placeholder="+237 6XX XXX XXX"
+                      placeholderTextColor={COLORS.chocolateBrownMuted}
+                      keyboardType="phone-pad"
+                    />
+                  </View>
                 </View>
 
                 {/* Save Button */}
                 <TouchableOpacity
                   style={[
-                    tw`w-full bg-strawberryPink py-3 rounded-2xl flex-row items-center justify-center gap-2 mt-1`,
+                    tw`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 mt-2 shadow-sm`,
                     savingProfile && tw`opacity-70`,
                   ]}
                   onPress={saveProfile}
@@ -2350,11 +2409,11 @@ export default function DashboardScreen({
                   activeOpacity={0.85}
                 >
                   {savingProfile ? (
-                    <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
+                    <ActivityIndicator size="small" color={COLORS.white} />
                   ) : (
                     <>
-                      <Ionicons name="checkmark" size={16} color={COLORS.chocolateBrown} />
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>Save Changes</Text>
+                      <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                      <Text style={tw`text-xs font-black text-white`}>Save Profile Changes</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -2362,11 +2421,118 @@ export default function DashboardScreen({
             )}
           </View>
 
-          {/* Language Switcher Setting Card */}
-          <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
+          {/* 📊 Customer Stats Card */}
+          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
+            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1`}>
+              TREAT ACTIVITY & STATS
+            </Text>
+            <View style={tw`flex-row items-center justify-between`}>
+              <TouchableOpacity
+                style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2`}
+                onPress={() => setActiveTab('orders')}
+                activeOpacity={0.8}
+              >
+                <View style={tw`w-8 h-8 rounded-full bg-strawberryPinkLight items-center justify-center mb-1.5`}>
+                  <Ionicons name="receipt" size={15} color={COLORS.strawberryPink} />
+                </View>
+                <Text style={tw`text-lg font-black text-chocolateBrown`}>{orders.length}</Text>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Total Orders</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2`}
+                onPress={() => setActiveTab('orders')}
+                activeOpacity={0.8}
+              >
+                <View style={tw`w-8 h-8 rounded-full bg-emerald-100 items-center justify-center mb-1.5`}>
+                  <Ionicons name="checkmark-done" size={15} color="#059669" />
+                </View>
+                <Text style={tw`text-lg font-black text-emerald-800`}>{orderCounts.completed}</Text>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Delivered</Text>
+              </TouchableOpacity>
+
+              <View style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle`}>
+                <View style={tw`w-8 h-8 rounded-full bg-butterYellowLight items-center justify-center mb-1.5`}>
+                  <Ionicons name="star" size={15} color={COLORS.chocolateBrown} />
+                </View>
+                <Text style={tw`text-lg font-black text-chocolateBrown`}>150</Text>
+                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Gelato Points</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* 📍 Default Delivery Location Card */}
+          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center mb-2.5`}>
+              <View style={tw`flex-row items-center gap-2`}>
+                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+                  <Ionicons name="location" size={16} color={COLORS.strawberryPink} />
+                </View>
+                <View>
+                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Delivery Destination</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Yaoundé, Cameroon</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={tw`bg-surfaceBright px-3 py-1.5 rounded-xl border border-borderSubtle`}
+                onPress={() => setIsLocationModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={tw`text-[10px] font-black text-strawberryPink`}>Update</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={tw`bg-surfaceBright p-3 rounded-2xl border border-borderSubtle`}>
+              <Text style={tw`text-xs font-bold text-chocolateBrown`} numberOfLines={2}>
+                {deliveryAddress || locationResult?.displayName || 'Centre-ville, Yaoundé (Auto-detected)'}
+              </Text>
+            </View>
+          </View>
+
+          {/* 💳 Payment Methods & Preferences Card */}
+          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
+            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1`}>
+              PAYMENT & PREFERENCES
+            </Text>
+            <View style={tw`gap-2.5`}>
+              <View style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle`}>
+                <View style={tw`flex-row items-center gap-3`}>
+                  <View style={tw`w-8 h-8 rounded-xl bg-yellow-400/20 items-center justify-center`}>
+                    <Text style={tw`text-sm`}>📱</Text>
+                  </View>
+                  <View>
+                    <Text style={tw`text-xs font-black text-chocolateBrown`}>MTN Mobile Money</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{editPhone || '+237 670 123 456'}</Text>
+                  </View>
+                </View>
+                <View style={tw`bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300`}>
+                  <Text style={tw`text-[9px] font-black text-emerald-800`}>ACTIVE</Text>
+                </View>
+              </View>
+
+              <View style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle`}>
+                <View style={tw`flex-row items-center gap-3`}>
+                  <View style={tw`w-8 h-8 rounded-xl bg-orange-500/20 items-center justify-center`}>
+                    <Text style={tw`text-sm`}>🟠</Text>
+                  </View>
+                  <View>
+                    <Text style={tw`text-xs font-black text-chocolateBrown`}>Orange Money</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Direct Checkout Ready</Text>
+                  </View>
+                </View>
+                <View style={tw`bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300`}>
+                  <Text style={tw`text-[9px] font-black text-emerald-800`}>READY</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* 🌐 Language Switcher Setting Card */}
+          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
             <View style={tw`flex-row justify-between items-center`}>
               <View style={tw`flex-row items-center gap-2.5`}>
-                <Ionicons name="language-outline" size={20} color={COLORS.chocolateBrown} />
+                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+                  <Ionicons name="language" size={16} color={COLORS.strawberryPink} />
+                </View>
                 <Text style={tw`text-sm font-extrabold text-chocolateBrown`}>
                   {t('languageSetting')}
                 </Text>
@@ -2375,14 +2541,14 @@ export default function DashboardScreen({
             </View>
           </View>
 
-          {/* ── Business & Store Information Card ── */}
+          {/* 🏪 Best Cream Store Information Card */}
           {businessSettings && (
-            <View style={tw`bg-white rounded-2xl p-4 mb-3.5 border border-borderSubtle shadow-sm`}>
+            <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
               <View style={tw`flex-row items-center gap-3 mb-3 pb-3 border-b border-borderSubtle`}>
                 {businessSettings.logoUrl ? (
-                  <Image source={{ uri: businessSettings.logoUrl }} style={tw`w-12 h-12 rounded-xl`} resizeMode="cover" />
+                  <Image source={{ uri: businessSettings.logoUrl }} style={tw`w-12 h-12 rounded-2xl`} resizeMode="cover" />
                 ) : (
-                  <View style={tw`w-12 h-12 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+                  <View style={tw`w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center`}>
                     <Text style={tw`text-2xl`}>🍦</Text>
                   </View>
                 )}
@@ -2394,38 +2560,38 @@ export default function DashboardScreen({
                 </View>
               </View>
 
-              <View style={tw`gap-2`}>
-                <View style={tw`flex-row items-center gap-2`}>
-                  <Ionicons name="location-outline" size={14} color={COLORS.chocolateBrownMuted} />
+              <View style={tw`gap-2.5`}>
+                <View style={tw`flex-row items-center gap-2.5`}>
+                  <Ionicons name="location-outline" size={15} color={COLORS.chocolateBrownMuted} />
                   <Text style={tw`text-xs text-chocolateBrown flex-1`} numberOfLines={1}>{businessSettings.address}</Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2`}>
-                  <Ionicons name="time-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                <View style={tw`flex-row items-center gap-2.5`}>
+                  <Ionicons name="time-outline" size={15} color={COLORS.chocolateBrownMuted} />
                   <Text style={tw`text-xs text-chocolateBrown`}>
                     {businessSettings.openingTime} – {businessSettings.closingTime} ({businessSettings.operatingDays.join(', ')})
                   </Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2`}>
-                  <Ionicons name="call-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                <View style={tw`flex-row items-center gap-2.5`}>
+                  <Ionicons name="call-outline" size={15} color={COLORS.chocolateBrownMuted} />
                   <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.phone}</Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2`}>
-                  <Ionicons name="mail-outline" size={14} color={COLORS.chocolateBrownMuted} />
+                <View style={tw`flex-row items-center gap-2.5`}>
+                  <Ionicons name="mail-outline" size={15} color={COLORS.chocolateBrownMuted} />
                   <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.email}</Text>
                 </View>
               </View>
 
               <View style={tw`flex-row gap-2 mt-3 pt-3 border-t border-borderSubtle`}>
-                <View style={[tw`flex-1 py-1.5 px-2 rounded-xl items-center`, businessSettings.isDeliveryAvailable ? tw`bg-pistachioGreen/15 border border-pistachioGreen/30` : tw`bg-gray-100`]}>
-                  <Text style={[tw`text-[10px] font-bold`, businessSettings.isDeliveryAvailable ? tw`text-green-800` : tw`text-gray-500`]}>
+                <View style={[tw`flex-1 py-2 px-2 rounded-2xl items-center`, businessSettings.isDeliveryAvailable ? tw`bg-pistachioGreen/15 border border-pistachioGreen/30` : tw`bg-gray-100`]}>
+                  <Text style={[tw`text-[10px] font-black`, businessSettings.isDeliveryAvailable ? tw`text-green-800` : tw`text-gray-500`]}>
                     {businessSettings.isDeliveryAvailable ? '🛵 Delivery Open' : 'Delivery Closed'}
                   </Text>
                 </View>
-                <View style={[tw`flex-1 py-1.5 px-2 rounded-xl items-center`, businessSettings.isPickupAvailable ? tw`bg-blue-50 border border-blue-200` : tw`bg-gray-100`]}>
-                  <Text style={[tw`text-[10px] font-bold`, businessSettings.isPickupAvailable ? tw`text-blue-800` : tw`text-gray-500`]}>
+                <View style={[tw`flex-1 py-2 px-2 rounded-2xl items-center`, businessSettings.isPickupAvailable ? tw`bg-blue-50 border border-blue-200` : tw`bg-gray-100`]}>
+                  <Text style={[tw`text-[10px] font-black`, businessSettings.isPickupAvailable ? tw`text-blue-800` : tw`text-gray-500`]}>
                     {businessSettings.isPickupAvailable ? '🏬 Store Pickup' : 'No Pickup'}
                   </Text>
                 </View>
@@ -2433,13 +2599,26 @@ export default function DashboardScreen({
             </View>
           )}
 
-          <View style={tw`bg-white rounded-2xl p-4 border border-borderSubtle shadow-sm`}>
-            <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-3`}>
+          {/* 🚪 Account Actions Card */}
+          <View style={tw`bg-white rounded-3xl p-4 border border-borderSubtle shadow-sm`}>
+            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2 px-1`}>
               {t('accountActions')}
             </Text>
-            <TouchableOpacity style={tw`flex-row items-center gap-2 py-2`} onPress={onLogout} activeOpacity={0.8}>
-              <Ionicons name="log-out-outline" size={20} color={COLORS.errorRed} />
-              <Text style={tw`text-sm font-bold text-errorRed`}>{t('logOut')}</Text>
+            <TouchableOpacity
+              style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-red-50/60 border border-red-100`}
+              onPress={onLogout}
+              activeOpacity={0.8}
+            >
+              <View style={tw`flex-row items-center gap-2.5`}>
+                <View style={tw`w-8 h-8 rounded-xl bg-red-100 items-center justify-center`}>
+                  <Ionicons name="log-out-outline" size={18} color={COLORS.errorRed} />
+                </View>
+                <View>
+                  <Text style={tw`text-xs font-black text-errorRed`}>{t('logOut')}</Text>
+                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Sign out of your Best Cream account</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.errorRed} />
             </TouchableOpacity>
           </View>
         </ScrollView>
