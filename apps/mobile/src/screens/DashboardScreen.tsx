@@ -747,6 +747,9 @@ export default function DashboardScreen({
     return (
       <ProductDetailsScreen
         product={selectedProductForDetails}
+        apiUrl={apiUrl}
+        userEmail={userEmail}
+        userName={userName}
         onBack={() => setSelectedProductForDetails(null)}
         onAddToCart={(customizedItem: CustomizedOrderItem) => {
           setCart((prev) => {

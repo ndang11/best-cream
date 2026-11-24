@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
-import type { ApiResponse, MenuItem, User, UserRole, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord, BusinessSettings } from '@best-cream/shared';
+import type { ApiResponse, MenuItem, User, UserRole, Order, OrderStatus, StatusHistoryEntry, SalesStatistics, SalesChartDataPoint, SalesAnalytics, AdminNotification, DailyMenu, DailyMenuItemOverride, PaymentTransaction, CustomerRecord, BusinessSettings, ProductTopping, ProductReview } from '@best-cream/shared';
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -212,6 +212,108 @@ const users: User[] = [
   { id: '5', name: 'Marie Eto', email: 'marie@bestcream.com', role: 'customer', phone: '+237 699 445 566' },
   { id: '6', name: 'Alain Fotso', email: 'alain.fotso@gmail.com', role: 'customer', phone: '+237 675 332 211' },
   { id: '7', name: 'Brenda Ngu', email: 'brenda.ngu@yahoo.com', role: 'customer', phone: '+237 691 887 766' },
+];
+
+// ── Live Toppings & Add-ons Store ─────────────────────────────────────────────
+const liveToppings: ProductTopping[] = [
+  {
+    id: 'choco-drizzle',
+    name: 'Warm Belgian Chocolate Ganache',
+    tag: 'Hot liquid cocoa drizzle',
+    emoji: '🍫',
+    price: 500,
+    inStock: true,
+  },
+  {
+    id: 'pistachio-crunch',
+    name: 'Roasted Sicilian Pistachio Bits',
+    tag: 'Salted & crunchy crushed nuts',
+    emoji: '🥜',
+    price: 500,
+    inStock: true,
+  },
+  {
+    id: 'fresh-berries',
+    name: 'Fresh Strawberries & Blueberries',
+    tag: 'Hand-picked daily berries',
+    emoji: '🍓',
+    price: 600,
+    inStock: true,
+  },
+  {
+    id: 'whipped-cream',
+    name: 'Sweet Whipped Cream Cloud',
+    tag: 'Light & fluffy dairy cream',
+    emoji: '☁️',
+    price: 300,
+    inStock: true,
+  },
+  {
+    id: 'rainbow-sprinkles',
+    name: 'Confetti Rainbow Sprinkles',
+    tag: 'Crisp festive sweetness',
+    emoji: '🎉',
+    price: 250,
+    inStock: true,
+  },
+  {
+    id: 'caramel-fudge',
+    name: 'Warm Salted Caramel Drizzle',
+    tag: 'Rich buttery golden syrup',
+    emoji: '🍯',
+    price: 500,
+    inStock: true,
+  },
+  {
+    id: 'crushed-oreo',
+    name: 'Crushed Dark Oreo Crumbs',
+    tag: 'Crunchy cookies & cream bits',
+    emoji: '🍪',
+    price: 450,
+    inStock: true,
+  },
+];
+
+// ── Live Favorites Store (userEmail -> Set of product IDs) ────────────────────
+const liveFavorites = new Map<string, Set<string>>([
+  ['customer@bestcream.com', new Set(['1', '3', '5'])],
+  ['sam@bestcream.com', new Set(['1', '2'])],
+]);
+
+// ── Live Customer Reviews Store ───────────────────────────────────────────────
+const liveReviews: ProductReview[] = [
+  {
+    id: 'rev-1',
+    productId: '1',
+    userName: 'Claire Ndongo',
+    rating: 5,
+    comment: 'The vanilla flavor is authentic and so rich! Real vanilla bean specks.',
+    createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-2',
+    productId: '1',
+    userName: 'Marc Tabi',
+    rating: 5,
+    comment: 'Best ice cream in Yaoundé by far. Waffle cone was super crispy.',
+    createdAt: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-3',
+    productId: '2',
+    userName: 'Aicha K.',
+    rating: 5,
+    comment: 'Dark chocolate fudge is incredible, not overly sweet. Pure cocoa heaven.',
+    createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-4',
+    productId: '5',
+    userName: 'Jean-Paul',
+    rating: 5,
+    comment: 'Pancakes arrived warm and fluffy with plenty of chocolate drizzle!',
+    createdAt: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
+  },
 ];
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -672,6 +774,137 @@ app.get('/api/menu', (_req: Request, res: Response<ApiResponse<MenuItem[]>>) => 
   res.json({
     success: true,
     data: menuItems,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ─── Toppings Endpoints ───────────────────────────────────────────────────────
+app.get('/api/toppings', (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: liveToppings,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.patch('/api/toppings/:id/toggle', requireSalesOrAdmin, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const topping = liveToppings.find((t) => t.id === id);
+  if (!topping) {
+    return res.status(404).json({
+      success: false,
+      message: 'Topping not found',
+      timestamp: new Date().toISOString(),
+    });
+  }
+  topping.inStock = !topping.inStock;
+  res.json({
+    success: true,
+    data: topping,
+    message: `Topping ${topping.name} marked as ${topping.inStock ? 'In Stock' : 'Sold Out'}`,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ─── Favorites Endpoints ──────────────────────────────────────────────────────
+app.get('/api/favorites', (req: Request, res: Response) => {
+  const userEmail = (req.query.userEmail as string || 'customer@bestcream.com').toLowerCase().trim();
+  const set = liveFavorites.get(userEmail) || new Set<string>();
+  res.json({
+    success: true,
+    data: Array.from(set),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/favorites/toggle', (req: Request, res: Response) => {
+  const { userEmail, productId } = req.body || {};
+  if (!productId) {
+    return res.status(400).json({ success: false, message: 'productId is required' });
+  }
+  const cleanEmail = (userEmail || 'customer@bestcream.com').toLowerCase().trim();
+  let set = liveFavorites.get(cleanEmail);
+  if (!set) {
+    set = new Set<string>();
+    liveFavorites.set(cleanEmail, set);
+  }
+
+  let isFavorite = false;
+  if (set.has(String(productId))) {
+    set.delete(String(productId));
+    isFavorite = false;
+  } else {
+    set.add(String(productId));
+    isFavorite = true;
+  }
+
+  res.json({
+    success: true,
+    isFavorite,
+    favorites: Array.from(set),
+    message: isFavorite ? 'Added to favorites' : 'Removed from favorites',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ─── Product Reviews Endpoints ────────────────────────────────────────────────
+app.get('/api/products/:id/reviews', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const productReviews = liveReviews.filter((r) => r.productId === String(id));
+  const avg = productReviews.length
+    ? Number((productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1))
+    : 5.0;
+
+  res.json({
+    success: true,
+    data: {
+      productId: id,
+      reviews: productReviews,
+      totalReviews: productReviews.length,
+      averageRating: avg,
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/products/:id/reviews', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { userName, rating, comment } = req.body || {};
+
+  if (!rating || !comment || !String(comment).trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Rating and review comment are required.',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  const numRating = Math.min(5, Math.max(1, Number(rating) || 5));
+  const newReview: ProductReview = {
+    id: `rev-${Date.now()}`,
+    productId: String(id),
+    userName: userName ? String(userName).trim() : 'Verified Customer',
+    rating: numRating,
+    comment: String(comment).trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  liveReviews.unshift(newReview);
+
+  // Recalculate average and update menu item rating
+  const productReviews = liveReviews.filter((r) => r.productId === String(id));
+  const avg = Number((productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1));
+  const menuItem = menuItems.find((m) => m.id === String(id));
+  if (menuItem) {
+    menuItem.rating = avg;
+  }
+
+  res.json({
+    success: true,
+    data: newReview,
+    averageRating: avg,
+    totalReviews: productReviews.length,
+    message: 'Thank you for your review! It has been posted in real time.',
     timestamp: new Date().toISOString(),
   });
 });

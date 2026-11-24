@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Text,
   View,
@@ -10,10 +10,13 @@ import {
   StatusBar as RNStatusBar,
   TextInput,
   Dimensions,
+  ActivityIndicator,
+  Modal,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import type { MenuItem } from '@best-cream/shared';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import type { MenuItem, ProductTopping, ProductReview, ApiResponse } from '@best-cream/shared';
 import { useLanguage } from '../context/LanguageContext';
 import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
@@ -35,12 +38,62 @@ interface ProductDetailsScreenProps {
   product: MenuItem;
   onBack: () => void;
   onAddToCart: (customizedItem: CustomizedOrderItem) => void;
+  apiUrl?: string;
+  userEmail?: string;
+  userName?: string;
 }
+
+// ─── Default Toppings (used as initial / fallback data) ──────────────────────
+const DEFAULT_TOPPINGS: ProductTopping[] = [
+  {
+    id: 'choco-drizzle',
+    name: 'Warm Belgian Chocolate Ganache',
+    tag: 'Hot liquid cocoa drizzle',
+    emoji: '🍫',
+    price: 500,
+    inStock: true,
+  },
+  {
+    id: 'pistachio-crunch',
+    name: 'Roasted Sicilian Pistachio Bits',
+    tag: 'Salted & crunchy crushed nuts',
+    emoji: '🥜',
+    price: 500,
+    inStock: true,
+  },
+  {
+    id: 'fresh-berries',
+    name: 'Fresh Strawberries & Blueberries',
+    tag: 'Hand-picked daily berries',
+    emoji: '🍓',
+    price: 600,
+    inStock: true,
+  },
+  {
+    id: 'whipped-cream',
+    name: 'Sweet Whipped Cream Cloud',
+    tag: 'Light & fluffy dairy cream',
+    emoji: '☁️',
+    price: 300,
+    inStock: true,
+  },
+  {
+    id: 'rainbow-sprinkles',
+    name: 'Confetti Rainbow Sprinkles',
+    tag: 'Crisp festive sweetness',
+    emoji: '🎉',
+    price: 250,
+    inStock: true,
+  },
+];
 
 export default function ProductDetailsScreen({
   product,
   onBack,
   onAddToCart,
+  apiUrl,
+  userEmail = 'customer@bestcream.com',
+  userName = 'Customer',
 }: ProductDetailsScreenProps) {
   const { t } = useLanguage();
   const isIceCream = product.category === 'ice-cream';
@@ -49,8 +102,25 @@ export default function ProductDetailsScreen({
 
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [specialNotes, setSpecialNotes] = useState('');
   const [specialNotesConfirmed, setSpecialNotesConfirmed] = useState(false);
+
+  // Live toppings from server
+  const [toppings, setToppings] = useState<ProductTopping[]>(DEFAULT_TOPPINGS);
+  const [toppingsLoading, setToppingsLoading] = useState(false);
+
+  // Live reviews from server
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(product.rating || 5.0);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   // Ice Cream options
   const [servingStyle, setServingStyle] = useState<'cone' | 'cup'>('cone');
@@ -62,17 +132,140 @@ export default function ProductDetailsScreen({
   );
   const [pancakeStackSize, setPancakeStackSize] = useState<'2-stack' | '3-stack'>('2-stack');
 
-  // Toppings (multi-select)
+  // Toppings (multi-select mapping: id -> boolean)
   const [selectedToppings, setSelectedToppings] = useState<{ [key: string]: boolean }>({});
 
-  const toggleTopping = (key: string) => {
+  // ─── 1. Fetch Live Toppings ──────────────────────────────────────────────────
+  const fetchToppings = useCallback(async () => {
+    if (!apiUrl) return;
+    try {
+      setToppingsLoading(true);
+      const res = await fetch(`${apiUrl}/api/toppings`);
+      const json: ApiResponse<ProductTopping[]> = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        setToppings(json.data);
+      }
+    } catch {
+      // Keep DEFAULT_TOPPINGS
+    } finally {
+      setToppingsLoading(false);
+    }
+  }, [apiUrl]);
+
+  // ─── 2. Fetch Favorite Status ───────────────────────────────────────────────
+  const fetchFavoriteStatus = useCallback(async () => {
+    if (!apiUrl || !userEmail) return;
+    try {
+      const res = await fetch(`${apiUrl}/api/favorites?userEmail=${encodeURIComponent(userEmail)}`);
+      const json: ApiResponse<string[]> = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setIsFavorite(json.data.includes(String(product.id)));
+      }
+    } catch {
+      // ignore
+    }
+  }, [apiUrl, userEmail, product.id]);
+
+  // ─── 3. Toggle Favorite ─────────────────────────────────────────────────────
+  const handleToggleFavorite = async () => {
+    setIsFavorite((prev) => !prev); // optimistic
+    if (!apiUrl) return;
+
+    setFavoriteLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/favorites/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userEmail,
+          productId: product.id,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.isFavorite !== undefined) {
+        setIsFavorite(json.isFavorite);
+      }
+    } catch {
+      // fallback to optimistic
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  // ─── 4. Fetch Live Reviews ──────────────────────────────────────────────────
+  const fetchReviews = useCallback(async () => {
+    if (!apiUrl) return;
+    try {
+      setReviewsLoading(true);
+      const res = await fetch(`${apiUrl}/api/products/${product.id}/reviews`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setReviews(json.data.reviews || []);
+        if (json.data.averageRating) setAverageRating(json.data.averageRating);
+        if (json.data.totalReviews !== undefined) setTotalReviews(json.data.totalReviews);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [apiUrl, product.id]);
+
+  // ─── 5. Submit Customer Review ──────────────────────────────────────────────
+  const handleSubmitReview = async () => {
+    if (!newComment.trim()) {
+      Alert.alert('Review Required', 'Please share a few words about your experience.');
+      return;
+    }
+    if (!apiUrl) {
+      Alert.alert('Notice', 'Reviews require an active server connection.');
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: userName || 'Sweet Tooth Customer',
+          rating: newRating,
+          comment: newComment.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setReviews((prev) => [json.data, ...prev]);
+        if (json.averageRating) setAverageRating(json.averageRating);
+        if (json.totalReviews !== undefined) setTotalReviews(json.totalReviews);
+        setNewComment('');
+        setShowReviewModal(false);
+        Alert.alert('Review Posted 🎉', 'Thank you! Your feedback helps us serve the best treats.');
+      } else {
+        Alert.alert('Error', json.message || 'Could not post your review.');
+      }
+    } catch {
+      Alert.alert('Connection Error', 'Could not post review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchToppings();
+    fetchFavoriteStatus();
+    fetchReviews();
+  }, [fetchToppings, fetchFavoriteStatus, fetchReviews]);
+
+  const toggleTopping = (key: string, inStock: boolean) => {
+    if (!inStock) return;
     setSelectedToppings((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  // Pricing calculations
+  // ─── Pricing calculations ───────────────────────────────────────────────────
   const calculateUnitPrice = (): number => {
     let price = product.price;
 
@@ -91,7 +284,7 @@ export default function ProductDetailsScreen({
     }
 
     // Toppings pricing
-    AVAILABLE_TOPPINGS.forEach((topping) => {
+    toppings.forEach((topping) => {
       if (selectedToppings[topping.id]) {
         price += topping.price;
       }
@@ -104,10 +297,17 @@ export default function ProductDetailsScreen({
   const totalPrice = unitPrice * quantity;
 
   const handleAdd = () => {
-    const activeToppingsList = AVAILABLE_TOPPINGS.filter((t) => selectedToppings[t.id]).map((t) => ({
-      name: t.name,
-      price: t.price,
-    }));
+    if (!product.inStock) {
+      Alert.alert('Sold Out', 'Sorry, this treat is sold out today.');
+      return;
+    }
+
+    const activeToppingsList = toppings
+      .filter((t) => selectedToppings[t.id])
+      .map((t) => ({
+        name: t.name,
+        price: t.price,
+      }));
 
     const customizedItem: CustomizedOrderItem = {
       product,
@@ -132,10 +332,7 @@ export default function ProductDetailsScreen({
       <StatusBar style="light" />
 
       {/* ── Scrollable Content ── */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw`pb-32`}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-36`}>
         {/* Hero Image Container */}
         <View style={tw`w-full h-80 bg-vanillaCreamDark relative`}>
           <Image
@@ -161,7 +358,8 @@ export default function ProductDetailsScreen({
 
             <TouchableOpacity
               style={tw`w-10 h-10 rounded-full bg-white/90 items-center justify-center shadow-md`}
-              onPress={() => setIsFavorite((prev) => !prev)}
+              onPress={handleToggleFavorite}
+              disabled={favoriteLoading}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -201,17 +399,37 @@ export default function ProductDetailsScreen({
 
           {/* Subtags: Rating & Stock */}
           <View style={tw`flex-row items-center gap-3 mt-2 mb-4`}>
-            <View style={tw`flex-row items-center gap-1 bg-butterYellowLight px-2.5 py-1 rounded-xl`}>
-              <Ionicons name="star" size={13} color={COLORS.butterYellow} />
+            <TouchableOpacity
+              style={tw`flex-row items-center gap-1.5 bg-butterYellowLight px-3 py-1.5 rounded-xl border border-butterYellow/40`}
+              onPress={() => setShowReviewModal(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="star" size={14} color="#D97706" />
               <Text style={tw`text-xs font-black text-chocolateBrown`}>
-                {product.rating || '4.9'} (120+ reviews)
+                {averageRating.toFixed(1)} ({totalReviews > 0 ? `${totalReviews} reviews` : 'Reviews'})
               </Text>
-            </View>
+            </TouchableOpacity>
 
-            <View style={tw`flex-row items-center gap-1 bg-pistachioGreenLight px-2.5 py-1 rounded-xl`}>
-              <Ionicons name="checkmark-circle" size={13} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-bold text-chocolateBrown`}>
-                {product.inStock ? 'Available Today' : 'Sold Out'}
+            <View
+              style={[
+                tw`flex-row items-center gap-1 px-3 py-1.5 rounded-xl border`,
+                product.inStock
+                  ? tw`bg-pistachioGreenLight border-pistachioGreen/40`
+                  : tw`bg-red-50 border-red-200`,
+              ]}
+            >
+              <Ionicons
+                name={product.inStock ? 'checkmark-circle' : 'close-circle'}
+                size={14}
+                color={product.inStock ? COLORS.pistachioGreen : '#DC2626'}
+              />
+              <Text
+                style={[
+                  tw`text-xs font-bold`,
+                  product.inStock ? tw`text-chocolateBrown` : tw`text-red-700`,
+                ]}
+              >
+                {product.inStock ? 'Available Today' : 'Sold Out Today'}
               </Text>
             </View>
           </View>
@@ -364,36 +582,43 @@ export default function ProductDetailsScreen({
             </View>
           )}
 
-          {/* 3. Extra Toppings (Multi-select) */}
+          {/* 3. Extra Toppings (Live Server Data) */}
           <View style={tw`mb-5 border-t border-vanillaCreamDark pt-4`}>
-            <Text style={tw`text-sm font-black text-chocolateBrown mb-1`}>
-              {t('extraToppings')}
-            </Text>
+            <View style={tw`flex-row justify-between items-center mb-1`}>
+              <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                {t('extraToppings')}
+              </Text>
+              {toppingsLoading && <ActivityIndicator size="small" color={COLORS.strawberryPink} />}
+            </View>
             <Text style={tw`text-xs text-chocolateBrownMuted mb-3`}>
               {t('extraToppingsDesc')}
             </Text>
 
             <View style={tw`gap-2.5`}>
-              {AVAILABLE_TOPPINGS.map((topping) => {
+              {toppings.map((topping) => {
                 const isSelected = !!selectedToppings[topping.id];
+                const isAvailable = topping.inStock !== false;
+
                 return (
                   <TouchableOpacity
                     key={topping.id}
                     style={[
                       tw`flex-row items-center justify-between p-3 rounded-2xl border border-vanillaCreamDark bg-vanillaCream`,
                       isSelected && tw`border-strawberryPink bg-strawberryPinkLight`,
+                      !isAvailable && tw`opacity-50 bg-gray-100`,
                     ]}
-                    onPress={() => toggleTopping(topping.id)}
+                    onPress={() => toggleTopping(topping.id, isAvailable)}
+                    disabled={!isAvailable}
                     activeOpacity={0.8}
                   >
-                    <View style={tw`flex-row items-center gap-2.5`}>
+                    <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
                       <Text style={tw`text-xl`}>{topping.emoji}</Text>
-                      <View>
+                      <View style={tw`flex-1`}>
                         <Text style={tw`text-xs font-bold text-chocolateBrown`}>
                           {topping.name}
                         </Text>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
-                          {topping.tag}
+                        <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>
+                          {isAvailable ? topping.tag : '⚠️ Temporarily Out of Stock'}
                         </Text>
                       </View>
                     </View>
@@ -420,7 +645,7 @@ export default function ProductDetailsScreen({
           </View>
 
           {/* 4. Special Instructions Note */}
-          <View style={tw`border-t border-vanillaCreamDark pt-4 mb-2`}>
+          <View style={tw`border-t border-vanillaCreamDark pt-4 mb-4`}>
             <Text style={tw`text-sm font-black text-chocolateBrown mb-2`}>
               {t('specialInstructions')}
             </Text>
@@ -435,23 +660,23 @@ export default function ProductDetailsScreen({
                 setSpecialNotesConfirmed(false);
               }}
             />
-            {specialNotes.trim() && (
+            {specialNotes.trim().length > 0 && (
               <TouchableOpacity
-                style={tw`mt-2 flex-row items-center justify-center gap-1.5 bg-strawberryPink py-2 rounded-xl`}
+                style={tw`mt-2 flex-row items-center justify-center gap-1.5 bg-strawberryPink py-2.5 rounded-xl shadow-xs`}
                 onPress={() => setSpecialNotesConfirmed(true)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="checkmark-circle" size={14} color={COLORS.white} />
-                <Text style={tw`text-xs font-bold text-white`}>
-                  Add to Order
+                <Ionicons name="checkmark-circle" size={15} color={COLORS.white} />
+                <Text style={tw`text-xs font-black text-white`}>
+                  Confirm Note for Kitchen
                 </Text>
               </TouchableOpacity>
             )}
             {specialNotesConfirmed && (
               <View style={tw`mt-2 flex-row items-center justify-between bg-pistachioGreenLight border border-pistachioGreen px-3 py-2 rounded-xl`}>
-                <View style={tw`flex-row items-center gap-1.5`}>
+                <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
                   <Ionicons name="checkmark-done" size={14} color={COLORS.pistachioGreen} />
-                  <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+                  <Text style={tw`text-[11px] font-bold text-chocolateBrown`} numberOfLines={1}>
                     📝 {specialNotes.trim()}
                   </Text>
                 </View>
@@ -462,8 +687,63 @@ export default function ProductDetailsScreen({
                   }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="close-circle" size={14} color={COLORS.chocolateBrownMuted} />
+                  <Ionicons name="close-circle" size={15} color={COLORS.chocolateBrownMuted} />
                 </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {/* 5. Live Customer Reviews & Ratings Section */}
+          <View style={tw`border-t border-vanillaCreamDark pt-4 mb-2`}>
+            <View style={tw`flex-row justify-between items-center mb-3`}>
+              <View>
+                <Text style={tw`text-sm font-black text-chocolateBrown`}>Customer Reviews</Text>
+                <Text style={tw`text-[11px] text-chocolateBrownMuted`}>
+                  ⭐ {averageRating.toFixed(1)} / 5.0 • {totalReviews} real feedback
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={tw`bg-surfaceBright border border-borderSubtle px-3 py-1.5 rounded-xl flex-row items-center gap-1`}
+                onPress={() => setShowReviewModal(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={13} color={COLORS.chocolateBrown} />
+                <Text style={tw`text-[11px] font-black text-chocolateBrown`}>Write Review</Text>
+              </TouchableOpacity>
+            </View>
+
+            {reviewsLoading ? (
+              <ActivityIndicator size="small" color={COLORS.strawberryPink} style={tw`my-3`} />
+            ) : reviews.length === 0 ? (
+              <View style={tw`bg-surfaceBright p-4 rounded-2xl border border-borderSubtle items-center`}>
+                <Text style={tw`text-xs text-chocolateBrownMuted font-medium`}>
+                  Be the first to review this treat! Tap "Write Review" above.
+                </Text>
+              </View>
+            ) : (
+              <View style={tw`gap-2.5`}>
+                {reviews.slice(0, 3).map((rev) => (
+                  <View key={rev.id} style={tw`bg-surfaceBright p-3 rounded-2xl border border-borderSubtle`}>
+                    <View style={tw`flex-row justify-between items-center mb-1`}>
+                      <Text style={tw`text-xs font-black text-chocolateBrown`}>{rev.userName}</Text>
+                      <View style={tw`flex-row items-center gap-0.5`}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Ionicons
+                            key={star}
+                            name={star <= rev.rating ? 'star' : 'star-outline'}
+                            size={11}
+                            color="#D97706"
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    <Text style={tw`text-xs text-chocolateBrownLight leading-4`}>{rev.comment}</Text>
+                    <Text style={tw`text-[10px] text-chocolateBrownMuted mt-1`}>
+                      {new Date(rev.createdAt).toLocaleDateString()}
+                    </Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>
@@ -478,7 +758,7 @@ export default function ProductDetailsScreen({
             <TouchableOpacity
               style={tw`w-8 h-8 rounded-xl bg-white items-center justify-center shadow-sm`}
               onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || !product.inStock}
             >
               <Feather name="minus" size={16} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
@@ -490,6 +770,7 @@ export default function ProductDetailsScreen({
             <TouchableOpacity
               style={tw`w-8 h-8 rounded-xl bg-white items-center justify-center shadow-sm`}
               onPress={() => setQuantity((q) => q + 1)}
+              disabled={!product.inStock}
             >
               <Feather name="plus" size={16} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
@@ -497,57 +778,80 @@ export default function ProductDetailsScreen({
 
           {/* Add to Cart Button */}
           <TouchableOpacity
-            style={tw`flex-1 bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md`}
+            style={[
+              tw`flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md`,
+              product.inStock ? tw`bg-strawberryPink` : tw`bg-gray-300`,
+            ]}
             onPress={handleAdd}
+            disabled={!product.inStock}
             activeOpacity={0.85}
           >
-            <Ionicons name="cart" size={20} color={COLORS.chocolateBrown} />
-            <Text style={tw`text-sm font-black text-chocolateBrown tracking-wide`}>
-              {t('addToCartBtn')} • {totalPrice.toLocaleString()} XAF
+            <Ionicons name="cart" size={20} color={product.inStock ? COLORS.chocolateBrown : '#888888'} />
+            <Text
+              style={[
+                tw`text-sm font-black tracking-wide`,
+                product.inStock ? tw`text-chocolateBrown` : tw`text-gray-600`,
+              ]}
+            >
+              {product.inStock
+                ? `${t('addToCartBtn')} • ${totalPrice.toLocaleString()} XAF`
+                : 'Sold Out Today'}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ── Write Review Modal ── */}
+      <Modal visible={showReviewModal} transparent animationType="slide" onRequestClose={() => setShowReviewModal(false)}>
+        <View style={tw`flex-1 bg-black/60 justify-end`}>
+          <View style={tw`bg-white rounded-t-3xl p-5 pb-8`}>
+            <View style={tw`flex-row justify-between items-center mb-4`}>
+              <Text style={tw`text-base font-black text-chocolateBrown`}>Rate & Review Treat</Text>
+              <TouchableOpacity onPress={() => setShowReviewModal(false)} activeOpacity={0.7}>
+                <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={tw`text-xs font-bold text-chocolateBrown mb-2`}>Your Star Rating</Text>
+            <View style={tw`flex-row items-center gap-2 mb-4`}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setNewRating(star)} activeOpacity={0.7}>
+                  <Ionicons
+                    name={star <= newRating ? 'star' : 'star-outline'}
+                    size={32}
+                    color="#D97706"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>Your Feedback</Text>
+            <TextInput
+              style={tw`bg-surfaceBright rounded-2xl p-3 text-xs text-chocolateBrown border border-borderSubtle h-24 mb-4 text-start`}
+              placeholder="What did you love about this treat? Taste, texture, waffle cone, temperature..."
+              placeholderTextColor={COLORS.chocolateBrownMuted}
+              multiline
+              value={newComment}
+              onChangeText={setNewComment}
+            />
+
+            <TouchableOpacity
+              style={tw`bg-strawberryPink py-3.5 rounded-2xl items-center shadow-md`}
+              onPress={handleSubmitReview}
+              disabled={submittingReview}
+              activeOpacity={0.85}
+            >
+              {submittingReview ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Text style={tw`text-xs font-black text-white uppercase tracking-wider`}>
+                  Submit Review ⭐
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
-
-// ─── Available Toppings Data ──────────────────────────────────────────────────
-const AVAILABLE_TOPPINGS = [
-  {
-    id: 'choco-drizzle',
-    name: 'Warm Belgian Chocolate Ganache',
-    tag: 'Hot liquid cocoa drizzle',
-    emoji: '🍫',
-    price: 500,
-  },
-  {
-    id: 'pistachio-crunch',
-    name: 'Roasted Sicilian Pistachio Bits',
-    tag: 'Salted & crunchy crushed nuts',
-    emoji: '🥜',
-    price: 500,
-  },
-  {
-    id: 'fresh-berries',
-    name: 'Fresh Strawberries & Blueberries',
-    tag: 'Hand-picked daily berries',
-    emoji: '🍓',
-    price: 600,
-  },
-  {
-    id: 'whipped-cream',
-    name: 'Sweet Whipped Cream Cloud',
-    tag: 'Light & fluffy dairy cream',
-    emoji: '☁️',
-    price: 300,
-  },
-  {
-    id: 'rainbow-sprinkles',
-    name: 'Confetti Rainbow Sprinkles',
-    tag: 'Crisp festive sweetness',
-    emoji: '🎉',
-    price: 250,
-  },
-];
-

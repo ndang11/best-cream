@@ -206,3 +206,23 @@ export interface BusinessSettings {
   tagline?: string;
   updatedAt?: string;
 }
+
+// ── Toppings & Add-ons ────────────────────────────────────────────────────────
+export interface ProductTopping {
+  id: string;
+  name: string;
+  tag: string;
+  emoji: string;
+  price: number;
+  inStock: boolean;
+}
+
+// ── Product Reviews ───────────────────────────────────────────────────────────
+export interface ProductReview {
+  id: string;
+  productId: string;
+  userName: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: string;
+}
