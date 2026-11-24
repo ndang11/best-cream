@@ -316,6 +316,19 @@ const liveReviews: ProductReview[] = [
   },
 ];
 
+// ── Live User Profiles Store ──────────────────────────────────────────────────
+interface UserProfileData {
+  email: string;
+  name?: string;
+  phone?: string;
+  avatarUrl?: string;
+}
+
+const userProfiles = new Map<string, UserProfileData>([
+  ['customer@bestcream.com', { email: 'customer@bestcream.com', name: 'Sweet Tooth', phone: '+237 670 000 111' }],
+  ['sam@bestcream.com', { email: 'sam@bestcream.com', name: 'Sam Rivera', phone: '+237 670 000 111' }],
+]);
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const dateAgo = (days: number, hours = 0): string =>
   new Date(Date.now() - days * MS_PER_DAY - hours * 3600 * 1000).toISOString();
@@ -905,6 +918,163 @@ app.post('/api/products/:id/reviews', (req: Request, res: Response) => {
     averageRating: avg,
     totalReviews: productReviews.length,
     message: 'Thank you for your review! It has been posted in real time.',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ─── Customer Profile Endpoints ───────────────────────────────────────────────
+// GET /api/profile?email=...
+app.get('/api/profile', async (req: Request, res: Response) => {
+  const email = (req.query.email as string || '').toLowerCase().trim();
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email query parameter required' });
+  }
+
+  // 1. Check in-memory profiles store
+  let profile = userProfiles.get(email);
+
+  // 2. Try Supabase profiles table
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('email, full_name, phone, avatar_url, role')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (!error && data) {
+      profile = {
+        email: data.email,
+        name: data.full_name || profile?.name,
+        phone: data.phone || profile?.phone,
+        avatarUrl: data.avatar_url || profile?.avatarUrl,
+      };
+      userProfiles.set(email, profile);
+    }
+  } catch (_) { }
+
+  // 3. Fallback to users list
+  if (!profile) {
+    const matchedUser = users.find((u) => u.email.toLowerCase() === email);
+    profile = {
+      email,
+      name: matchedUser?.name || 'Valued Customer',
+      phone: matchedUser?.phone || '+237 600 000 000',
+      avatarUrl: matchedUser?.avatarUrl,
+    };
+    userProfiles.set(email, profile);
+  }
+
+  return res.json({
+    success: true,
+    data: profile,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// POST /api/profile/upload-avatar
+app.post('/api/profile/upload-avatar', async (req: Request, res: Response) => {
+  try {
+    const { email, image, base64, avatarUrl } = req.body || {};
+    const cleanEmail = (email || '').toLowerCase().trim();
+    if (!cleanEmail) {
+      return res.status(400).json({ success: false, message: 'User email is required' });
+    }
+
+    let target = avatarUrl || image || base64;
+    if (!target) {
+      return res.status(400).json({ success: false, message: 'No avatar image data provided' });
+    }
+
+    if (typeof target === 'string' && !target.startsWith('data:') && !target.startsWith('http://') && !target.startsWith('https://')) {
+      target = `data:image/jpeg;base64,${target}`;
+    }
+
+    let finalAvatarUrl = target;
+
+    // Upload to Cloudinary if credentials are configured
+    const cUrl = process.env.CLOUDINARY_URL || '';
+    const hasLiveCredentials =
+      (cUrl.startsWith('cloudinary://') &&
+        !cUrl.includes('<your_api_key>') &&
+        !cUrl.includes('<your_api_secret>')) ||
+      !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+
+    if (hasLiveCredentials) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(target, {
+          folder: 'best-cream/avatars',
+          resource_type: 'image',
+          transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
+        });
+        finalAvatarUrl = uploadResult.secure_url;
+      } catch (err) {
+        console.warn('Cloudinary avatar upload fallback:', err);
+      }
+    }
+
+    // Persist in memory
+    const existing: UserProfileData = userProfiles.get(cleanEmail) || { email: cleanEmail };
+    existing.avatarUrl = finalAvatarUrl;
+    userProfiles.set(cleanEmail, existing);
+
+    // Also update users array if present
+    const matchedUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (matchedUser) {
+      matchedUser.avatarUrl = finalAvatarUrl;
+    }
+
+    // Persist to Supabase profiles table
+    try {
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: finalAvatarUrl, updated_at: new Date().toISOString() })
+        .eq('email', cleanEmail);
+    } catch (_) { }
+
+    return res.json({
+      success: true,
+      data: { avatarUrl: finalAvatarUrl },
+      message: 'Profile picture uploaded and saved successfully',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error?.message || 'Failed to upload profile picture',
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+// PUT /api/profile
+app.put('/api/profile', async (req: Request, res: Response) => {
+  const { email, name, phone, avatarUrl } = req.body || {};
+  const cleanEmail = (email || '').toLowerCase().trim();
+  if (!cleanEmail) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  const existing: UserProfileData = userProfiles.get(cleanEmail) || { email: cleanEmail };
+  if (name !== undefined) existing.name = String(name).trim();
+  if (phone !== undefined) existing.phone = String(phone).trim();
+  if (avatarUrl !== undefined) existing.avatarUrl = avatarUrl;
+  userProfiles.set(cleanEmail, existing);
+
+  // Sync to Supabase
+  try {
+    await supabase.from('profiles').upsert({
+      email: cleanEmail,
+      full_name: existing.name,
+      phone: existing.phone,
+      avatar_url: existing.avatarUrl,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (_) { }
+
+  return res.json({
+    success: true,
+    data: existing,
+    message: 'Profile updated successfully',
     timestamp: new Date().toISOString(),
   });
 });

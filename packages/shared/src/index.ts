@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: UserRole;
   phone?: string;
+  avatarUrl?: string;
 }
 
 export type ProductCategory =

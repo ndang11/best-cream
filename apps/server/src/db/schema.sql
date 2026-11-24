@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT NOT NULL,
   full_name TEXT,
   phone TEXT,
+  avatar_url TEXT,
   role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'staff', 'sales', 'admin')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

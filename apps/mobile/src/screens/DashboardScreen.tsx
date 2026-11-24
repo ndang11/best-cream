@@ -18,6 +18,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import * as ExpoLocation from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import type { MenuItem, ApiResponse, Order, ProductCategory, DailyMenu, BusinessSettings } from '@best-cream/shared';
 import ProductDetailsScreen, { CustomizedOrderItem } from './ProductDetailsScreen';
@@ -207,6 +208,7 @@ export default function DashboardScreen({
   const [editEmail, setEditEmail] = useState(userEmail || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
   const [orderFilter, setOrderFilter] = useState<OrderFilterType>('all');
@@ -593,7 +595,55 @@ export default function DashboardScreen({
     }
   };
 
-  // ── Profile: pick & upload profile picture ────────────────────────────
+  // ── Profile: compute local persistent cache path ──────────────────────────
+  const getLocalAvatarPath = useCallback(() => {
+    const clean = (userEmail || 'customer').replace(/[^a-zA-Z0-9]/g, '_');
+    return `${FileSystem.documentDirectory}avatar_${clean}.jpg`;
+  }, [userEmail]);
+
+  // ── Profile: load persistent avatar & profile on mount ────────────────────
+  useEffect(() => {
+    let isMounted = true;
+    const loadProfile = async () => {
+      // 1. Check local device cache first for instant display
+      try {
+        const localPath = getLocalAvatarPath();
+        const fileInfo = await FileSystem.getInfoAsync(localPath);
+        if (fileInfo.exists && isMounted) {
+          setProfilePicture(localPath);
+        }
+      } catch (_) { }
+
+      // 2. Fetch latest profile from server
+      if (apiUrl && userEmail) {
+        try {
+          const res = await fetch(`${apiUrl}/api/profile?email=${encodeURIComponent(userEmail)}`);
+          const json = await res.json();
+          if (json.success && json.data && isMounted) {
+            if (json.data.avatarUrl) {
+              setProfilePicture(json.data.avatarUrl);
+              // Cache locally if remote HTTP URL
+              if (json.data.avatarUrl.startsWith('http')) {
+                try {
+                  const localPath = getLocalAvatarPath();
+                  await FileSystem.downloadAsync(json.data.avatarUrl, localPath);
+                } catch (_) { }
+              }
+            }
+            if (json.data.phone && !editPhone) {
+              setEditPhone(json.data.phone);
+            }
+          }
+        } catch (_) { }
+      }
+    };
+    loadProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, [apiUrl, userEmail, getLocalAvatarPath]);
+
+  // ── Profile: pick & upload profile picture (with full persistence) ────────
   const pickProfilePicture = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -608,19 +658,78 @@ export default function DashboardScreen({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true,
     });
     if (!result.canceled && result.assets[0]) {
-      setProfilePicture(result.assets[0].uri);
+      const pickedUri = result.assets[0].uri;
+      const base64Data = result.assets[0].base64;
+
+      // 1. Optimistic UI update
+      setProfilePicture(pickedUri);
+      setUploadingAvatar(true);
+
+      // 2. Persist to local FileSystem immediately
+      try {
+        const localPath = getLocalAvatarPath();
+        await FileSystem.copyAsync({
+          from: pickedUri,
+          to: localPath,
+        });
+        setProfilePicture(localPath);
+      } catch (e) {
+        console.warn('Local avatar caching error:', e);
+      }
+
+      // 3. Upload and persist to Backend / Cloudinary / Supabase
+      if (apiUrl) {
+        try {
+          const payload = {
+            email: userEmail || 'customer@bestcream.com',
+            base64: base64Data,
+            image: pickedUri,
+          };
+          const res = await fetch(`${apiUrl}/api/profile/upload-avatar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+          if (json.success && json.data?.avatarUrl) {
+            setProfilePicture(json.data.avatarUrl);
+          }
+          Alert.alert('Profile Picture Saved ✨', 'Your new profile photo has been saved and synced.');
+        } catch (err) {
+          Alert.alert('Saved Offline', 'Your profile picture has been saved on this device.');
+        } finally {
+          setUploadingAvatar(false);
+        }
+      } else {
+        setUploadingAvatar(false);
+        Alert.alert('Profile Picture Saved', 'Your photo has been saved to your device.');
+      }
     }
   };
 
-  // ── Profile: save edited details ────────────────────────────────────
-  const saveProfile = () => {
+  // ── Profile: save edited details ──────────────────────────────────────────
+  const saveProfile = async () => {
     setSavingProfile(true);
-    setTimeout(() => {
-      setSavingProfile(false);
-      Alert.alert('Profile Updated', 'Your profile details have been saved.');
-    }, 800);
+    if (apiUrl) {
+      try {
+        await fetch(`${apiUrl}/api/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: editEmail || userEmail,
+            name: userName,
+            phone: editPhone,
+            avatarUrl: profilePicture,
+          }),
+        });
+      } catch (_) { }
+    }
+    setSavingProfile(false);
+    setIsEditingProfile(false);
+    Alert.alert('Profile Updated 🎉', 'Your profile details have been saved.');
   };
 
   // ── Close cart modal ────────────────────────────────────────────────────────
@@ -2166,9 +2275,11 @@ export default function DashboardScreen({
         >
           <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm`}>
             {/* Profile Picture with Upload */}
-            <TouchableOpacity onPress={pickProfilePicture} activeOpacity={0.8}>
+            <TouchableOpacity onPress={pickProfilePicture} activeOpacity={0.8} disabled={uploadingAvatar}>
               <View style={tw`w-24 h-24 rounded-full bg-strawberryPinkLight items-center justify-center mb-3 border border-strawberryPink/20 overflow-hidden`}>
-                {profilePicture ? (
+                {uploadingAvatar ? (
+                  <ActivityIndicator size="small" color={COLORS.strawberryPink} />
+                ) : profilePicture ? (
                   <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
                 ) : (
                   <Ionicons name="person" size={44} color={COLORS.strawberryPink} />
