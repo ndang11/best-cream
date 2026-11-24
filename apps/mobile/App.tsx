@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Constants from 'expo-constants';
 import { LanguageProvider } from './src/context/LanguageContext';
+import { connectSocket, disconnectSocket } from './src/lib/socket';
 import SplashScreen from './src/screens/SplashScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -24,6 +25,14 @@ function MainApp() {
   const [userName, setUserName] = useState<string>('Sweet Tooth');
   const [userRole, setUserRole] = useState<'admin' | 'sales' | 'staff' | 'customer'>('customer');
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
+
+  // Connect socket once on mount; disconnect on unmount
+  useEffect(() => {
+    connectSocket(API_URL);
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
 
   const handleGlobalLogout = () => {
     setUserRole('customer');

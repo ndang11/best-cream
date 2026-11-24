@@ -11,7 +11,7 @@
  * Integrated with interactive Yaoundé OpenStreetMap & direct shop phone call.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import YaoundeMapView from './YaoundeMapView';
 import { STORE_LOCATION, formatDistance, formatXAF, YAOUNDE_LANDMARKS } from '../utils/location';
 import { downloadReceiptPdf } from '../utils/receipt';
 import { useLanguage } from '../context/LanguageContext';
+import { onSocketEvent } from '../lib/socket';
 
 interface OrderTrackingModalProps {
   order: Order | null;
@@ -37,7 +38,37 @@ interface OrderTrackingModalProps {
   onClose: () => void;
 }
 
-export default function OrderTrackingModal({ order, visible, onClose }: OrderTrackingModalProps) {
+export default function OrderTrackingModal({ order: initialOrder, visible, onClose }: OrderTrackingModalProps) {
+  const [order, setOrder] = useState<Order | null>(initialOrder);
+
+  // Keep local order in sync when parent passes a new order prop
+  useEffect(() => {
+    setOrder(initialOrder);
+  }, [initialOrder]);
+
+  // 🔴 Subscribe to real-time order status updates via Socket.IO
+  useEffect(() => {
+    if (!visible || !initialOrder) return;
+
+    // Listen for status changes on this specific order
+    const unsubStatus = onSocketEvent<Order>('order:status_updated', (updated) => {
+      if (updated.id === initialOrder.id) {
+        setOrder(updated);
+      }
+    });
+
+    // Also listen for the full orders list refresh and pick out our order
+    const unsubList = onSocketEvent<Order[]>('orders:updated', (allOrders) => {
+      const found = allOrders.find((o) => o.id === initialOrder.id);
+      if (found) setOrder(found);
+    });
+
+    return () => {
+      unsubStatus();
+      unsubList();
+    };
+  }, [visible, initialOrder?.id]);
+
   if (!order) return null;
 
   const { t, language } = useLanguage();
