@@ -133,6 +133,7 @@ export interface LoginUserData {
   name?: string;
   email: string;
   role?: 'admin' | 'sales' | 'customer' | 'staff';
+  token?: string;
 }
 
 interface LoginScreenProps {
@@ -195,7 +196,12 @@ export default function LoginScreen({
         if (json.success && json.data?.user) {
           if (json.data.user.name) resolvedName = json.data.user.name;
           if (json.data.user.role) resolvedRole = json.data.user.role;
-          onLoginSuccess({ name: resolvedName, email: cleanEmail, role: resolvedRole });
+          onLoginSuccess({
+            name: resolvedName,
+            email: cleanEmail,
+            role: resolvedRole,
+            token: json.data.access_token || json.data.token,
+          });
           return;
         } else {
           setAuthError(json.error || json.message || 'Invalid email or password');

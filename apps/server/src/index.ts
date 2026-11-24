@@ -54,10 +54,76 @@ const io = new SocketIOServer(server, {
 });
 const PORT = process.env.PORT || 5000;
 
+// ─── Known static session tokens (for pre-auth default accounts) ──────────────
+const STATIC_TOKENS = new Set([
+  'bestcream-admin-session-token',
+  'bestcream-sales-session-token',
+  'bestcream-demo-session-token',
+  'bestcream-session-token',
+]);
+
+// ─── Socket.IO Auth Middleware ─────────────────────────────────────────────────
+// Every client must supply a valid token in socket.handshake.auth.token.
+// Accepts: Supabase JWTs, static session tokens, or unauthenticated public access.
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token as string | undefined;
+
+  // Allow unauthenticated connections for read-only public events (menus, settings)
+  // but tag the socket so we can filter sensitive rooms later.
+  if (!token) {
+    socket.data.role = 'guest';
+    socket.data.userId = null;
+    return next();
+  }
+
+  // 1. Static session tokens (default staff / demo accounts)
+  if (STATIC_TOKENS.has(token)) {
+    if (token === 'bestcream-admin-session-token') {
+      socket.data.role = 'admin';
+      socket.data.userId = 'admin-1';
+    } else if (token === 'bestcream-sales-session-token') {
+      socket.data.role = 'sales';
+      socket.data.userId = 'sales-1';
+    } else {
+      socket.data.role = 'customer';
+      socket.data.userId = 'demo';
+    }
+    return next();
+  }
+
+  // 2. Supabase JWT — verify via getUser (fastest way, no secret needed)
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (!error && user) {
+      const { role } = await getUserProfileAndRole(user);
+      socket.data.role = role;
+      socket.data.userId = user.id;
+      socket.data.email = user.email;
+      return next();
+    }
+  } catch {
+    // Supabase unreachable — fall through to rejection
+  }
+
+  // 3. Reject invalid tokens
+  console.warn(`🔌 Socket auth rejected (invalid token) from ${socket.handshake.address}`);
+  return next(new Error('Authentication failed: invalid or expired token.'));
+});
+
 io.on('connection', (socket) => {
-  console.log(`🔌 Socket client connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`🔌 Socket client disconnected: ${socket.id}`);
+  const role = socket.data.role ?? 'guest';
+  const userId = socket.data.userId ?? 'unknown';
+  console.log(`🔌 Socket connected [${role}] userId=${userId} id=${socket.id}`);
+
+  // Join role-based rooms for targeted broadcasts
+  socket.join('public');
+  if (role === 'admin') socket.join('admin');
+  if (role === 'sales') socket.join('sales');
+  if (role === 'staff') socket.join('staff');
+  if (role === 'customer' && userId) socket.join(`customer:${userId}`);
+
+  socket.on('disconnect', (reason) => {
+    console.log(`🔌 Socket disconnected [${role}] id=${socket.id} reason=${reason}`);
   });
 });
 

@@ -124,6 +124,7 @@ interface SignUpFormValues {
 interface SignUpUserData {
   name: string;
   email: string;
+  token?: string;
 }
 
 interface SignUpScreenProps {

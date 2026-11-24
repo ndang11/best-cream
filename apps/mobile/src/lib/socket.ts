@@ -1,17 +1,24 @@
 /**
  * socket.ts — Best Cream Socket.IO client singleton
  *
+ * Features:
+ *  - Singleton: one connection shared across the whole app
+ *  - Authenticated: passes auth token in socket.handshake.auth.token
+ *  - Auto-reconnect: retries forever with exponential back-off
+ *  - Typed helpers: onSocketEvent() returns a cleanup fn for useEffect
+ *
  * Usage:
- *   import { getSocket, connectSocket, disconnectSocket } from '../lib/socket';
+ *   // 1. Connect once after the user logs in (pass their token)
+ *   connectSocket('http://192.168.x.x:5000', 'bestcream-admin-session-token');
  *
- *   // Connect once (e.g. in App.tsx or when the user logs in)
- *   connectSocket('http://192.168.x.x:5000');
+ *   // 2. Subscribe in a component
+ *   useEffect(() => {
+ *     return onSocketEvent('order:status_updated', (order) => {
+ *       setOrder(order);
+ *     });
+ *   }, []);
  *
- *   // Inside a component / hook
- *   const socket = getSocket();
- *   socket?.on('order:status_updated', (order) => { ... });
- *
- *   // Disconnect on logout / app background
+ *   // 3. Disconnect on logout
  *   disconnectSocket();
  */
 
@@ -21,25 +28,40 @@ import { io, Socket } from 'socket.io-client';
 let _socket: Socket | null = null;
 
 /**
- * Connect (or return an already-connected) socket.
- * Call this once from App.tsx after you have resolved the API_URL.
+ * Connect (or reconnect) the socket with an optional auth token.
+ *
+ * - If a socket already exists and is connected with the same token, it is
+ *   returned as-is (idempotent).
+ * - If the token changes (e.g. after re-login), the old socket is torn down
+ *   and a fresh one is created.
+ *
+ * @param serverUrl  Full URL of the backend, e.g. "http://192.168.1.42:5000"
+ * @param token      Auth token returned by /api/auth/login (access_token field).
+ *                   Pass undefined for unauthenticated / guest connections.
  */
-export function connectSocket(serverUrl: string): Socket {
-  if (_socket && _socket.connected) return _socket;
+export function connectSocket(serverUrl: string, token?: string): Socket {
+  // If already connected with the same identity, reuse the connection
+  if (_socket && _socket.connected && _socket.auth && ((_socket.auth as Record<string, unknown>).token ?? undefined) === token) {
+    return _socket;
+  }
 
-  // Tear down any stale disconnected socket before creating a fresh one
+  // Tear down any stale / mismatched socket
   if (_socket) {
     _socket.removeAllListeners();
     _socket.disconnect();
+    _socket = null;
   }
 
   _socket = io(serverUrl, {
-    transports: ['websocket'], // skip long-polling for React Native
+    transports: ['websocket'],      // skip long-polling — faster for React Native
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 1_000,
     reconnectionDelayMax: 10_000,
     timeout: 20_000,
+    // ── Token-based auth ──────────────────────────────────────────────────────
+    // Server reads this in io.use() middleware via socket.handshake.auth.token
+    auth: token ? { token } : {},
   });
 
   _socket.on('connect', () => {
@@ -51,6 +73,7 @@ export function connectSocket(serverUrl: string): Socket {
   });
 
   _socket.on('connect_error', (err) => {
+    // "Authentication failed" comes here when the server rejects the token
     console.warn(`🔌 Socket connect_error: ${err.message}`);
   });
 
@@ -66,7 +89,7 @@ export function getSocket(): Socket | null {
 
 /**
  * Disconnect and clean up the socket.
- * Call on logout or when the user leaves the authenticated part of the app.
+ * Call this on logout so the old authenticated session is fully closed.
  */
 export function disconnectSocket(): void {
   if (_socket) {
@@ -78,17 +101,16 @@ export function disconnectSocket(): void {
 }
 
 // ─── Typed event helpers ──────────────────────────────────────────────────────
-// These provide auto-complete for the events emitted by the server.
 
 export type SocketEvent =
-  | 'order:created'       // payload: Order
-  | 'order:status_updated' // payload: Order
-  | 'orders:updated'      // payload: Order[]
-  | 'settings:updated';   // payload: BusinessSettings
+  | 'order:created'        // payload: Order  — a new order was placed
+  | 'order:status_updated' // payload: Order  — an order status changed
+  | 'orders:updated'       // payload: Order[] — full order list refresh
+  | 'settings:updated';    // payload: BusinessSettings — admin updated settings
 
 /**
  * Subscribe to a typed server event.
- * Returns an unsubscribe function — call it in your useEffect cleanup.
+ * Returns an **unsubscribe** function — always use it as your useEffect return.
  *
  * @example
  *   useEffect(() => {
@@ -107,5 +129,6 @@ export function onSocketEvent<T = unknown>(
     return () => {};
   }
   socket.on(event, handler as (...args: unknown[]) => void);
+  // Return a cleanup function that removes exactly this handler
   return () => socket.off(event, handler as (...args: unknown[]) => void);
 }

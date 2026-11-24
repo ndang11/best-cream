@@ -30,6 +30,7 @@ interface AdminLoginFormValues {
 export interface AdminUserData {
   name: string;
   email: string;
+  token?: string;
 }
 
 interface AdminLoginScreenProps {
@@ -80,6 +81,7 @@ export default function AdminLoginScreen({
           onAdminLoginSuccess({
             name: json.data.user.name || 'Alex Johnson',
             email: json.data.user.email || cleanEmail,
+            token: json.data.token || json.data.access_token,
           });
           return;
         } else {

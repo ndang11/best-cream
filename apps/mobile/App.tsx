@@ -25,19 +25,39 @@ function MainApp() {
   const [userName, setUserName] = useState<string>('Sweet Tooth');
   const [userRole, setUserRole] = useState<'admin' | 'sales' | 'staff' | 'customer'>('customer');
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
+  // Auth token from /api/auth/login — passed to the socket for authenticated connection
+  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
 
-  // Connect socket once on mount; disconnect on unmount
+  // (Re-)connect socket whenever the auth token changes (login / logout)
   useEffect(() => {
-    connectSocket(API_URL);
+    connectSocket(API_URL, authToken);
+    return () => {
+      // Only fully disconnect on unmount (not on every token change —
+      // connectSocket() tears down and recreates if the token differs)
+    };
+  }, [authToken]);
+
+  // Full cleanup on unmount
+  useEffect(() => {
     return () => {
       disconnectSocket();
     };
   }, []);
 
+  /** Called by any login screen on success */
+  const handleLoginSuccess = (user: { name?: string; email?: string; role?: string; token?: string }) => {
+    if (user.email) setUserEmail(user.email);
+    if (user.name) setUserName(user.name);
+    if (user.token) setAuthToken(user.token);
+  };
+
   const handleGlobalLogout = () => {
     setUserRole('customer');
     setUserEmail('customer@bestcream.com');
     setUserName('Sweet Tooth');
+    setAuthToken(undefined);        // clears token → connectSocket reconnects as guest
+    disconnectSocket();             // close current authenticated session
+    connectSocket(API_URL);         // reconnect as unauthenticated guest
     setCurrentScreen('welcome');
   };
   // 1. Splash Screen (8-second branded entrance)
@@ -62,8 +82,7 @@ function MainApp() {
       <LoginScreen
         apiUrl={API_URL}
         onLoginSuccess={(user) => {
-          if (user.email) setUserEmail(user.email);
-          if (user.name) setUserName(user.name);
+          handleLoginSuccess(user);
           const role = user.role || 'customer';
           setUserRole(role as any);
           setIsNewUser(false);
@@ -90,8 +109,7 @@ function MainApp() {
       <SignUpScreen
         apiUrl={API_URL}
         onSignUpSuccess={(user) => {
-          if (user.email) setUserEmail(user.email);
-          if (user.name) setUserName(user.name);
+          handleLoginSuccess(user);
           setUserRole('customer');
           setIsNewUser(true);
           setCurrentScreen('dashboard');
@@ -107,8 +125,7 @@ function MainApp() {
       <AdminLoginScreen
         apiUrl={API_URL}
         onAdminLoginSuccess={(admin) => {
-          if (admin.name) setUserName(admin.name);
-          if (admin.email) setUserEmail(admin.email);
+          handleLoginSuccess(admin);
           setUserRole('admin');
           setCurrentScreen('admin');
         }}
@@ -125,8 +142,7 @@ function MainApp() {
         <AdminLoginScreen
           apiUrl={API_URL}
           onAdminLoginSuccess={(admin) => {
-            if (admin.name) setUserName(admin.name);
-            if (admin.email) setUserEmail(admin.email);
+            handleLoginSuccess(admin);
             setUserRole('admin');
             setCurrentScreen('admin');
           }}
@@ -151,8 +167,7 @@ function MainApp() {
         <LoginScreen
           apiUrl={API_URL}
           onLoginSuccess={(user) => {
-            if (user.email) setUserEmail(user.email);
-            if (user.name) setUserName(user.name);
+            handleLoginSuccess(user);
             const role = user.role || 'customer';
             setUserRole(role as any);
             if (role === 'admin') setCurrentScreen('admin');
