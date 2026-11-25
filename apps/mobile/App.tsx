@@ -1,3 +1,4 @@
+import './global.css';
 import React, { useState, useEffect } from 'react';
 import Constants from 'expo-constants';
 import { LanguageProvider } from './src/context/LanguageContext';
