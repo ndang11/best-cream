@@ -27,7 +27,6 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import type { Order, MenuItem, ApiResponse, OrderStatus } from '@best-cream/shared';
-import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -313,71 +312,68 @@ export default function SalesScreen({
   }, [menuItems, selectedCategory]);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[#FFF0F3]`}>
+    <SafeAreaView className="flex-1 bg-[#FFF0F3]">
       <StatusBar style="dark" />
 
       {/* ── Header ── */}
-      <View style={tw`bg-white px-5 pt-3 pb-4 border-b border-borderSubtle shadow-sm`}>
-        <View style={tw`flex-row justify-between items-center`}>
+      <View className="bg-white px-5 pt-3 pb-4 border-b border-borderSubtle shadow-sm">
+        <View className="flex-row justify-between items-center">
           <View>
-            <View style={tw`flex-row items-center gap-2`}>
-              <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500`} />
-              <Text style={tw`text-[11px] font-black uppercase tracking-wider text-emerald-800`}>
+            <View className="flex-row items-center gap-2">
+              <View className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <Text className="text-[11px] font-black uppercase tracking-wider text-emerald-800">
                 SALES DESK • CENTRE-VILLE
               </Text>
             </View>
-            <Text style={tw`text-xl font-black text-chocolateBrown mt-0.5`}>
+            <Text className="text-xl font-black text-chocolateBrown mt-0.5">
               {salesName}
             </Text>
-            <Text style={tw`text-[11px] text-chocolateBrownMuted font-semibold`}>
+            <Text className="text-[11px] text-chocolateBrownMuted font-semibold">
               {salesEmail}
             </Text>
           </View>
 
-          <View style={tw`flex-row items-center gap-2`}>
+          <View className="flex-row items-center gap-2">
             <LanguageSelector />
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1 bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle`}
+              className="flex-row items-center gap-1 bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle"
               onPress={onLogout}
               activeOpacity={0.8}
             >
               <Ionicons name="log-out-outline" size={16} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-bold text-chocolateBrown`}>{t('logOut')}</Text>
+              <Text className="text-xs font-bold text-chocolateBrown">{t('logOut')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* ── Shift Stat Triad ── */}
-        <View style={tw`flex-row items-center justify-between bg-surfaceBright mt-3.5 p-3 rounded-2xl border border-borderSubtle`}>
-          <View style={tw`flex-1 items-center border-r border-borderSubtle pr-2`}>
-            <Text style={tw`text-[9px] uppercase font-black text-chocolateBrownMuted`}>Today's Sales</Text>
-            <Text style={tw`text-xs font-black text-chocolateBrown mt-0.5`} numberOfLines={1}>
+        <View className="flex-row items-center justify-between bg-surfaceBright mt-3.5 p-3 rounded-2xl border border-borderSubtle">
+          <View className="flex-1 items-center border-r border-borderSubtle pr-2">
+            <Text className="text-[9px] uppercase font-black text-chocolateBrownMuted">Today's Sales</Text>
+            <Text className="text-xs font-black text-chocolateBrown mt-0.5" numberOfLines={1}>
               {formatXAF(shiftStats.todaySales)}
             </Text>
           </View>
 
-          <View style={tw`flex-1 items-center border-r border-borderSubtle px-2`}>
-            <Text style={tw`text-[9px] uppercase font-black text-chocolateBrownMuted`}>Orders Today</Text>
-            <Text style={tw`text-xs font-black text-strawberryPink mt-0.5`}>
+          <View className="flex-1 items-center border-r border-borderSubtle px-2">
+            <Text className="text-[9px] uppercase font-black text-chocolateBrownMuted">Orders Today</Text>
+            <Text className="text-xs font-black text-strawberryPink mt-0.5">
               {shiftStats.todayCount} total
             </Text>
           </View>
 
-          <View style={tw`flex-1 items-center pl-2`}>
-            <Text style={tw`text-[9px] uppercase font-black text-chocolateBrownMuted`}>Pending Dispatch</Text>
-            <Text style={tw`text-xs font-black text-amber-700 mt-0.5`}>
+          <View className="flex-1 items-center pl-2">
+            <Text className="text-[9px] uppercase font-black text-chocolateBrownMuted">Pending Dispatch</Text>
+            <Text className="text-xs font-black text-amber-700 mt-0.5">
               {shiftStats.pendingCount} active
             </Text>
           </View>
         </View>
 
         {/* ── Tab Switcher Strip ── */}
-        <View style={tw`flex-row mt-3 bg-surfaceBright p-1 rounded-2xl border border-borderSubtle`}>
+        <View className="flex-row mt-3 bg-surfaceBright p-1 rounded-2xl border border-borderSubtle">
           <TouchableOpacity
-            style={[
-              tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5`,
-              activeTab === 'orders' ? tw`bg-chocolateBrown shadow-sm` : tw`bg-transparent`,
-            ]}
+            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${(activeTab === 'orders') ? 'bg-chocolateBrown shadow-sm' : 'bg-transparent'}`}
             onPress={() => setActiveTab('orders')}
           >
             <Ionicons
@@ -386,20 +382,14 @@ export default function SalesScreen({
               color={activeTab === 'orders' ? COLORS.white : COLORS.chocolateBrown}
             />
             <Text
-              style={[
-                tw`text-[11px] font-black`,
-                activeTab === 'orders' ? tw`text-white` : tw`text-chocolateBrown`,
-              ]}
+              className={`text-[11px] font-black ${(activeTab === 'orders') ? 'text-white' : 'text-chocolateBrown'}`}
             >
               Orders
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5`,
-              activeTab === 'pos' ? tw`bg-strawberryPink shadow-sm` : tw`bg-transparent`,
-            ]}
+            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${(activeTab === 'pos') ? 'bg-strawberryPink shadow-sm' : 'bg-transparent'}`}
             onPress={() => setActiveTab('pos')}
           >
             <Ionicons
@@ -408,20 +398,14 @@ export default function SalesScreen({
               color={activeTab === 'pos' ? COLORS.white : COLORS.chocolateBrown}
             />
             <Text
-              style={[
-                tw`text-[11px] font-black`,
-                activeTab === 'pos' ? tw`text-white` : tw`text-chocolateBrown`,
-              ]}
+              className={`text-[11px] font-black ${(activeTab === 'pos') ? 'text-white' : 'text-chocolateBrown'}`}
             >
               POS Register
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5`,
-              activeTab === 'inventory' ? tw`bg-chocolateBrown shadow-sm` : tw`bg-transparent`,
-            ]}
+            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${(activeTab === 'inventory') ? 'bg-chocolateBrown shadow-sm' : 'bg-transparent'}`}
             onPress={() => setActiveTab('inventory')}
           >
             <Ionicons
@@ -430,20 +414,14 @@ export default function SalesScreen({
               color={activeTab === 'inventory' ? COLORS.white : COLORS.chocolateBrown}
             />
             <Text
-              style={[
-                tw`text-[11px] font-black`,
-                activeTab === 'inventory' ? tw`text-white` : tw`text-chocolateBrown`,
-              ]}
+              className={`text-[11px] font-black ${(activeTab === 'inventory') ? 'text-white' : 'text-chocolateBrown'}`}
             >
               Stock
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5`,
-              activeTab === 'permissions' ? tw`bg-chocolateBrown shadow-sm` : tw`bg-transparent`,
-            ]}
+            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${(activeTab === 'permissions') ? 'bg-chocolateBrown shadow-sm' : 'bg-transparent'}`}
             onPress={() => setActiveTab('permissions')}
           >
             <Ionicons
@@ -452,10 +430,7 @@ export default function SalesScreen({
               color={activeTab === 'permissions' ? COLORS.white : COLORS.chocolateBrown}
             />
             <Text
-              style={[
-                tw`text-[11px] font-black`,
-                activeTab === 'permissions' ? tw`text-white` : tw`text-chocolateBrown`,
-              ]}
+              className={`text-[11px] font-black ${(activeTab === 'permissions') ? 'text-white' : 'text-chocolateBrown'}`}
             >
               Access
             </Text>
@@ -465,13 +440,13 @@ export default function SalesScreen({
 
       {/* ── Main Content Area ── */}
       {loading ? (
-        <View style={tw`flex-1 items-center justify-center`}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-          <Text style={tw`text-xs font-bold text-chocolateBrown mt-2`}>Loading Sales Dashboard...</Text>
+          <Text className="text-xs font-bold text-chocolateBrown mt-2">Loading Sales Dashboard...</Text>
         </View>
       ) : (
         <ScrollView
-          style={tw`flex-1 px-4 pt-3`}
+          className="flex-1 px-4 pt-3"
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.strawberryPink]} />}
         >
@@ -479,25 +454,19 @@ export default function SalesScreen({
               TAB 1: LIVE ORDERS QUEUE & DISPATCH
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'orders' && (
-            <View style={tw`pb-12`}>
+            <View className="pb-12">
               {/* Order Filter Pills */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mb-3`}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
                 {(['all', 'pending', 'preparing', 'ready', 'completed'] as OrderFilter[]).map((filter) => {
                   const isSel = orderFilter === filter;
                   return (
                     <TouchableOpacity
                       key={filter}
-                      style={[
-                        tw`px-3 py-1.5 rounded-xl border border-borderSubtle bg-white mr-2 shadow-xs`,
-                        isSel && tw`bg-chocolateBrown border-chocolateBrown shadow-sm`,
-                      ]}
+                      className={`px-3 py-1.5 rounded-xl border border-borderSubtle bg-white mr-2 shadow-xs ${(isSel) ? 'bg-chocolateBrown border-chocolateBrown shadow-sm' : ''}`}
                       onPress={() => setOrderFilter(filter)}
                     >
                       <Text
-                        style={[
-                          tw`text-[11px] font-extrabold capitalize text-chocolateBrown`,
-                          isSel && tw`text-white`,
-                        ]}
+                        className={`text-[11px] font-extrabold capitalize text-chocolateBrown ${(isSel) ? 'text-white' : ''}`}
                       >
                         {filter}
                       </Text>
@@ -507,10 +476,10 @@ export default function SalesScreen({
               </ScrollView>
 
               {filteredOrders.length === 0 ? (
-                <View style={tw`bg-white rounded-3xl p-8 items-center border border-borderSubtle mt-2`}>
+                <View className="bg-white rounded-3xl p-8 items-center border border-borderSubtle mt-2">
                   <Text style={{ fontSize: 36 }}>📋</Text>
-                  <Text style={tw`text-sm font-black text-chocolateBrown mt-2`}>No Orders In This Category</Text>
-                  <Text style={tw`text-xs text-chocolateBrownMuted mt-1`}>
+                  <Text className="text-sm font-black text-chocolateBrown mt-2">No Orders In This Category</Text>
+                  <Text className="text-xs text-chocolateBrownMuted mt-1">
                     Orders placed online or at the counter will appear here in real time.
                   </Text>
                 </View>
@@ -524,81 +493,54 @@ export default function SalesScreen({
                   return (
                     <View
                       key={order.id}
-                      style={tw`bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm overflow-hidden`}
+                      className="bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm overflow-hidden"
                     >
                       {/* Top Accent Stripe */}
                       <View
-                        style={[
-                          tw`h-1 -mx-4 -mt-4 mb-3`,
-                          isCompleted
-                            ? tw`bg-emerald-500`
-                            : isReady
-                            ? tw`bg-blue-500`
-                            : isPreparing
-                            ? tw`bg-amber-500`
-                            : tw`bg-strawberryPink`,
-                        ]}
+                        className={`h-1 -mx-4 -mt-4 mb-3 ${(isCompleted ? 'bg-emerald-500' : (isReady ? 'bg-blue-500' : (isPreparing ? 'bg-amber-500' : 'bg-strawberryPink')))}`}
                       />
 
-                      <View style={tw`flex-row justify-between items-start mb-2`}>
+                      <View className="flex-row justify-between items-start mb-2">
                         <View>
-                          <View style={tw`flex-row items-center gap-2`}>
-                            <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
+                          <View className="flex-row items-center gap-2">
+                            <Text className="text-sm font-black text-chocolateBrown">{order.id}</Text>
                             <View
-                              style={[
-                                tw`px-2 py-0.5 rounded-full border`,
-                                isCompleted
-                                  ? tw`bg-emerald-50 border-emerald-300`
-                                  : isReady
-                                  ? tw`bg-blue-50 border-blue-300`
-                                  : isPreparing
-                                  ? tw`bg-amber-50 border-amber-300`
-                                  : tw`bg-strawberryPinkLight border-strawberryPink/40`,
-                              ]}
+                              className={`px-2 py-0.5 rounded-full border ${(isCompleted ? 'bg-emerald-50 border-emerald-300' : (isReady ? 'bg-blue-50 border-blue-300' : (isPreparing ? 'bg-amber-50 border-amber-300' : 'bg-strawberryPinkLight border-strawberryPink/40')))}`}
                             >
                               <Text
-                                style={[
-                                  tw`text-[10px] font-black capitalize`,
-                                  isCompleted
-                                    ? tw`text-emerald-800`
-                                    : isReady
-                                    ? tw`text-blue-800`
-                                    : isPreparing
-                                    ? tw`text-amber-800`
-                                    : tw`text-strawberryPink`,
-                                ]}
+                                className={`text-[10px] font-black capitalize ${(isCompleted ? 'text-emerald-800' : (isReady ? 'text-blue-800' : (isPreparing ? 'text-amber-800' : 'text-strawberryPink')))}`}
                               >
                                 {order.status}
                               </Text>
                             </View>
                           </View>
 
-                          <Text style={tw`text-xs font-bold text-chocolateBrown mt-0.5`}>
+                          <Text className="text-xs font-bold text-chocolateBrown mt-0.5">
                             {order.customerName || 'Valued Customer'} • {order.phoneNumber}
                           </Text>
                         </View>
 
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                        <Text className="text-sm font-black text-chocolateBrown">
                           {formatXAF(order.totalAmount)}
                         </Text>
                       </View>
 
                       {/* Items List */}
-                      <View style={tw`bg-surfaceBright rounded-2xl p-2.5 my-2 border border-borderSubtle`}>
+                      <View className="bg-surfaceBright rounded-2xl p-2.5 my-2 border border-borderSubtle">
                         {order.items.map((item, idx) => (
-                          <View key={idx} style={tw`flex-row justify-between items-center py-1`}>
-                            <Text style={tw`text-xs font-bold text-chocolateBrown flex-1 mr-2`} numberOfLines={1}>
+                          <View key={idx} className="flex-row justify-between items-center py-1">
+                            <Text className="text-xs font-bold text-chocolateBrown flex-1 mr-2" numberOfLines={1}>
                               {item.quantity}× {item.name} {item.flavor ? `(${item.flavor})` : ''}
                             </Text>
-                            <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                            <Text className="text-xs font-bold text-chocolateBrownMuted">
                               {formatXAF(item.price * item.quantity)}
                             </Text>
                           </View>
                         ))}
                         {order.deliveryAddress && (
-                          <View style={tw`mt-1.5 pt-1.5 border-t border-borderSubtle flex-row items-center gap-1`}>
+                          <View className="mt-1.5 pt-1.5 border-t border-borderSubtle flex-row items-center gap-1">
                             <Ionicons name="location" size={12} color="#059669" />
-                            <Text style={tw`text-[11px] font-bold text-emerald-800 flex-1`} numberOfLines={1}>
+                            <Text className="text-[11px] font-bold text-emerald-800 flex-1" numberOfLines={1}>
                               {order.deliveryAddress}
                             </Text>
                           </View>
@@ -606,46 +548,46 @@ export default function SalesScreen({
                       </View>
 
                       {/* Status Update & Receipt Action Bar */}
-                      <View style={tw`flex-row items-center justify-between gap-2 mt-1`}>
-                        <View style={tw`flex-row items-center gap-1.5 flex-1`}>
+                      <View className="flex-row items-center justify-between gap-2 mt-1">
+                        <View className="flex-row items-center gap-1.5 flex-1">
                           {isPending && (
                             <TouchableOpacity
-                              style={tw`flex-1 bg-amber-500 py-2 rounded-xl items-center`}
+                              className="flex-1 bg-amber-500 py-2 rounded-xl items-center"
                               onPress={() => handleUpdateStatus(order.id, 'preparing')}
                               disabled={updatingId === order.id}
                             >
-                              <Text style={tw`text-[11px] font-black text-white`}>Accept & Prep 👨‍🍳</Text>
+                              <Text className="text-[11px] font-black text-white">Accept & Prep 👨‍🍳</Text>
                             </TouchableOpacity>
                           )}
                           {isPreparing && (
                             <TouchableOpacity
-                              style={tw`flex-1 bg-blue-600 py-2 rounded-xl items-center`}
+                              className="flex-1 bg-blue-600 py-2 rounded-xl items-center"
                               onPress={() => handleUpdateStatus(order.id, 'ready')}
                               disabled={updatingId === order.id}
                             >
-                              <Text style={tw`text-[11px] font-black text-white`}>Mark Ready 📦</Text>
+                              <Text className="text-[11px] font-black text-white">Mark Ready 📦</Text>
                             </TouchableOpacity>
                           )}
                           {isReady && (
                             <TouchableOpacity
-                              style={tw`flex-1 bg-emerald-600 py-2 rounded-xl items-center`}
+                              className="flex-1 bg-emerald-600 py-2 rounded-xl items-center"
                               onPress={() => handleUpdateStatus(order.id, 'completed')}
                               disabled={updatingId === order.id}
                             >
-                              <Text style={tw`text-[11px] font-black text-white`}>Complete / Handover 🎉</Text>
+                              <Text className="text-[11px] font-black text-white">Complete / Handover 🎉</Text>
                             </TouchableOpacity>
                           )}
                           {isCompleted && (
-                            <View style={tw`bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex-1 items-center`}>
-                              <Text style={tw`text-[10px] font-bold text-emerald-800`}>✓ Completed & Handed Over</Text>
+                            <View className="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex-1 items-center">
+                              <Text className="text-[10px] font-bold text-emerald-800">✓ Completed & Handed Over</Text>
                             </View>
                           )}
                         </View>
 
-                        <View style={tw`flex-row items-center gap-1.5`}>
+                        <View className="flex-row items-center gap-1.5">
                           {order.phoneNumber ? (
                             <TouchableOpacity
-                              style={tw`w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 items-center justify-center`}
+                              className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 items-center justify-center"
                               onPress={() => handleCallCustomer(order.phoneNumber)}
                             >
                               <Ionicons name="call" size={14} color="#059669" />
@@ -653,7 +595,7 @@ export default function SalesScreen({
                           ) : null}
 
                           <TouchableOpacity
-                            style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center`}
+                            className="w-8 h-8 rounded-xl bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center"
                             onPress={() => handleDownloadReceipt(order)}
                             disabled={downloadingId === order.id}
                           >
@@ -676,16 +618,16 @@ export default function SalesScreen({
               TAB 2: POINT OF SALE (POS) WALK-IN CASHIER
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'pos' && (
-            <View style={tw`pb-12`}>
+            <View className="pb-12">
               {/* Customer Info Card */}
-              <View style={tw`bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm`}>
-                <Text style={tw`text-xs font-black uppercase text-chocolateBrown tracking-wider mb-2.5`}>
+              <View className="bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm">
+                <Text className="text-xs font-black uppercase text-chocolateBrown tracking-wider mb-2.5">
                   Walk-in Customer Details
                 </Text>
 
-                <View style={tw`gap-2.5`}>
+                <View className="gap-2.5">
                   <TextInput
-                    style={tw`bg-surfaceBright rounded-2xl border border-borderSubtle px-3.5 py-2.5 text-xs font-bold text-chocolateBrown`}
+                    className="bg-surfaceBright rounded-2xl border border-borderSubtle px-3.5 py-2.5 text-xs font-bold text-chocolateBrown"
                     placeholder="Customer Name (e.g. John Doe / Walk-in)"
                     placeholderTextColor={COLORS.chocolateBrownMuted}
                     value={customerName}
@@ -693,7 +635,7 @@ export default function SalesScreen({
                   />
 
                   <TextInput
-                    style={tw`bg-surfaceBright rounded-2xl border border-borderSubtle px-3.5 py-2.5 text-xs font-bold text-chocolateBrown`}
+                    className="bg-surfaceBright rounded-2xl border border-borderSubtle px-3.5 py-2.5 text-xs font-bold text-chocolateBrown"
                     placeholder="Customer Phone (e.g. +237 670 123 456)"
                     placeholderTextColor={COLORS.chocolateBrownMuted}
                     value={customerPhone}
@@ -702,39 +644,30 @@ export default function SalesScreen({
                   />
 
                   {/* Payment Method Selector */}
-                  <View style={tw`flex-row gap-2 mt-1`}>
+                  <View className="flex-row gap-2 mt-1">
                     <TouchableOpacity
-                      style={[
-                        tw`flex-1 py-2 rounded-xl border items-center`,
-                        paymentMethod === 'cash' ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-surfaceBright border-borderSubtle`,
-                      ]}
+                      className={`flex-1 py-2 rounded-xl border items-center ${(paymentMethod === 'cash') ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-surfaceBright border-borderSubtle'}`}
                       onPress={() => setPaymentMethod('cash')}
                     >
-                      <Text style={[tw`text-[11px] font-black`, paymentMethod === 'cash' ? tw`text-white` : tw`text-chocolateBrown`]}>
+                      <Text className={`text-[11px] font-black ${(paymentMethod === 'cash') ? 'text-white' : 'text-chocolateBrown'}`}>
                         💵 Cash
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[
-                        tw`flex-1 py-2 rounded-xl border items-center`,
-                        paymentMethod === 'mtn-momo' ? tw`bg-yellow-500 border-yellow-600` : tw`bg-surfaceBright border-borderSubtle`,
-                      ]}
+                      className={`flex-1 py-2 rounded-xl border items-center ${(paymentMethod === 'mtn-momo') ? 'bg-yellow-500 border-yellow-600' : 'bg-surfaceBright border-borderSubtle'}`}
                       onPress={() => setPaymentMethod('mtn-momo')}
                     >
-                      <Text style={[tw`text-[11px] font-black`, paymentMethod === 'mtn-momo' ? tw`text-black` : tw`text-chocolateBrown`]}>
+                      <Text className={`text-[11px] font-black ${(paymentMethod === 'mtn-momo') ? 'text-black' : 'text-chocolateBrown'}`}>
                         📱 MTN MoMo
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[
-                        tw`flex-1 py-2 rounded-xl border items-center`,
-                        paymentMethod === 'orange-money' ? tw`bg-orange-500 border-orange-600` : tw`bg-surfaceBright border-borderSubtle`,
-                      ]}
+                      className={`flex-1 py-2 rounded-xl border items-center ${(paymentMethod === 'orange-money') ? 'bg-orange-500 border-orange-600' : 'bg-surfaceBright border-borderSubtle'}`}
                       onPress={() => setPaymentMethod('orange-money')}
                     >
-                      <Text style={[tw`text-[11px] font-black`, paymentMethod === 'orange-money' ? tw`text-white` : tw`text-chocolateBrown`]}>
+                      <Text className={`text-[11px] font-black ${(paymentMethod === 'orange-money') ? 'text-white' : 'text-chocolateBrown'}`}>
                         🍊 Orange
                       </Text>
                     </TouchableOpacity>
@@ -744,34 +677,34 @@ export default function SalesScreen({
 
               {/* POS Cart Summary */}
               {posCart.length > 0 && (
-                <View style={tw`bg-emerald-50 rounded-3xl p-4 mb-3 border border-emerald-300 shadow-sm`}>
-                  <View style={tw`flex-row justify-between items-center mb-2`}>
-                    <Text style={tw`text-xs font-black text-emerald-950 uppercase`}>Current Ticket</Text>
-                    <Text style={tw`text-sm font-black text-emerald-950`}>{formatXAF(posTotal)}</Text>
+                <View className="bg-emerald-50 rounded-3xl p-4 mb-3 border border-emerald-300 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-xs font-black text-emerald-950 uppercase">Current Ticket</Text>
+                    <Text className="text-sm font-black text-emerald-950">{formatXAF(posTotal)}</Text>
                   </View>
 
                   {posCart.map((cartItem) => (
-                    <View key={cartItem.item.id} style={tw`flex-row justify-between items-center py-1.5 border-b border-emerald-200/60`}>
-                      <Text style={tw`text-xs font-bold text-emerald-900 flex-1 mr-2`} numberOfLines={1}>
+                    <View key={cartItem.item.id} className="flex-row justify-between items-center py-1.5 border-b border-emerald-200/60">
+                      <Text className="text-xs font-bold text-emerald-900 flex-1 mr-2" numberOfLines={1}>
                         {cartItem.item.name}
                       </Text>
-                      <View style={tw`flex-row items-center gap-2`}>
+                      <View className="flex-row items-center gap-2">
                         <TouchableOpacity
-                          style={tw`w-6 h-6 rounded-lg bg-emerald-200 items-center justify-center`}
+                          className="w-6 h-6 rounded-lg bg-emerald-200 items-center justify-center"
                           onPress={() => handleRemoveFromCart(cartItem.item.id)}
                         >
-                          <Text style={tw`text-xs font-black text-emerald-900`}>-</Text>
+                          <Text className="text-xs font-black text-emerald-900">-</Text>
                         </TouchableOpacity>
-                        <Text style={tw`text-xs font-black text-emerald-950 min-w-4 text-center`}>
+                        <Text className="text-xs font-black text-emerald-950 min-w-4 text-center">
                           {cartItem.quantity}
                         </Text>
                         <TouchableOpacity
-                          style={tw`w-6 h-6 rounded-lg bg-emerald-200 items-center justify-center`}
+                          className="w-6 h-6 rounded-lg bg-emerald-200 items-center justify-center"
                           onPress={() => handleAddToCart(cartItem.item)}
                         >
-                          <Text style={tw`text-xs font-black text-emerald-900`}>+</Text>
+                          <Text className="text-xs font-black text-emerald-900">+</Text>
                         </TouchableOpacity>
-                        <Text style={tw`text-xs font-black text-emerald-900 ml-1 min-w-16 text-right`}>
+                        <Text className="text-xs font-black text-emerald-900 ml-1 min-w-16 text-right">
                           {formatXAF(cartItem.item.price * cartItem.quantity)}
                         </Text>
                       </View>
@@ -779,7 +712,7 @@ export default function SalesScreen({
                   ))}
 
                   <TouchableOpacity
-                    style={tw`mt-3 bg-emerald-600 py-3 rounded-2xl items-center shadow-md flex-row justify-center gap-2`}
+                    className="mt-3 bg-emerald-600 py-3 rounded-2xl items-center shadow-md flex-row justify-center gap-2"
                     onPress={handleSubmitPosOrder}
                     disabled={isSubmittingPos}
                   >
@@ -788,7 +721,7 @@ export default function SalesScreen({
                     ) : (
                       <>
                         <Ionicons name="checkmark-circle" size={17} color="#FFFFFF" />
-                        <Text style={tw`text-xs font-black text-white uppercase tracking-wider`}>
+                        <Text className="text-xs font-black text-white uppercase tracking-wider">
                           Confirm & Record Sale ({formatXAF(posTotal)})
                         </Text>
                       </>
@@ -798,68 +731,56 @@ export default function SalesScreen({
               )}
 
               {/* Menu Items Quick Grid */}
-              <View style={tw`flex-row gap-2 mb-2.5`}>
+              <View className="flex-row gap-2 mb-2.5">
                 <TouchableOpacity
-                  style={[
-                    tw`px-3 py-1.5 rounded-xl border`,
-                    selectedCategory === 'all' ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-borderSubtle`,
-                  ]}
+                  className={`px-3 py-1.5 rounded-xl border ${(selectedCategory === 'all') ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-borderSubtle'}`}
                   onPress={() => setSelectedCategory('all')}
                 >
-                  <Text style={[tw`text-[11px] font-extrabold`, selectedCategory === 'all' ? tw`text-white` : tw`text-chocolateBrown`]}>
+                  <Text className={`text-[11px] font-extrabold ${(selectedCategory === 'all') ? 'text-white' : 'text-chocolateBrown'}`}>
                     All
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[
-                    tw`px-3 py-1.5 rounded-xl border`,
-                    selectedCategory === 'ice-cream' ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-borderSubtle`,
-                  ]}
+                  className={`px-3 py-1.5 rounded-xl border ${(selectedCategory === 'ice-cream') ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-borderSubtle'}`}
                   onPress={() => setSelectedCategory('ice-cream')}
                 >
-                  <Text style={[tw`text-[11px] font-extrabold`, selectedCategory === 'ice-cream' ? tw`text-white` : tw`text-chocolateBrown`]}>
+                  <Text className={`text-[11px] font-extrabold ${(selectedCategory === 'ice-cream') ? 'text-white' : 'text-chocolateBrown'}`}>
                     🍨 Ice Creams
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[
-                    tw`px-3 py-1.5 rounded-xl border`,
-                    selectedCategory === 'pancake' ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-borderSubtle`,
-                  ]}
+                  className={`px-3 py-1.5 rounded-xl border ${(selectedCategory === 'pancake') ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-borderSubtle'}`}
                   onPress={() => setSelectedCategory('pancake')}
                 >
-                  <Text style={[tw`text-[11px] font-extrabold`, selectedCategory === 'pancake' ? tw`text-white` : tw`text-chocolateBrown`]}>
+                  <Text className={`text-[11px] font-extrabold ${(selectedCategory === 'pancake') ? 'text-white' : 'text-chocolateBrown'}`}>
                     🥞 Pancakes
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={tw`gap-2`}>
+              <View className="gap-2">
                 {filteredMenu.map((item) => (
                   <View
                     key={item.id}
-                    style={tw`bg-white rounded-2xl p-3 border border-borderSubtle shadow-xs flex-row items-center justify-between`}
+                    className="bg-white rounded-2xl p-3 border border-borderSubtle shadow-xs flex-row items-center justify-between"
                   >
-                    <View style={tw`flex-1 mr-2`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>{item.name}</Text>
-                      <Text style={tw`text-[11px] font-bold text-strawberryPink mt-0.5`}>
+                    <View className="flex-1 mr-2">
+                      <Text className="text-xs font-black text-chocolateBrown">{item.name}</Text>
+                      <Text className="text-[11px] font-bold text-strawberryPink mt-0.5">
                         {formatXAF(item.price)} • {item.flavor}
                       </Text>
-                      <Text style={[tw`text-[10px] font-bold mt-0.5`, item.inStock ? tw`text-emerald-700` : tw`text-red-600`]}>
+                      <Text className={`text-[10px] font-bold mt-0.5 ${(item.inStock) ? 'text-emerald-700' : 'text-red-600'}`}>
                         {item.inStock ? '● In Stock' : '✕ Sold Out'}
                       </Text>
                     </View>
 
                     <TouchableOpacity
-                      style={[
-                        tw`px-3.5 py-2 rounded-xl flex-row items-center gap-1`,
-                        item.inStock ? tw`bg-strawberryPink` : tw`bg-gray-300`,
-                      ]}
+                      className={`px-3.5 py-2 rounded-xl flex-row items-center gap-1 ${(item.inStock) ? 'bg-strawberryPink' : 'bg-gray-300'}`}
                       onPress={() => handleAddToCart(item)}
                       disabled={!item.inStock}
                     >
                       <Ionicons name="add" size={14} color="#FFFFFF" />
-                      <Text style={tw`text-xs font-black text-white`}>Add</Text>
+                      <Text className="text-xs font-black text-white">Add</Text>
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -871,50 +792,39 @@ export default function SalesScreen({
               TAB 3: STOCK AVAILABILITY QUICK-TOGGLE
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'inventory' && (
-            <View style={tw`pb-12`}>
-              <View style={tw`bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm`}>
-                <Text style={tw`text-xs font-black uppercase text-chocolateBrown tracking-wider`}>
+            <View className="pb-12">
+              <View className="bg-white rounded-3xl p-4 mb-3 border border-borderSubtle shadow-sm">
+                <Text className="text-xs font-black uppercase text-chocolateBrown tracking-wider">
                   Stock Availability Controls
                 </Text>
-                <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1`}>
+                <Text className="text-[11px] text-chocolateBrownMuted mt-1">
                   Toggle sold out items in real time. Items marked Sold Out cannot be ordered by online customers or at the counter.
                 </Text>
               </View>
 
-              <View style={tw`gap-2.5`}>
+              <View className="gap-2.5">
                 {menuItems.map((item) => (
                   <View
                     key={item.id}
-                    style={tw`bg-white rounded-2xl p-3.5 border border-borderSubtle shadow-xs flex-row items-center justify-between`}
+                    className="bg-white rounded-2xl p-3.5 border border-borderSubtle shadow-xs flex-row items-center justify-between"
                   >
-                    <View style={tw`flex-1 mr-2`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>{item.name}</Text>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+                    <View className="flex-1 mr-2">
+                      <Text className="text-xs font-black text-chocolateBrown">{item.name}</Text>
+                      <Text className="text-[10px] text-chocolateBrownMuted mt-0.5">
                         {item.category.toUpperCase()} • {formatXAF(item.price)}
                       </Text>
                     </View>
 
                     <TouchableOpacity
-                      style={[
-                        tw`px-3 py-1.5 rounded-xl border flex-row items-center gap-1.5`,
-                        item.inStock
-                          ? tw`bg-emerald-50 border-emerald-300`
-                          : tw`bg-red-50 border-red-300`,
-                      ]}
+                      className={`px-3 py-1.5 rounded-xl border flex-row items-center gap-1.5 ${(item.inStock) ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'}`}
                       onPress={() => handleToggleStock(item.id, item.inStock)}
                       activeOpacity={0.8}
                     >
                       <View
-                        style={[
-                          tw`w-2 h-2 rounded-full`,
-                          item.inStock ? tw`bg-emerald-500` : tw`bg-red-500`,
-                        ]}
+                        className={`w-2 h-2 rounded-full ${(item.inStock) ? 'bg-emerald-500' : 'bg-red-500'}`}
                       />
                       <Text
-                        style={[
-                          tw`text-[11px] font-black`,
-                          item.inStock ? tw`text-emerald-800` : tw`text-red-700`,
-                        ]}
+                        className={`text-[11px] font-black ${(item.inStock) ? 'text-emerald-800' : 'text-red-700'}`}
                       >
                         {item.inStock ? 'In Stock' : 'Sold Out'}
                       </Text>
@@ -929,44 +839,44 @@ export default function SalesScreen({
               TAB 4: ACCESS & PERMISSIONS OVERVIEW
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'permissions' && (
-            <View style={tw`pb-12`}>
-              <View style={tw`bg-white rounded-3xl p-5 mb-3 border border-borderSubtle shadow-sm`}>
-                <View style={tw`w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20 mb-3`}>
+            <View className="pb-12">
+              <View className="bg-white rounded-3xl p-5 mb-3 border border-borderSubtle shadow-sm">
+                <View className="w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20 mb-3">
                   <Ionicons name="shield-checkmark" size={24} color={COLORS.strawberryPink} />
                 </View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   Role-Based Access Control (RBAC)
                 </Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-1 leading-4`}>
-                  You are signed in under the <Text style={tw`font-black text-chocolateBrown`}>Sales Representative</Text> role. Your access permissions are tailored for front-desk operations, order processing, and cashier shifts.
+                <Text className="text-xs text-chocolateBrownMuted mt-1 leading-4">
+                  You are signed in under the <Text className="font-black text-chocolateBrown">Sales Representative</Text> role. Your access permissions are tailored for front-desk operations, order processing, and cashier shifts.
                 </Text>
               </View>
 
               {/* Granted Permissions */}
-              <View style={tw`bg-emerald-50 rounded-3xl p-4 mb-3 border border-emerald-200 shadow-sm`}>
-                <Text style={tw`text-xs font-black text-emerald-950 uppercase mb-2`}>
+              <View className="bg-emerald-50 rounded-3xl p-4 mb-3 border border-emerald-200 shadow-sm">
+                <Text className="text-xs font-black text-emerald-950 uppercase mb-2">
                   ✓ Active Sales Permissions
                 </Text>
-                <View style={tw`gap-1.5`}>
-                  <Text style={tw`text-xs font-bold text-emerald-900`}>• Process counter & phone walk-in orders (POS)</Text>
-                  <Text style={tw`text-xs font-bold text-emerald-900`}>• Accept orders and update kitchen/dispatch statuses</Text>
-                  <Text style={tw`text-xs font-bold text-emerald-900`}>• Toggle flavor stock availability (In Stock / Sold Out)</Text>
-                  <Text style={tw`text-xs font-bold text-emerald-900`}>• View and download official PDF order receipts</Text>
-                  <Text style={tw`text-xs font-bold text-emerald-900`}>• View today's shift revenue and transaction count</Text>
+                <View className="gap-1.5">
+                  <Text className="text-xs font-bold text-emerald-900">• Process counter & phone walk-in orders (POS)</Text>
+                  <Text className="text-xs font-bold text-emerald-900">• Accept orders and update kitchen/dispatch statuses</Text>
+                  <Text className="text-xs font-bold text-emerald-900">• Toggle flavor stock availability (In Stock / Sold Out)</Text>
+                  <Text className="text-xs font-bold text-emerald-900">• View and download official PDF order receipts</Text>
+                  <Text className="text-xs font-bold text-emerald-900">• View today's shift revenue and transaction count</Text>
                 </View>
               </View>
 
               {/* Restricted Permissions */}
-              <View style={tw`bg-amber-50 rounded-3xl p-4 mb-3 border border-amber-200 shadow-sm`}>
-                <Text style={tw`text-xs font-black text-amber-950 uppercase mb-2`}>
+              <View className="bg-amber-50 rounded-3xl p-4 mb-3 border border-amber-200 shadow-sm">
+                <Text className="text-xs font-black text-amber-950 uppercase mb-2">
                   🔒 Administrator Only (Locked)
                 </Text>
-                <View style={tw`gap-1.5`}>
-                  <Text style={tw`text-xs font-bold text-amber-900`}>• Modifying base menu prices and discount combos</Text>
-                  <Text style={tw`text-xs font-bold text-amber-900`}>• Adding or deleting permanent menu items</Text>
-                  <Text style={tw`text-xs font-bold text-amber-900`}>• Editing business settings (hours, delivery fees, logo)</Text>
-                  <Text style={tw`text-xs font-bold text-amber-900`}>• Modifying user roles or creating staff accounts</Text>
-                  <Text style={tw`text-xs font-bold text-amber-900`}>• Viewing profit margin analytics and full financial statements</Text>
+                <View className="gap-1.5">
+                  <Text className="text-xs font-bold text-amber-900">• Modifying base menu prices and discount combos</Text>
+                  <Text className="text-xs font-bold text-amber-900">• Adding or deleting permanent menu items</Text>
+                  <Text className="text-xs font-bold text-amber-900">• Editing business settings (hours, delivery fees, logo)</Text>
+                  <Text className="text-xs font-bold text-amber-900">• Modifying user roles or creating staff accounts</Text>
+                  <Text className="text-xs font-bold text-amber-900">• Viewing profit margin analytics and full financial statements</Text>
                 </View>
               </View>
             </View>

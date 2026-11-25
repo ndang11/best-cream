@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   TouchableOpacity,
@@ -12,10 +11,9 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
-import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
+import { AppButton, AppCard, SegmentedTabs, StatusBadge } from '../components/ui';
 import type { Order } from '@best-cream/shared';
 
 interface StaffScreenProps {
@@ -24,8 +22,11 @@ interface StaffScreenProps {
   onLogout: () => void;
 }
 
-export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogout }: StaffScreenProps) {
-  const { t } = useLanguage();
+export default function StaffScreen({
+  apiUrl,
+  staffName = 'Staff Member',
+  onLogout,
+}: StaffScreenProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +40,6 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
         setOrders(json.data);
       }
     } catch {
-      // Demo fallback orders
       setOrders([
         {
           id: 'ORD-9901',
@@ -129,163 +129,134 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
     return o.status === activeTab;
   });
 
+  const tabItems = (['pending', 'approved', 'all'] as const).map((tab) => ({
+    key: tab,
+    label: tab.charAt(0).toUpperCase() + tab.slice(1),
+    count: orders.filter((o) => (tab === 'all' ? true : o.status === tab)).length,
+  }));
+
   return (
-    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
+    <SafeAreaView className="flex-1 bg-pageBg">
       <StatusBar style="dark" />
 
       {/* Top Header */}
-      <View style={tw`bg-white px-5 pt-3 pb-4 border-b border-vanillaCreamDark shadow-sm`}>
-        <View style={tw`flex-row items-center justify-between`}>
-          <View>
-            <View style={tw`flex-row items-center gap-1.5`}>
-              <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500`} />
-              <Text style={tw`text-[11px] font-black text-emerald-700 uppercase tracking-wider`}>
+      <View className="bg-white px-5 pt-3 pb-4 border-b border-borderSubtle shadow-sm">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 mr-2">
+            <View className="flex-row items-center gap-1.5">
+              <View className="w-2.5 h-2.5 rounded-full bg-pistachioGreen" />
+              <Text className="text-[11px] font-black text-emerald-800 uppercase tracking-wider">
                 Kitchen & Staff Station
               </Text>
             </View>
-            <Text style={tw`text-2xl font-black text-chocolateBrown mt-0.5`}>
+            <Text className="text-2xl font-black text-chocolateBrown mt-0.5" numberOfLines={1}>
               {staffName}
             </Text>
           </View>
 
-          <View style={tw`flex-row items-center gap-2`}>
+          <View className="flex-row items-center gap-2">
             <LanguageSelector />
             <TouchableOpacity
               onPress={handleLogout}
-              style={tw`w-9 h-9 rounded-full bg-red-50 border border-red-200 items-center justify-center`}
-              activeOpacity={0.7}
+              className="w-9 h-9 rounded-full bg-errorRedLight border border-errorRedBorder items-center justify-center"
+              activeOpacity={0.75}
             >
-              <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+              <Ionicons name="log-out-outline" size={18} color={COLORS.errorRed} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Filter Tabs */}
-        <View style={tw`flex-row gap-2 mt-4`}>
-          {(['pending', 'approved', 'all'] as const).map((tab) => {
-            const active = activeTab === tab;
-            const count = orders.filter((o) => (tab === 'all' ? true : o.status === tab)).length;
-            return (
-              <TouchableOpacity
-                key={tab}
-                onPress={() => setActiveTab(tab)}
-                style={[
-                  tw`flex-1 py-2 rounded-xl items-center border`,
-                  active
-                    ? tw`bg-strawberryPink border-strawberryPink`
-                    : tw`bg-vanillaCream border-vanillaCreamDark`,
-                ]}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    tw`text-xs font-black capitalize`,
-                    active ? tw`text-white` : tw`text-chocolateBrown`,
-                  ]}
-                >
-                  {tab} ({count})
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <SegmentedTabs
+          tabs={tabItems}
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          className="mt-4"
+        />
       </View>
 
       {/* Content */}
       {loading ? (
-        <View style={tw`flex-1 items-center justify-center`}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-          <Text style={tw`text-sm font-semibold text-chocolateBrownMuted mt-3`}>
+          <Text className="text-sm font-semibold text-chocolateBrownMuted mt-3">
             Loading kitchen tickets...
           </Text>
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={tw`p-4 pb-12`}
+          contentContainerClassName="p-4 pb-12"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >
           {filteredOrders.length === 0 ? (
-            <View style={tw`items-center justify-center py-16`}>
-              <Text style={tw`text-4xl mb-2`}>🧑‍🍳</Text>
-              <Text style={tw`text-base font-bold text-chocolateBrown`}>No tickets in this queue</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-1`}>New orders will appear automatically.</Text>
+            <View className="items-center justify-center py-16">
+              <Text className="text-4xl mb-2">🧑‍🍳</Text>
+              <Text className="text-base font-extrabold text-chocolateBrown">
+                No tickets in this queue
+              </Text>
+              <Text className="text-xs text-chocolateBrownMuted mt-1">
+                New orders will appear automatically.
+              </Text>
             </View>
           ) : (
             filteredOrders.map((order) => {
               const isPending = order.status === 'pending';
-              const isApproved = order.status === 'accepted' || (order.status as string) === 'approved' || order.status === 'preparing';
+              const isApproved =
+                order.status === 'accepted' ||
+                (order.status as string) === 'approved' ||
+                order.status === 'preparing';
 
               return (
-                <View
-                  key={order.id}
-                  style={tw`bg-white rounded-2xl p-4 mb-4 border border-vanillaCreamDark shadow-sm`}
-                >
-                  <View style={tw`flex-row justify-between items-start mb-2`}>
+                <AppCard key={order.id} className="mb-4 p-4">
+                  <View className="flex-row justify-between items-start mb-3">
                     <View>
-                      <Text style={tw`text-base font-black text-chocolateBrown`}>{order.id}</Text>
-                      <Text style={tw`text-xs text-chocolateBrownMuted`}>
-                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <Text className="text-base font-black text-chocolateBrown">{order.id}</Text>
+                      <Text className="text-xs text-chocolateBrownMuted">
+                        {new Date(order.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </Text>
                     </View>
-                    <View
-                      style={[
-                        tw`px-2.5 py-1 rounded-full border`,
-                        isPending
-                          ? tw`bg-amber-50 border-amber-300`
-                          : isApproved
-                            ? tw`bg-emerald-50 border-emerald-300`
-                            : tw`bg-blue-50 border-blue-300`,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          tw`text-[11px] font-black uppercase`,
-                          isPending
-                            ? tw`text-amber-700`
-                            : isApproved
-                              ? tw`text-emerald-700`
-                              : tw`text-blue-700`,
-                        ]}
-                      >
-                        {order.status}
-                      </Text>
-                    </View>
+                    <StatusBadge
+                      label={order.status.toUpperCase()}
+                      tone={isPending ? 'warning' : isApproved ? 'success' : 'pink'}
+                      showDot
+                    />
                   </View>
 
-                  {/* Items List */}
-                  <View style={tw`bg-vanillaCream rounded-xl p-3 my-2 border border-vanillaCreamDark`}>
+                  <View className="bg-vanillaCream rounded-2xl p-3.5 mb-3 border border-vanillaCreamDark">
                     {order.items.map((it, idx) => (
-                      <View key={idx} style={tw`mb-1.5 last:mb-0`}>
-                        <Text style={tw`text-sm font-bold text-chocolateBrown`}>
-                          {it.quantity}x {it.name}
+                      <View key={idx} className={idx < order.items.length - 1 ? 'mb-2' : ''}>
+                        <Text className="text-sm font-extrabold text-chocolateBrown">
+                          {it.quantity}× {it.name}
                         </Text>
-                        {it.specialNotes && (
-                          <Text style={tw`text-xs text-amber-800 italic`}>
+                        {it.specialNotes ? (
+                          <Text className="text-xs text-amber-800 italic mt-0.5">
                             📝 Note: {it.specialNotes}
                           </Text>
-                        )}
+                        ) : null}
                       </View>
                     ))}
                   </View>
 
-                  {/* Actions */}
-                  <View style={tw`flex-row gap-2 mt-2 pt-2 border-t border-vanillaCreamDark items-center justify-between`}>
-                    <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
+                  <View className="flex-row gap-2 pt-2.5 border-t border-borderSubtle items-center justify-between">
+                    <Text className="text-xs font-semibold text-chocolateBrownMuted">
                       Customer: {order.phoneNumber}
                     </Text>
-                    {order.status !== 'ready' && order.status !== 'completed' && (order.status as string) !== 'received' && (
-                      <TouchableOpacity
+                    {order.status !== 'ready' &&
+                    order.status !== 'completed' &&
+                    (order.status as string) !== 'received' ? (
+                      <AppButton
+                        title="Mark Ready"
+                        icon="checkmark-done"
+                        size="sm"
                         onPress={() => handleMarkReady(order.id)}
-                        style={tw`bg-emerald-600 px-4 py-2 rounded-xl flex-row items-center gap-1.5`}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="checkmark-done" size={16} color="#FFF" />
-                        <Text style={tw`text-xs font-bold text-white`}>Mark Ready</Text>
-                      </TouchableOpacity>
-                    )}
+                        className="bg-emerald-600"
+                      />
+                    ) : null}
                   </View>
-                </View>
+                </AppCard>
               );
             })
           )}
@@ -294,4 +265,3 @@ export default function StaffScreen({ apiUrl, staffName = 'Staff Member', onLogo
     </SafeAreaView>
   );
 }
-

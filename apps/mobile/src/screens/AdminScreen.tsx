@@ -170,43 +170,36 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
 
   return (
     <View
-      style={[
-        tw`bg-white rounded-2xl mb-4 border border-vanillaCreamDark overflow-hidden`,
-        { shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 3 },
-      ]}
+      className="bg-white rounded-2xl mb-4 border border-vanillaCreamDark overflow-hidden" style={{ shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 3 }}
     >
       {/* Coloured top accent bar */}
-      <View style={[tw`h-1.5 w-full`, accentColor]} />
+      <View className="h-1.5 w-full" style={accentColor} />
 
-      <View style={tw`p-4`}>
+      <View className="p-4">
         {/* ── Header Row ── */}
-        <View style={tw`flex-row justify-between items-start mb-2`}>
-          <TouchableOpacity onPress={() => onViewDetails(order)} style={tw`flex-1 mr-2`} activeOpacity={0.7}>
-            <View style={tw`flex-row items-center gap-1.5`}>
-              <Text style={tw`text-sm font-black text-chocolateBrown`}>
+        <View className="flex-row justify-between items-start mb-2">
+          <TouchableOpacity onPress={() => onViewDetails(order)} className="flex-1 mr-2" activeOpacity={0.7}>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-sm font-black text-chocolateBrown">
                 {order.id}
               </Text>
               <Ionicons name="information-circle-outline" size={14} color={COLORS.strawberryPink} />
             </View>
-            <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+            <Text className="text-xs text-chocolateBrownMuted mt-0.5">
               {formatDate(order.createdAt)} · {formatTime(order.createdAt)}
             </Text>
           </TouchableOpacity>
 
-          <View style={tw`flex-row items-center gap-2`}>
+          <View className="flex-row items-center gap-2">
             <View
-              style={[
-                tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border`,
-                sc.bg,
-                sc.border,
-              ]}
+              className="flex-row items-center gap-1 px-2.5 py-1 rounded-xl border" style={[sc.bg, sc.border]}
             >
               <Ionicons name={sc.icon as any} size={13} color={sc.iconColor} />
-              <Text style={[tw`text-xs font-black`, sc.text]}>{sc.label}</Text>
+              <Text className="text-xs font-black" style={sc.text}>{sc.label}</Text>
             </View>
 
             <TouchableOpacity
-              style={tw`w-7 h-7 rounded-lg bg-red-100 border border-red-300 items-center justify-center`}
+              className="w-7 h-7 rounded-lg bg-red-100 border border-red-300 items-center justify-center"
               onPress={() => onDelete(order.id)}
               activeOpacity={0.7}
             >
@@ -216,58 +209,58 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
         </View>
 
         {/* ── Customer Name & Phone Number Row ── */}
-        <View style={tw`flex-row items-center justify-between mb-2 pb-2 border-b border-vanillaCreamDark/60`}>
-          <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
+        <View className="flex-row items-center justify-between mb-2 pb-2 border-b border-vanillaCreamDark/60">
+          <View className="flex-row items-center gap-1.5 flex-1 mr-2">
             <Ionicons name="person-circle-outline" size={16} color={COLORS.chocolateBrownMuted} />
-            <Text style={tw`text-xs font-bold text-chocolateBrown`} numberOfLines={1}>
+            <Text className="text-xs font-bold text-chocolateBrown" numberOfLines={1}>
               {customerName}
             </Text>
           </View>
-          <View style={tw`flex-row items-center gap-1`}>
+          <View className="flex-row items-center gap-1">
             <Ionicons name="call-outline" size={13} color={COLORS.chocolateBrownMuted} />
-            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
+            <Text className="text-xs font-semibold text-chocolateBrownMuted">
               {order.phoneNumber}
             </Text>
           </View>
         </View>
 
         {/* ── Payment method & Fulfillment method pill ── */}
-        <View style={tw`flex-row items-center justify-between mb-2.5`}>
-          <View style={tw`bg-vanillaCream px-2.5 py-1 rounded-full border border-vanillaCreamDark flex-row items-center gap-1.5`}>
-            <Text style={tw`text-xs`}>
+        <View className="flex-row items-center justify-between mb-2.5">
+          <View className="bg-vanillaCream px-2.5 py-1 rounded-full border border-vanillaCreamDark flex-row items-center gap-1.5">
+            <Text className="text-xs">
               {order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}
             </Text>
-            <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+            <Text className="text-xs font-bold text-chocolateBrown">
               {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
             </Text>
-            <Text style={[tw`text-[10px] font-black`, order.paymentStatus === 'paid' ? tw`text-emerald-700` : tw`text-amber-700`]}>
+            <Text className={`text-[10px] font-black ${(order.paymentStatus === 'paid') ? 'text-emerald-700' : 'text-amber-700'}`}>
               · {order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
             </Text>
           </View>
 
           {/* Fulfillment type badge */}
-          <View style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-vanillaCreamDark`}>
-            <Text style={tw`text-xs`}>{order.deliveryAddress ? '🛵' : '🏬'}</Text>
-            <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+          <View className="flex-row items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-vanillaCreamDark">
+            <Text className="text-xs">{order.deliveryAddress ? '🛵' : '🏬'}</Text>
+            <Text className="text-[11px] font-bold text-chocolateBrown">
               {order.deliveryAddress ? 'Delivery' : 'Store Pickup'}
             </Text>
           </View>
         </View>
 
         {/* ── Customer Location Banner & Map ── */}
-        <View style={tw`mb-3 bg-vanillaCream/70 rounded-2xl p-2.5 border border-vanillaCreamDark`}>
-          <View style={tw`flex-row items-center justify-between mb-1.5`}>
-            <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-              <View style={tw`w-6 h-6 rounded-full bg-strawberryPink/15 items-center justify-center`}>
+        <View className="mb-3 bg-vanillaCream/70 rounded-2xl p-2.5 border border-vanillaCreamDark">
+          <View className="flex-row items-center justify-between mb-1.5">
+            <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+              <View className="w-6 h-6 rounded-full bg-strawberryPink/15 items-center justify-center">
                 <Ionicons name="location" size={13} color={COLORS.strawberryPink} />
               </View>
-              <Text style={tw`text-[11px] font-black text-chocolateBrown uppercase tracking-wider`}>
+              <Text className="text-[11px] font-black text-chocolateBrown uppercase tracking-wider">
                 {order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? 'Customer Location' : 'Fulfillment'}
               </Text>
             </View>
             {order.distanceKm !== undefined && order.distanceKm > 0 ? (
-              <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-full border border-strawberryPink/30`}>
-                <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+              <View className="bg-strawberryPinkLight px-2 py-0.5 rounded-full border border-strawberryPink/30">
+                <Text className="text-[10px] font-black text-strawberryPink">
                   📍 {order.distanceKm.toFixed(1)} km away
                 </Text>
               </View>
@@ -275,37 +268,37 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
           </View>
 
           {/* Address Text */}
-          <Text style={tw`text-xs font-bold text-chocolateBrown pl-7 pr-1 mb-2`} numberOfLines={2}>
+          <Text className="text-xs font-bold text-chocolateBrown pl-7 pr-1 mb-2" numberOfLines={2}>
             {order.deliveryAddress || 'Pickup in-store (Yaoundé Centre-ville, Main Store)'}
           </Text>
 
           {/* Action buttons row: View Map + Open GPS Navigation */}
-          <View style={tw`flex-row items-center gap-2 pl-7`}>
+          <View className="flex-row items-center gap-2 pl-7">
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+              className="flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm"
               onPress={() => setShowMap(!showMap)}
               activeOpacity={0.8}
             >
               <Ionicons name={showMap ? 'chevron-up' : 'map-outline'} size={12} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-[11px] font-bold text-chocolateBrown`}>
+              <Text className="text-[11px] font-bold text-chocolateBrown">
                 {showMap ? 'Hide Map' : 'View Map'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm`}
+              className="flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-vanillaCreamDark shadow-sm"
               onPress={() => openExternalMaps(order.latitude, order.longitude, order.deliveryAddress)}
               activeOpacity={0.8}
             >
               <Ionicons name="navigate-outline" size={12} color={COLORS.strawberryPink} />
-              <Text style={tw`text-[11px] font-black text-strawberryPink`}>
+              <Text className="text-[11px] font-black text-strawberryPink">
                 Open GPS
               </Text>
             </TouchableOpacity>
 
             {order.latitude && order.longitude ? (
-              <View style={tw`bg-white/80 px-2 py-1 rounded-lg border border-vanillaCreamDark/60`}>
-                <Text style={tw`text-[9px] font-semibold text-chocolateBrownMuted`}>
+              <View className="bg-white/80 px-2 py-1 rounded-lg border border-vanillaCreamDark/60">
+                <Text className="text-[9px] font-semibold text-chocolateBrownMuted">
                   {order.latitude.toFixed(3)}, {order.longitude.toFixed(3)}
                 </Text>
               </View>
@@ -314,7 +307,7 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
 
           {/* Interactive Yaounde Map */}
           {showMap && (
-            <View style={tw`mt-2.5 rounded-xl overflow-hidden border border-vanillaCreamDark`}>
+            <View className="mt-2.5 rounded-xl overflow-hidden border border-vanillaCreamDark">
               <YaoundeMapView
                 userLatitude={order.latitude}
                 userLongitude={order.longitude}
@@ -326,48 +319,48 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
         </View>
 
         {/* ── Order items ── */}
-        <View style={tw`bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-2`}>
+        <View className="bg-vanillaCream rounded-xl px-3 py-2.5 gap-2 mb-2">
           {order.items.map((item, idx) => (
             <View key={idx}>
-              <View style={tw`flex-row items-center`}>
-                <Text style={tw`text-xs font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+              <View className="flex-row items-center">
+                <Text className="text-xs font-black text-strawberryPink w-7">{item.quantity}×</Text>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-chocolateBrown">{item.name}</Text>
                   {item.flavor ? (
-                    <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.flavor}</Text>
+                    <Text className="text-xs text-chocolateBrownMuted">{item.flavor}</Text>
                   ) : null}
                 </View>
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                <Text className="text-xs font-black text-chocolateBrown">
                   {(item.price * item.quantity).toLocaleString()} XAF
                 </Text>
               </View>
               {/* Customization tags */}
               {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
-                <View style={tw`ml-7 flex-row flex-wrap gap-1 mt-0.5`}>
+                <View className="ml-7 flex-row flex-wrap gap-1 mt-0.5">
                   {item.servingStyle && (
-                    <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
-                      <Text style={tw`text-[9px] font-bold text-strawberryPink`}>
+                    <View className="bg-strawberryPinkLight px-2 py-0.5 rounded-md">
+                      <Text className="text-[9px] font-bold text-strawberryPink">
                         {item.servingStyle}
                       </Text>
                     </View>
                   )}
                   {item.sizeOption && (
-                    <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                    <View className="bg-vanillaCreamDark px-2 py-0.5 rounded-md">
+                      <Text className="text-[9px] text-chocolateBrownMuted">
                         {item.sizeOption}
                       </Text>
                     </View>
                   )}
                   {item.pancakeStyle && (
-                    <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                    <View className="bg-vanillaCreamDark px-2 py-0.5 rounded-md">
+                      <Text className="text-[9px] text-chocolateBrownMuted">
                         {item.pancakeStyle}
                       </Text>
                     </View>
                   )}
                   {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
-                    <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
-                      <Text style={tw`text-[9px] text-amber-800`}>
+                    <View key={ti} className="bg-butterYellowLight px-2 py-0.5 rounded-md">
+                      <Text className="text-[9px] text-amber-800">
                         + {topping.name}
                       </Text>
                     </View>
@@ -376,8 +369,8 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
               )}
               {/* Special notes */}
               {item.specialNotes && (
-                <View style={tw`ml-7 mt-1 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
-                  <Text style={tw`text-[10px] font-bold text-red-700`}>
+                <View className="ml-7 mt-1 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg">
+                  <Text className="text-[10px] font-bold text-red-700">
                     📝 {item.specialNotes}
                   </Text>
                 </View>
@@ -389,42 +382,42 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
         {/* ── Tap to view details link ── */}
         <TouchableOpacity
           onPress={() => onViewDetails(order)}
-          style={tw`flex-row items-center justify-between bg-vanillaCream/70 px-3 py-1.5 rounded-xl border border-vanillaCreamDark mb-3`}
+          className="flex-row items-center justify-between bg-vanillaCream/70 px-3 py-1.5 rounded-xl border border-vanillaCreamDark mb-3"
           activeOpacity={0.7}
         >
-          <Text style={tw`text-[11px] font-bold text-strawberryPink`}>
+          <Text className="text-[11px] font-bold text-strawberryPink">
             Tap to view complete details & history ➔
           </Text>
           <Ionicons name="chevron-forward" size={13} color={COLORS.strawberryPink} />
         </TouchableOpacity>
 
         {/* ── Footer: total + action buttons ── */}
-        <View style={tw`flex-row justify-between items-center`}>
+        <View className="flex-row justify-between items-center">
           <View>
-            <Text style={tw`text-xs text-chocolateBrownMuted`}>Total</Text>
-            <Text style={tw`text-lg font-black text-chocolateBrown`}>
+            <Text className="text-xs text-chocolateBrownMuted">Total</Text>
+            <Text className="text-lg font-black text-chocolateBrown">
               {order.totalAmount.toLocaleString()} XAF
             </Text>
           </View>
 
-          <View style={tw`flex-row gap-2`}>
+          <View className="flex-row gap-2">
             {/* Reject/Cancel for pending or accepted */}
             {(s === 'pending' || s === 'accepted') && (
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1 bg-red-50 border border-red-300 px-3 py-2 rounded-xl`}
+                className="flex-row items-center gap-1 bg-red-50 border border-red-300 px-3 py-2 rounded-xl"
                 onPress={() => onUpdateStatus(order.id, s === 'pending' ? 'rejected' : 'cancelled')}
                 disabled={loading}
                 activeOpacity={0.8}
               >
                 <Ionicons name="close-circle-outline" size={15} color="#DC2626" />
-                <Text style={tw`text-xs font-black text-red-600`}>{s === 'pending' ? 'Reject' : 'Cancel'}</Text>
+                <Text className="text-xs font-black text-red-600">{s === 'pending' ? 'Reject' : 'Cancel'}</Text>
               </TouchableOpacity>
             )}
 
             {/* Primary next-step action */}
             {nextAction && (
               <TouchableOpacity
-                style={[tw`flex-row items-center gap-1.5 px-4 py-2 rounded-xl`, { backgroundColor: nextAction.color }]}
+                className="flex-row items-center gap-1.5 px-4 py-2 rounded-xl" style={{ backgroundColor: nextAction.color }}
                 onPress={() => onUpdateStatus(order.id, nextAction.status)}
                 disabled={loading}
                 activeOpacity={0.8}
@@ -434,15 +427,15 @@ function OrderCard({ order, onUpdateStatus, onDelete, onViewDetails, loading }: 
                 ) : (
                   <Ionicons name={nextAction.icon as any} size={15} color={COLORS.white} />
                 )}
-                <Text style={tw`text-xs font-black text-white`}>{nextAction.label}</Text>
+                <Text className="text-xs font-black text-white">{nextAction.label}</Text>
               </TouchableOpacity>
             )}
 
             {/* Completed / Rejected / Cancelled — done badge */}
             {(s === 'completed' || s === 'rejected' || s === 'cancelled') && (
-              <View style={[tw`flex-row items-center gap-1 px-4 py-2 rounded-xl border`, sc.bg, sc.border]}>
+              <View className="flex-row items-center gap-1 px-4 py-2 rounded-xl border" style={[sc.bg, sc.border]}>
                 <Ionicons name={sc.icon as any} size={15} color={sc.iconColor} />
-                <Text style={[tw`text-xs font-black`, sc.text]}>{sc.label}</Text>
+                <Text className="text-xs font-black" style={sc.text}>{sc.label}</Text>
               </View>
             )}
           </View>
@@ -477,71 +470,66 @@ function ProductCard({
 
   return (
     <View
-      style={[
-        tw`bg-white rounded-2xl mb-3.5 border border-vanillaCreamDark overflow-hidden`,
-        !isActive && tw`opacity-75 border-gray-300`,
-        isArchived && tw`border-amber-300 bg-amber-50/20`,
-        { shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 2 },
-      ]}
+      className={`bg-white rounded-2xl mb-3.5 border border-vanillaCreamDark overflow-hidden ${(!isActive) ? 'opacity-75 border-gray-300' : ''} ${(isArchived) ? 'border-amber-300 bg-amber-50/20' : ''}`} style={{ shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 2 }}
     >
-      <View style={tw`flex-row`}>
+      <View className="flex-row">
         {/* Product image */}
-        <View style={tw`w-28 h-28 bg-vanillaCreamDark relative`}>
+        <View className="w-28 h-28 bg-vanillaCreamDark relative">
           {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={tw`w-full h-full`} resizeMode="cover" />
+            <Image source={{ uri: item.imageUrl }} className="w-full h-full" resizeMode="cover" />
           ) : (
-            <View style={tw`w-full h-full items-center justify-center`}>
-              <Text style={tw`text-3xl`}>{categoryEmoji(item.category)}</Text>
+            <View className="w-full h-full items-center justify-center">
+              <Text className="text-3xl">{categoryEmoji(item.category)}</Text>
             </View>
           )}
 
           {/* Badges on Image */}
           {item.isSpecialOffer && (
-            <View style={tw`absolute top-1 left-1 bg-butterYellow px-1.5 py-0.5 rounded-md`}>
-              <Text style={tw`text-[8px] font-black text-chocolateBrown`}>
+            <View className="absolute top-1 left-1 bg-butterYellow px-1.5 py-0.5 rounded-md">
+              <Text className="text-[8px] font-black text-chocolateBrown">
                 {item.offerTag || '★ Offer'}
               </Text>
             </View>
           )}
 
           {isArchived && (
-            <View style={tw`absolute bottom-1 left-1 bg-amber-600 px-1.5 py-0.5 rounded-md`}>
-              <Text style={tw`text-[8px] font-black text-white`}>📁 Archived</Text>
+            <View className="absolute bottom-1 left-1 bg-amber-600 px-1.5 py-0.5 rounded-md">
+              <Text className="text-[8px] font-black text-white">📁 Archived</Text>
             </View>
           )}
         </View>
 
         {/* Details */}
-        <View style={tw`flex-1 p-3 justify-between`}>
+        <View className="flex-1 p-3 justify-between">
           <View>
-            <View style={tw`flex-row items-center justify-between`}>
-              <View style={tw`flex-row items-center gap-1 flex-1 mr-2`}>
-                <Text style={tw`text-[11px]`}>{categoryEmoji(item.category)}</Text>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`} numberOfLines={1}>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-1 flex-1 mr-2">
+                <Text className="text-[11px]">{categoryEmoji(item.category)}</Text>
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted" numberOfLines={1}>
                   {categoryLabel(item.category, t)}
                 </Text>
               </View>
-              <Text style={tw`text-sm font-black text-chocolateBrown`}>
+              <Text className="text-sm font-black text-chocolateBrown">
                 {item.price.toLocaleString()} XAF
               </Text>
             </View>
 
-            <Text style={tw`text-sm font-black text-chocolateBrown mt-0.5`} numberOfLines={1}>
+            <Text className="text-sm font-black text-chocolateBrown mt-0.5" numberOfLines={1}>
               {item.name}
             </Text>
-            <Text style={tw`text-[11px] text-chocolateBrownLight`} numberOfLines={1}>
+            <Text className="text-[11px] text-chocolateBrownLight" numberOfLines={1}>
               {item.flavor}
             </Text>
             {item.description ? (
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`} numberOfLines={1}>
+              <Text className="text-[10px] text-chocolateBrownMuted mt-0.5" numberOfLines={1}>
                 {item.description}
               </Text>
             ) : null}
 
             {item.rating !== undefined && (
-              <View style={tw`flex-row items-center gap-1 mt-0.5`}>
+              <View className="flex-row items-center gap-1 mt-0.5">
                 <Ionicons name="star" size={10} color={COLORS.butterYellow} />
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">
                   {item.rating.toFixed(1)}
                 </Text>
               </View>
@@ -549,27 +537,19 @@ function ProductCard({
           </View>
 
           {/* Action row */}
-          <View style={tw`flex-row items-center justify-between mt-2 pt-1.5 border-t border-vanillaCreamDark/50`}>
+          <View className="flex-row items-center justify-between mt-2 pt-1.5 border-t border-vanillaCreamDark/50">
             {/* Status pills: Stock & Active */}
-            <View style={tw`flex-row items-center gap-1.5`}>
+            <View className="flex-row items-center gap-1.5">
               {/* Active / Inactive switch */}
               <TouchableOpacity
                 onPress={() => onToggleActive(item)}
                 activeOpacity={0.7}
               >
                 <View
-                  style={[
-                    tw`px-2 py-0.5 rounded-full border`,
-                    isActive
-                      ? tw`bg-emerald-50 border-emerald-300`
-                      : tw`bg-gray-100 border-gray-300`,
-                  ]}
+                  className={`px-2 py-0.5 rounded-full border ${(isActive) ? 'bg-emerald-50 border-emerald-300' : 'bg-gray-100 border-gray-300'}`}
                 >
                   <Text
-                    style={[
-                      tw`text-[8px] font-black`,
-                      isActive ? tw`text-emerald-700` : tw`text-gray-600`,
-                    ]}
+                    className={`text-[8px] font-black ${(isActive) ? 'text-emerald-700' : 'text-gray-600'}`}
                   >
                     {isActive ? 'Active' : 'Inactive'}
                   </Text>
@@ -582,18 +562,10 @@ function ProductCard({
                 activeOpacity={0.7}
               >
                 <View
-                  style={[
-                    tw`px-2 py-0.5 rounded-full border`,
-                    item.inStock
-                      ? tw`bg-pistachioGreenLight border-pistachioGreen`
-                      : tw`bg-outOfStockBg border-outOfStockText`,
-                  ]}
+                  className={`px-2 py-0.5 rounded-full border ${(item.inStock) ? 'bg-pistachioGreenLight border-pistachioGreen' : 'bg-outOfStockBg border-outOfStockText'}`}
                 >
                   <Text
-                    style={[
-                      tw`text-[8px] font-black`,
-                      item.inStock ? tw`text-pistachioGreen` : tw`text-outOfStockText`,
-                    ]}
+                    className={`text-[8px] font-black ${(item.inStock) ? 'text-pistachioGreen' : 'text-outOfStockText'}`}
                   >
                     {item.inStock ? 'In Stock' : 'Sold Out'}
                   </Text>
@@ -602,10 +574,10 @@ function ProductCard({
             </View>
 
             {/* Action buttons */}
-            <View style={tw`flex-row items-center gap-1.5`}>
+            <View className="flex-row items-center gap-1.5">
               {/* Edit */}
               <TouchableOpacity
-                style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center`}
+                className="w-7 h-7 rounded-lg bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center"
                 onPress={() => onEdit(item)}
                 activeOpacity={0.7}
               >
@@ -614,12 +586,7 @@ function ProductCard({
 
               {/* Archive / Unarchive */}
               <TouchableOpacity
-                style={[
-                  tw`w-7 h-7 rounded-lg items-center justify-center border`,
-                  isArchived
-                    ? tw`bg-amber-100 border-amber-300`
-                    : tw`bg-vanillaCream border-vanillaCreamDark`,
-                ]}
+                className={`w-7 h-7 rounded-lg items-center justify-center border ${(isArchived) ? 'bg-amber-100 border-amber-300' : 'bg-vanillaCream border-vanillaCreamDark'}`}
                 onPress={() => onToggleArchive(item)}
                 activeOpacity={0.7}
               >
@@ -632,7 +599,7 @@ function ProductCard({
 
               {/* Delete */}
               <TouchableOpacity
-                style={tw`w-7 h-7 rounded-lg bg-red-50 border border-red-200 items-center justify-center`}
+                className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 items-center justify-center"
                 onPress={() => onDelete(item.id)}
                 activeOpacity={0.7}
               >
@@ -884,12 +851,12 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={tw`flex-1 bg-black/50 justify-end`}>
-        <View style={tw`bg-white rounded-t-3xl max-h-9/10`}>
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white rounded-t-3xl max-h-9/10">
           {/* Header */}
-          <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-vanillaCreamDark`}>
-            <View style={tw`flex-row items-center gap-2`}>
-              <View style={tw`w-8 h-8 rounded-xl bg-strawberryPink items-center justify-center`}>
+          <View className="flex-row justify-between items-center px-5 py-4 border-b border-vanillaCreamDark">
+            <View className="flex-row items-center gap-2">
+              <View className="w-8 h-8 rounded-xl bg-strawberryPink items-center justify-center">
                 <Ionicons
                   name={isEdit ? 'create-outline' : 'add-circle-outline'}
                   size={18}
@@ -897,47 +864,39 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
                 />
               </View>
               <View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {isEdit ? t('adminEditProduct') : t('adminAddProduct')}
                 </Text>
-                <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                <Text className="text-[10px] text-chocolateBrownMuted">
                   {isEdit ? item?.name : t('adminMenuSubtitle')}
                 </Text>
               </View>
             </View>
             <TouchableOpacity
               onPress={onClose}
-              style={tw`w-8 h-8 rounded-full bg-vanillaCream items-center justify-center`}
+              className="w-8 h-8 rounded-full bg-vanillaCream items-center justify-center"
               activeOpacity={0.7}
             >
               <Ionicons name="close" size={18} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={tw`px-5 pt-1`} showsVerticalScrollIndicator={false}>
+          <ScrollView className="px-5 pt-1" showsVerticalScrollIndicator={false}>
             {/* Category selector */}
             <Text style={labelStyle}>{t('adminProductCategory')}</Text>
-            <View style={tw`flex-row flex-wrap gap-2`}>
+            <View className="flex-row flex-wrap gap-2">
               {categoriesList.map((cat) => {
                 const active = form.category === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
-                    style={[
-                      tw`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border`,
-                      active
-                        ? tw`bg-strawberryPink border-strawberryPink`
-                        : tw`bg-vanillaCream border-vanillaCreamDark`,
-                    ]}
+                    className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${(active) ? 'bg-strawberryPink border-strawberryPink' : 'bg-vanillaCream border-vanillaCreamDark'}`}
                     onPress={() => set('category', cat)}
                     activeOpacity={0.8}
                   >
-                    <Text style={tw`text-xs`}>{categoryEmoji(cat)}</Text>
+                    <Text className="text-xs">{categoryEmoji(cat)}</Text>
                     <Text
-                      style={[
-                        tw`text-[11px] font-bold`,
-                        active ? tw`text-white` : tw`text-chocolateBrown`,
-                      ]}
+                      className={`text-[11px] font-bold ${(active) ? 'text-white' : 'text-chocolateBrown'}`}
                     >
                       {categoryLabel(cat, t)}
                     </Text>
@@ -969,7 +928,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             {/* Description */}
             <Text style={labelStyle}>{t('adminProductDescription')}</Text>
             <TextInput
-              style={[inputStyle, tw`h-16`]}
+              className="h-16" style={inputStyle}
               placeholder={t('adminDescPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={form.description}
@@ -978,8 +937,8 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             />
 
             {/* Price & Rating row */}
-            <View style={tw`flex-row gap-3`}>
-              <View style={tw`flex-1`}>
+            <View className="flex-row gap-3">
+              <View className="flex-1">
                 <Text style={labelStyle}>{t('adminProductPrice')} (XAF) *</Text>
                 <TextInput
                   style={inputStyle}
@@ -990,7 +949,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
                   keyboardType="number-pad"
                 />
               </View>
-              <View style={tw`w-24`}>
+              <View className="w-24">
                 <Text style={labelStyle}>{t('adminProductRating')}</Text>
                 <TextInput
                   style={inputStyle}
@@ -1007,19 +966,19 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             <Text style={labelStyle}>Product Image & Photo Presets</Text>
             
             {/* Live Preview Box */}
-            <View style={tw`bg-vanillaCream rounded-2xl p-3 border border-vanillaCreamDark mb-2`}>
-              <View style={tw`flex-row items-center gap-3`}>
-                <View style={tw`w-16 h-16 rounded-xl bg-vanillaCreamDark overflow-hidden items-center justify-center border border-vanillaCreamDark`}>
+            <View className="bg-vanillaCream rounded-2xl p-3 border border-vanillaCreamDark mb-2">
+              <View className="flex-row items-center gap-3">
+                <View className="w-16 h-16 rounded-xl bg-vanillaCreamDark overflow-hidden items-center justify-center border border-vanillaCreamDark">
                   {form.imageUrl ? (
-                    <Image source={{ uri: form.imageUrl }} style={tw`w-full h-full`} resizeMode="cover" />
+                    <Image source={{ uri: form.imageUrl }} className="w-full h-full" resizeMode="cover" />
                   ) : (
-                    <Text style={tw`text-2xl`}>{categoryEmoji(form.category)}</Text>
+                    <Text className="text-2xl">{categoryEmoji(form.category)}</Text>
                   )}
                 </View>
 
-                <View style={tw`flex-1 gap-1.5`}>
+                <View className="flex-1 gap-1.5">
                   <TouchableOpacity
-                    style={tw`flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-2 rounded-xl`}
+                    className="flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-2 rounded-xl"
                     onPress={handleUploadImageOptions}
                     disabled={uploadingImage}
                     activeOpacity={0.8}
@@ -1029,38 +988,35 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
                     ) : (
                       <Ionicons name="cloud-upload-outline" size={14} color={COLORS.white} />
                     )}
-                    <Text style={tw`text-xs font-black text-white`}>
+                    <Text className="text-xs font-black text-white">
                       {uploadingImage ? 'Uploading Image…' : 'Choose Photo or Camera'}
                     </Text>
                   </TouchableOpacity>
 
                   {form.imageUrl ? (
                     <TouchableOpacity onPress={() => set('imageUrl', '')} activeOpacity={0.7}>
-                      <Text style={tw`text-[10px] font-bold text-red-600`}>✕ Clear Image</Text>
+                      <Text className="text-[10px] font-bold text-red-600">✕ Clear Image</Text>
                     </TouchableOpacity>
                   ) : null}
                 </View>
               </View>
 
               {/* Preset Gallery Carousel */}
-              <Text style={tw`text-[10px] font-black text-chocolateBrownMuted mt-2.5 mb-1.5 uppercase tracking-wider`}>
+              <Text className="text-[10px] font-black text-chocolateBrownMuted mt-2.5 mb-1.5 uppercase tracking-wider">
                 Quick Pick Preset Photos:
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`gap-1.5`}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-1.5">
                 {PRESET_PRODUCT_IMAGES.map((preset, pIdx) => {
                   const isSelected = form.imageUrl === preset.url;
                   return (
                     <TouchableOpacity
                       key={pIdx}
-                      style={[
-                        tw`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border`,
-                        isSelected ? tw`border-strawberryPink bg-strawberryPinkLight` : tw`border-vanillaCreamDark`,
-                      ]}
+                      className={`flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border ${(isSelected) ? 'border-strawberryPink bg-strawberryPinkLight' : 'border-vanillaCreamDark'}`}
                       onPress={() => set('imageUrl', preset.url)}
                       activeOpacity={0.7}
                     >
-                      <Text style={tw`text-xs`}>{preset.emoji}</Text>
-                      <Text style={[tw`text-[10px] font-bold`, isSelected ? tw`text-strawberryPink` : tw`text-chocolateBrown`]}>
+                      <Text className="text-xs">{preset.emoji}</Text>
+                      <Text className={`text-[10px] font-bold ${(isSelected) ? 'text-strawberryPink' : 'text-chocolateBrown'}`}>
                         {preset.label}
                       </Text>
                     </TouchableOpacity>
@@ -1081,18 +1037,18 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             />
 
             {/* Activate / Deactivate Toggle */}
-            <View style={tw`flex-row items-center justify-between mt-3 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark`}>
-              <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center justify-between mt-3 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark">
+              <View className="flex-row items-center gap-2">
                 <Ionicons
                   name={form.isActive ? 'eye-outline' : 'eye-off-outline'}
                   size={18}
                   color={form.isActive ? COLORS.pistachioGreen : COLORS.chocolateBrownMuted}
                 />
                 <View>
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  <Text className="text-xs font-bold text-chocolateBrown">
                     Product Active (Visible in Store)
                   </Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                  <Text className="text-[10px] text-chocolateBrownMuted">
                     {form.isActive ? 'Customers can view and order this item' : 'Hidden from customers'}
                   </Text>
                 </View>
@@ -1106,14 +1062,14 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             </View>
 
             {/* In stock toggle */}
-            <View style={tw`flex-row items-center justify-between mt-2.5 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark`}>
-              <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center justify-between mt-2.5 bg-vanillaCream rounded-xl px-3.5 py-3 border border-vanillaCreamDark">
+              <View className="flex-row items-center gap-2">
                 <Ionicons name="cube-outline" size={18} color={COLORS.chocolateBrown} />
                 <View>
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  <Text className="text-xs font-bold text-chocolateBrown">
                     {t('adminProductInStock')}
                   </Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                  <Text className="text-[10px] text-chocolateBrownMuted">
                     {form.inStock ? 'Available for immediate orders' : 'Shows as Sold Out'}
                   </Text>
                 </View>
@@ -1127,14 +1083,14 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
             </View>
 
             {/* Special offer toggle */}
-            <View style={tw`flex-row items-center justify-between mt-2.5 bg-butterYellowLight rounded-xl px-3.5 py-3 border border-butterYellow/60`}>
-              <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center justify-between mt-2.5 bg-butterYellowLight rounded-xl px-3.5 py-3 border border-butterYellow/60">
+              <View className="flex-row items-center gap-2">
                 <Ionicons name="sparkles" size={18} color={COLORS.chocolateBrown} />
                 <View>
-                  <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                  <Text className="text-xs font-bold text-chocolateBrown">
                     {t('adminProductOffer')}
                   </Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                  <Text className="text-[10px] text-chocolateBrownMuted">
                     Highlight with badge on customer catalog
                   </Text>
                 </View>
@@ -1161,25 +1117,22 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
               </>
             )}
 
-            <View style={tw`h-6`} />
+            <View className="h-6" />
           </ScrollView>
 
           {/* Footer buttons */}
-          <View style={tw`flex-row gap-3 px-5 py-4 border-t border-vanillaCreamDark`}>
+          <View className="flex-row gap-3 px-5 py-4 border-t border-vanillaCreamDark">
             <TouchableOpacity
-              style={tw`flex-1 bg-vanillaCream border border-vanillaCreamDark py-3.5 rounded-2xl items-center justify-center`}
+              className="flex-1 bg-vanillaCream border border-vanillaCreamDark py-3.5 rounded-2xl items-center justify-center"
               onPress={onClose}
               activeOpacity={0.8}
             >
-              <Text style={tw`text-sm font-black text-chocolateBrown`}>
+              <Text className="text-sm font-black text-chocolateBrown">
                 {t('adminCancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                tw`flex-1 bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2`,
-                saving && tw`opacity-70`,
-              ]}
+              className={`flex-1 bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 ${(saving) ? 'opacity-70' : ''}`}
               onPress={handleSave}
               disabled={saving}
               activeOpacity={0.85}
@@ -1189,7 +1142,7 @@ function ProductEditModal({ visible, item, onClose, onSave, saving, apiUrl }: Pr
               ) : (
                 <>
                   <Ionicons name="save-outline" size={16} color={COLORS.chocolateBrown} />
-                  <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                  <Text className="text-sm font-black text-chocolateBrown">
                     {t('adminSaveChanges')}
                   </Text>
                 </>
@@ -1257,48 +1210,48 @@ function OrderDetailsModal({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={tw`flex-1 bg-vanillaCream`}>
+      <View className="flex-1 bg-vanillaCream">
         {/* Header */}
-        <View style={tw`flex-row items-center justify-between px-5 pt-5 pb-3 bg-white border-b border-vanillaCreamDark`}>
-          <View style={tw`flex-1`}>
-            <Text style={tw`text-base font-black text-chocolateBrown`}>Order Details</Text>
-            <Text style={tw`text-xs text-chocolateBrownMuted`}>{order.id}</Text>
+        <View className="flex-row items-center justify-between px-5 pt-5 pb-3 bg-white border-b border-vanillaCreamDark">
+          <View className="flex-1">
+            <Text className="text-base font-black text-chocolateBrown">Order Details</Text>
+            <Text className="text-xs text-chocolateBrownMuted">{order.id}</Text>
           </View>
-          <View style={[tw`flex-row items-center gap-1 px-2.5 py-1 rounded-xl border mr-3`, sc.bg, sc.border]}>
+          <View className="flex-row items-center gap-1 px-2.5 py-1 rounded-xl border mr-3" style={[sc.bg, sc.border]}>
             <Ionicons name={sc.icon as any} size={13} color={sc.iconColor} />
-            <Text style={[tw`text-xs font-black`, sc.text]}>{sc.label}</Text>
+            <Text className="text-xs font-black" style={sc.text}>{sc.label}</Text>
           </View>
           <TouchableOpacity
             onPress={onClose}
-            style={tw`w-8 h-8 rounded-full bg-vanillaCreamDark items-center justify-center`}
+            className="w-8 h-8 rounded-full bg-vanillaCreamDark items-center justify-center"
             activeOpacity={0.7}
           >
             <Ionicons name="close" size={18} color={COLORS.chocolateBrown} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28 pt-4 gap-4`}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-28 pt-4 gap-4">
 
           {/* ── Customer Notification Banner ── */}
-          <View style={tw`flex-row items-center gap-2 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl`}>
+          <View className="flex-row items-center gap-2 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
             <Ionicons name="notifications-outline" size={16} color="#059669" />
-            <Text style={tw`text-xs text-emerald-800 font-semibold flex-1 leading-4`}>
+            <Text className="text-xs text-emerald-800 font-semibold flex-1 leading-4">
               Customer is automatically notified via SMS/Push whenever you change the status.
             </Text>
           </View>
 
           {/* ── Status Actions Controller ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3`}>
-            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-0.5`}>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3">
+            <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-0.5">
               ⚡ Manage Order Status
             </Text>
 
             {/* Quick status stepper buttons */}
-            <View style={tw`gap-2`}>
+            <View className="gap-2">
               {s === 'pending' && (
-                <View style={tw`flex-row gap-2`}>
+                <View className="flex-row gap-2">
                   <TouchableOpacity
-                    style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-pistachioGreen py-3 rounded-xl`}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 bg-pistachioGreen py-3 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'accepted')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
@@ -1308,25 +1261,25 @@ function OrderDetailsModal({
                     ) : (
                       <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
                     )}
-                    <Text style={tw`text-xs font-black text-white`}>Accept Order</Text>
+                    <Text className="text-xs font-black text-white">Accept Order</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-3 rounded-xl`}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-3 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'rejected')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="close-circle-outline" size={16} color="#DC2626" />
-                    <Text style={tw`text-xs font-black text-red-600`}>Reject Order</Text>
+                    <Text className="text-xs font-black text-red-600">Reject Order</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               {s === 'accepted' && (
-                <View style={tw`gap-2`}>
+                <View className="gap-2">
                   <TouchableOpacity
-                    style={tw`flex-row items-center justify-center gap-1.5 bg-orange-500 py-3 rounded-xl`}
+                    className="flex-row items-center justify-center gap-1.5 bg-orange-500 py-3 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'preparing')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
@@ -1336,25 +1289,25 @@ function OrderDetailsModal({
                     ) : (
                       <Ionicons name="flame-outline" size={16} color={COLORS.white} />
                     )}
-                    <Text style={tw`text-xs font-black text-white`}>Start Preparing (Kitchen)</Text>
+                    <Text className="text-xs font-black text-white">Start Preparing (Kitchen)</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={tw`flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl`}
+                    className="flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'cancelled')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="ban-outline" size={14} color="#DC2626" />
-                    <Text style={tw`text-xs font-bold text-red-600`}>Cancel Order</Text>
+                    <Text className="text-xs font-bold text-red-600">Cancel Order</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               {s === 'preparing' && (
-                <View style={tw`gap-2`}>
+                <View className="gap-2">
                   <TouchableOpacity
-                    style={tw`flex-row items-center justify-center gap-1.5 bg-blue-600 py-3 rounded-xl`}
+                    className="flex-row items-center justify-center gap-1.5 bg-blue-600 py-3 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'ready')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
@@ -1364,26 +1317,26 @@ function OrderDetailsModal({
                     ) : (
                       <Ionicons name="bag-check-outline" size={16} color={COLORS.white} />
                     )}
-                    <Text style={tw`text-xs font-black text-white`}>Mark as Ready</Text>
+                    <Text className="text-xs font-black text-white">Mark as Ready</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={tw`flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl`}
+                    className="flex-row items-center justify-center gap-1.5 bg-red-50 border border-red-300 py-2.5 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'cancelled')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="ban-outline" size={14} color="#DC2626" />
-                    <Text style={tw`text-xs font-bold text-red-600`}>Cancel Order</Text>
+                    <Text className="text-xs font-bold text-red-600">Cancel Order</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               {s === 'ready' && (
-                <View style={tw`gap-2`}>
+                <View className="gap-2">
                   {order.deliveryAddress ? (
                     <TouchableOpacity
-                      style={tw`flex-row items-center justify-center gap-1.5 bg-purple-600 py-3 rounded-xl`}
+                      className="flex-row items-center justify-center gap-1.5 bg-purple-600 py-3 rounded-xl"
                       onPress={() => onUpdateStatus(order.id, 'out-for-delivery')}
                       disabled={actionLoading === order.id}
                       activeOpacity={0.8}
@@ -1393,12 +1346,12 @@ function OrderDetailsModal({
                       ) : (
                         <Ionicons name="bicycle-outline" size={16} color={COLORS.white} />
                       )}
-                      <Text style={tw`text-xs font-black text-white`}>Mark Out for Delivery</Text>
+                      <Text className="text-xs font-black text-white">Mark Out for Delivery</Text>
                     </TouchableOpacity>
                   ) : null}
 
                   <TouchableOpacity
-                    style={tw`flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3 rounded-xl`}
+                    className="flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3 rounded-xl"
                     onPress={() => onUpdateStatus(order.id, 'completed')}
                     disabled={actionLoading === order.id}
                     activeOpacity={0.8}
@@ -1408,7 +1361,7 @@ function OrderDetailsModal({
                     ) : (
                       <Ionicons name="checkmark-done-circle" size={16} color={COLORS.white} />
                     )}
-                    <Text style={tw`text-xs font-black text-white`}>
+                    <Text className="text-xs font-black text-white">
                       Mark Completed {order.deliveryAddress ? '(Delivered)' : '(Customer Picked Up)'}
                     </Text>
                   </TouchableOpacity>
@@ -1417,7 +1370,7 @@ function OrderDetailsModal({
 
               {s === 'out-for-delivery' && (
                 <TouchableOpacity
-                  style={tw`flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3.5 rounded-xl`}
+                  className="flex-row items-center justify-center gap-1.5 bg-emerald-600 py-3.5 rounded-xl"
                   onPress={() => onUpdateStatus(order.id, 'completed')}
                   disabled={actionLoading === order.id}
                   activeOpacity={0.8}
@@ -1427,38 +1380,35 @@ function OrderDetailsModal({
                   ) : (
                     <Ionicons name="checkmark-done-circle" size={18} color={COLORS.white} />
                   )}
-                  <Text style={tw`text-xs font-black text-white`}>Mark as Delivered & Completed</Text>
+                  <Text className="text-xs font-black text-white">Mark as Delivered & Completed</Text>
                 </TouchableOpacity>
               )}
 
               {isTerminal && (
-                <View style={[tw`flex-row items-center justify-center gap-1.5 py-3 rounded-xl border`, sc.bg, sc.border]}>
+                <View className="flex-row items-center justify-center gap-1.5 py-3 rounded-xl border" style={[sc.bg, sc.border]}>
                   <Ionicons name={sc.icon as any} size={18} color={sc.iconColor} />
-                  <Text style={[tw`text-xs font-black`, sc.text]}>Order is {sc.label}</Text>
+                  <Text className="text-xs font-black" style={sc.text}>Order is {sc.label}</Text>
                 </View>
               )}
             </View>
 
             {/* Quick manual transition pills */}
-            <View style={tw`pt-2 border-t border-vanillaCreamDark`}>
-              <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted mb-2`}>
+            <View className="pt-2 border-t border-vanillaCreamDark">
+              <Text className="text-[10px] font-bold text-chocolateBrownMuted mb-2">
                 Force / Change Status Directly:
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`gap-1.5`}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-1.5">
                 {(['accepted', 'preparing', 'ready', 'out-for-delivery', 'completed', 'cancelled'] as OrderStatus[]).map((st) => {
                   const isCurrent = st === s;
                   return (
                     <TouchableOpacity
                       key={st}
-                      style={[
-                        tw`px-2.5 py-1 rounded-lg border`,
-                        isCurrent ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-vanillaCream border-vanillaCreamDark`,
-                      ]}
+                      className={`px-2.5 py-1 rounded-lg border ${(isCurrent) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-vanillaCream border-vanillaCreamDark'}`}
                       onPress={() => onUpdateStatus(order.id, st)}
                       disabled={isCurrent || actionLoading === order.id}
                       activeOpacity={0.7}
                     >
-                      <Text style={[tw`text-[10px] font-bold capitalize`, isCurrent ? tw`text-white` : tw`text-chocolateBrown`]}>
+                      <Text className={`text-[10px] font-bold capitalize ${(isCurrent) ? 'text-white' : 'text-chocolateBrown'}`}>
                         {st.replace(/-/g, ' ')}
                       </Text>
                     </TouchableOpacity>
@@ -1469,74 +1419,74 @@ function OrderDetailsModal({
           </View>
 
           {/* ── Customer Information ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2`}>
-            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>👤 Customer Information</Text>
-            <View style={tw`flex-row items-center gap-2`}>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2">
+            <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1">👤 Customer Information</Text>
+            <View className="flex-row items-center gap-2">
               <Ionicons name="person-circle-outline" size={18} color={COLORS.strawberryPink} />
-              <Text style={tw`text-sm font-black text-chocolateBrown`}>{customerName}</Text>
+              <Text className="text-sm font-black text-chocolateBrown">{customerName}</Text>
             </View>
-            <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center gap-2">
               <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} />
-              <Text style={tw`text-sm font-semibold text-chocolateBrown`}>{order.phoneNumber}</Text>
+              <Text className="text-sm font-semibold text-chocolateBrown">{order.phoneNumber}</Text>
             </View>
-            <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center gap-2">
               <Ionicons name="location-outline" size={16} color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs font-bold text-chocolateBrown flex-1`}>
+              <Text className="text-xs font-bold text-chocolateBrown flex-1">
                 {order.deliveryAddress || 'Store Pickup (Yaoundé Centre-ville)'}
               </Text>
               {order.distanceKm ? (
-                <Text style={tw`text-xs font-black text-strawberryPink`}>
+                <Text className="text-xs font-black text-strawberryPink">
                   {order.distanceKm.toFixed(1)} km
                 </Text>
               ) : null}
             </View>
-            <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center gap-2">
               <Ionicons name="time-outline" size={16} color={COLORS.chocolateBrownMuted} />
-              <Text style={tw`text-xs text-chocolateBrownMuted`}>
+              <Text className="text-xs text-chocolateBrownMuted">
                 Ordered: {formatDate(order.createdAt)} at {formatTime(order.createdAt)}
               </Text>
             </View>
           </View>
 
           {/* ── Fulfillment & Payment ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3`}>
-            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1`}>💳 Payment & Fulfillment</Text>
-            <View style={tw`flex-row justify-between`}>
-              <View style={tw`flex-row items-center gap-2`}>
-                <Text style={tw`text-sm`}>{order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}</Text>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-3">
+            <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-1">💳 Payment & Fulfillment</Text>
+            <View className="flex-row justify-between">
+              <View className="flex-row items-center gap-2">
+                <Text className="text-sm">{order.paymentMethod === 'mtn-momo' ? '📱' : '🟠'}</Text>
                 <View>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  <Text className="text-xs font-black text-chocolateBrown">
                     {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
                   </Text>
-                  <Text style={[tw`text-[11px] font-bold`, order.paymentStatus === 'paid' ? tw`text-emerald-700` : tw`text-amber-700`]}>
+                  <Text className={`text-[11px] font-bold ${(order.paymentStatus === 'paid') ? 'text-emerald-700' : 'text-amber-700'}`}>
                     {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
                   </Text>
                 </View>
               </View>
-              <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark`}>
-                <Text style={tw`text-sm`}>{order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? '🛵' : '🏬'}</Text>
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+              <View className="flex-row items-center gap-2 bg-vanillaCream px-3 py-1.5 rounded-xl border border-vanillaCreamDark">
+                <Text className="text-sm">{order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? '🛵' : '🏬'}</Text>
+                <Text className="text-xs font-black text-chocolateBrown">
                   {order.deliveryAddress && !order.deliveryAddress.toLowerCase().includes('pickup') ? 'Home Delivery' : 'Store Pickup'}
                 </Text>
               </View>
             </View>
             {(!order.deliveryAddress || order.deliveryAddress.toLowerCase().includes('pickup')) && (
-              <View style={tw`flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl`}>
+              <View className="flex-row items-center gap-2 bg-vanillaCream px-3 py-2 rounded-xl">
                 <Ionicons name="timer-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                <Text style={tw`text-xs text-chocolateBrownMuted`}>Estimated pickup: <Text style={tw`font-black text-chocolateBrown`}>15–25 min</Text></Text>
+                <Text className="text-xs text-chocolateBrownMuted">Estimated pickup: <Text className="font-black text-chocolateBrown">15–25 min</Text></Text>
               </View>
             )}
           </View>
 
           {/* ── Customer Delivery Location & GPS Navigation ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2.5`}>
-            <View style={tw`flex-row items-center justify-between`}>
-              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark gap-2.5">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider">
                 📍 Customer Delivery Location
               </Text>
               {order.distanceKm ? (
-                <View style={tw`bg-strawberryPinkLight px-2.5 py-0.5 rounded-full border border-strawberryPink/30`}>
-                  <Text style={tw`text-xs font-black text-strawberryPink`}>
+                <View className="bg-strawberryPinkLight px-2.5 py-0.5 rounded-full border border-strawberryPink/30">
+                  <Text className="text-xs font-black text-strawberryPink">
                     {order.distanceKm.toFixed(1)} km away
                   </Text>
                 </View>
@@ -1544,48 +1494,48 @@ function OrderDetailsModal({
             </View>
 
             {/* Address Banner */}
-            <View style={tw`bg-vanillaCream p-3 rounded-xl border border-vanillaCreamDark gap-1`}>
-              <View style={tw`flex-row items-start gap-2`}>
-                <Ionicons name="location-sharp" size={16} color={COLORS.strawberryPink} style={tw`mt-0.5`} />
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-sm font-bold text-chocolateBrown`}>
+            <View className="bg-vanillaCream p-3 rounded-xl border border-vanillaCreamDark gap-1">
+              <View className="flex-row items-start gap-2">
+                <Ionicons name="location-sharp" size={16} color={COLORS.strawberryPink} className="mt-0.5" />
+                <View className="flex-1">
+                  <Text className="text-sm font-bold text-chocolateBrown">
                     {order.deliveryAddress || 'Store Pickup (Yaoundé Centre-ville, Main Store)'}
                   </Text>
                   {order.deliveryFee !== undefined && order.deliveryFee > 0 ? (
-                    <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5`}>
-                      Delivery fee: <Text style={tw`font-bold text-chocolateBrown`}>{order.deliveryFee.toLocaleString()} XAF</Text>
+                    <Text className="text-xs font-semibold text-chocolateBrownMuted mt-0.5">
+                      Delivery fee: <Text className="font-bold text-chocolateBrown">{order.deliveryFee.toLocaleString()} XAF</Text>
                     </Text>
                   ) : null}
                 </View>
               </View>
 
               {/* Coordinates & External Navigation button */}
-              <View style={tw`flex-row items-center justify-between pt-2 mt-1 border-t border-vanillaCreamDark/60`}>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted`}>
+              <View className="flex-row items-center justify-between pt-2 mt-1 border-t border-vanillaCreamDark/60">
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted">
                   {order.latitude && order.longitude
                     ? `GPS: ${order.latitude.toFixed(4)}, ${order.longitude.toFixed(4)}`
                     : 'GPS: Yaoundé Zone'}
                 </Text>
                 <TouchableOpacity
-                  style={tw`flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-1.5 rounded-xl`}
+                  className="flex-row items-center gap-1.5 bg-chocolateBrown px-3 py-1.5 rounded-xl"
                   onPress={() => openExternalMaps(order.latitude, order.longitude, order.deliveryAddress)}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="navigate-outline" size={13} color={COLORS.white} />
-                  <Text style={tw`text-xs font-black text-white`}>Navigate GPS</Text>
+                  <Text className="text-xs font-black text-white">Navigate GPS</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Map Preview Toggle Button */}
             <TouchableOpacity
-              style={tw`flex-row items-center justify-between bg-vanillaCream px-3 py-2 rounded-xl border border-vanillaCreamDark`}
+              className="flex-row items-center justify-between bg-vanillaCream px-3 py-2 rounded-xl border border-vanillaCreamDark"
               onPress={() => setShowMap(!showMap)}
               activeOpacity={0.8}
             >
-              <View style={tw`flex-row items-center gap-2`}>
+              <View className="flex-row items-center gap-2">
                 <Ionicons name="map-outline" size={15} color={COLORS.strawberryPink} />
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                <Text className="text-xs font-bold text-chocolateBrown">
                   {showMap ? 'Hide In-App Map' : 'View In-App Interactive Map'}
                 </Text>
               </View>
@@ -1593,7 +1543,7 @@ function OrderDetailsModal({
             </TouchableOpacity>
 
             {showMap && (
-              <View style={tw`rounded-xl overflow-hidden mt-1 border border-vanillaCreamDark`}>
+              <View className="rounded-xl overflow-hidden mt-1 border border-vanillaCreamDark">
                 <YaoundeMapView
                   userLatitude={order.latitude}
                   userLongitude={order.longitude}
@@ -1605,51 +1555,51 @@ function OrderDetailsModal({
           </View>
 
           {/* ── Ordered Products ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>
-            <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-3`}>🛒 Ordered Products</Text>
-            <View style={tw`gap-3`}>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark">
+            <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider mb-3">🛒 Ordered Products</Text>
+            <View className="gap-3">
               {order.items.map((item, idx) => (
-                <View key={idx} style={tw`bg-vanillaCream rounded-xl p-3`}>
-                  <View style={tw`flex-row items-start`}>
-                    <Text style={tw`text-sm font-black text-strawberryPink w-7`}>{item.quantity}×</Text>
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.name}</Text>
+                <View key={idx} className="bg-vanillaCream rounded-xl p-3">
+                  <View className="flex-row items-start">
+                    <Text className="text-sm font-black text-strawberryPink w-7">{item.quantity}×</Text>
+                    <View className="flex-1">
+                      <Text className="text-sm font-black text-chocolateBrown">{item.name}</Text>
                       {item.flavor ? (
-                        <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.flavor}</Text>
+                        <Text className="text-xs text-chocolateBrownMuted">{item.flavor}</Text>
                       ) : null}
                     </View>
-                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                    <Text className="text-sm font-black text-chocolateBrown">
                       {(item.price * item.quantity).toLocaleString()} XAF
                     </Text>
                   </View>
                   {/* Customizations */}
                   {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
-                    <View style={tw`ml-7 mt-2 flex-row flex-wrap gap-1`}>
+                    <View className="ml-7 mt-2 flex-row flex-wrap gap-1">
                       {item.servingStyle && (
-                        <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
-                          <Text style={tw`text-[10px] font-bold text-strawberryPink`}>{item.servingStyle}</Text>
+                        <View className="bg-strawberryPinkLight px-2 py-0.5 rounded-md">
+                          <Text className="text-[10px] font-bold text-strawberryPink">{item.servingStyle}</Text>
                         </View>
                       )}
                       {item.sizeOption && (
-                        <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.sizeOption}</Text>
+                        <View className="bg-vanillaCreamDark px-2 py-0.5 rounded-md">
+                          <Text className="text-[10px] text-chocolateBrownMuted">{item.sizeOption}</Text>
                         </View>
                       )}
                       {item.pancakeStyle && (
-                        <View style={tw`bg-vanillaCreamDark px-2 py-0.5 rounded-md`}>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{item.pancakeStyle}</Text>
+                        <View className="bg-vanillaCreamDark px-2 py-0.5 rounded-md">
+                          <Text className="text-[10px] text-chocolateBrownMuted">{item.pancakeStyle}</Text>
                         </View>
                       )}
                       {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
-                        <View key={ti} style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md`}>
-                          <Text style={tw`text-[10px] text-amber-800`}>+ {topping.name}</Text>
+                        <View key={ti} className="bg-butterYellowLight px-2 py-0.5 rounded-md">
+                          <Text className="text-[10px] text-amber-800">+ {topping.name}</Text>
                         </View>
                       ))}
                     </View>
                   )}
                   {item.specialNotes ? (
-                    <View style={tw`ml-7 mt-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg`}>
-                      <Text style={tw`text-[10px] font-bold text-red-700`}>📝 {item.specialNotes}</Text>
+                    <View className="ml-7 mt-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg">
+                      <Text className="text-[10px] font-bold text-red-700">📝 {item.specialNotes}</Text>
                     </View>
                   ) : null}
                 </View>
@@ -1657,47 +1607,47 @@ function OrderDetailsModal({
             </View>
 
             {/* Order Total */}
-            <View style={tw`flex-row justify-between items-center mt-4 pt-3 border-t border-vanillaCreamDark`}>
-              <Text style={tw`text-sm font-black text-chocolateBrownMuted`}>Order Total</Text>
-              <Text style={tw`text-xl font-black text-chocolateBrown`}>{order.totalAmount.toLocaleString()} XAF</Text>
+            <View className="flex-row justify-between items-center mt-4 pt-3 border-t border-vanillaCreamDark">
+              <Text className="text-sm font-black text-chocolateBrownMuted">Order Total</Text>
+              <Text className="text-xl font-black text-chocolateBrown">{order.totalAmount.toLocaleString()} XAF</Text>
             </View>
           </View>
 
           {/* ── Order Status History (Recorded Timestamps) ── */}
-          <View style={tw`bg-white rounded-2xl p-4 border border-vanillaCreamDark`}>
-            <View style={tw`flex-row items-center justify-between mb-3`}>
-              <Text style={tw`text-xs font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+          <View className="bg-white rounded-2xl p-4 border border-vanillaCreamDark">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-xs font-black text-chocolateBrownMuted uppercase tracking-wider">
                 📋 Recorded Status History
               </Text>
-              <View style={tw`bg-vanillaCream px-2 py-0.5 rounded-md border border-vanillaCreamDark`}>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+              <View className="bg-vanillaCream px-2 py-0.5 rounded-md border border-vanillaCreamDark">
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">
                   {order.statusHistory?.length || 1} update{order.statusHistory && order.statusHistory.length > 1 ? 's' : ''}
                 </Text>
               </View>
             </View>
 
             {order.statusHistory && order.statusHistory.length > 0 ? (
-              <View style={tw`gap-2`}>
+              <View className="gap-2">
                 {order.statusHistory.map((h, hIdx) => {
                   const hSc = statusColor(h.status);
                   return (
-                    <View key={hIdx} style={tw`flex-row items-start justify-between bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark`}>
-                      <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                        <View style={[tw`w-6 h-6 rounded-full items-center justify-center border`, hSc.bg, hSc.border]}>
+                    <View key={hIdx} className="flex-row items-start justify-between bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark">
+                      <View className="flex-row items-center gap-2 flex-1 mr-2">
+                        <View className="w-6 h-6 rounded-full items-center justify-center border" style={[hSc.bg, hSc.border]}>
                           <Ionicons name={hSc.icon as any} size={12} color={hSc.iconColor} />
                         </View>
-                        <View style={tw`flex-1`}>
-                          <Text style={[tw`text-xs font-black capitalize`, hSc.text]}>
+                        <View className="flex-1">
+                          <Text className="text-xs font-black capitalize" style={hSc.text}>
                             {h.status.replace(/-/g, ' ')}
                           </Text>
                           {h.note ? (
-                            <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+                            <Text className="text-[10px] text-chocolateBrownMuted mt-0.5">
                               Note: {h.note}
                             </Text>
                           ) : null}
                         </View>
                       </View>
-                      <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                      <Text className="text-[10px] font-bold text-chocolateBrownMuted">
                         {formatDate(h.changedAt)} {formatTime(h.changedAt)}
                       </Text>
                     </View>
@@ -1705,34 +1655,27 @@ function OrderDetailsModal({
                 })}
               </View>
             ) : (
-              <View style={tw`bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark flex-row justify-between items-center`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>Order Placed (pending)</Text>
-                <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{formatDate(order.createdAt)} {formatTime(order.createdAt)}</Text>
+              <View className="bg-vanillaCream p-2.5 rounded-xl border border-vanillaCreamDark flex-row justify-between items-center">
+                <Text className="text-xs font-bold text-chocolateBrown">Order Placed (pending)</Text>
+                <Text className="text-[10px] text-chocolateBrownMuted">{formatDate(order.createdAt)} {formatTime(order.createdAt)}</Text>
               </View>
             )}
 
             {/* Lifecycle Progress Flow */}
-            <View style={tw`mt-4 pt-3 border-t border-vanillaCreamDark`}>
-              <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted uppercase tracking-wider mb-3`}>
+            <View className="mt-4 pt-3 border-t border-vanillaCreamDark">
+              <Text className="text-[10px] font-bold text-chocolateBrownMuted uppercase tracking-wider mb-3">
                 Progress Stepper
               </Text>
-              <View style={tw`gap-0`}>
+              <View className="gap-0">
                 {standardTimeline.map((step, idx) => {
                   const isLast = idx === standardTimeline.length - 1;
                   const isDone = currentStep >= step.step;
                   const isCurrent = currentStep === step.step;
                   return (
-                    <View key={step.key} style={tw`flex-row`}>
-                      <View style={tw`items-center w-8`}>
+                    <View key={step.key} className="flex-row">
+                      <View className="items-center w-8">
                         <View
-                          style={[
-                            tw`w-7 h-7 rounded-full items-center justify-center`,
-                            isCurrent
-                              ? tw`bg-chocolateBrown border-2 border-strawberryPink`
-                              : isDone
-                              ? tw`bg-pistachioGreen`
-                              : tw`bg-vanillaCreamDark`,
-                          ]}
+                          className={`w-7 h-7 rounded-full items-center justify-center ${(isCurrent ? 'bg-chocolateBrown border-2 border-strawberryPink' : (isDone ? 'bg-pistachioGreen' : 'bg-vanillaCreamDark'))}`}
                         >
                           <Ionicons
                             name={step.icon as any}
@@ -1741,14 +1684,14 @@ function OrderDetailsModal({
                           />
                         </View>
                         {!isLast && (
-                          <View style={[tw`w-0.5 flex-1 my-1`, isDone ? tw`bg-pistachioGreen` : tw`bg-vanillaCreamDark`]} />
+                          <View className={`w-0.5 flex-1 my-1 ${(isDone) ? 'bg-pistachioGreen' : 'bg-vanillaCreamDark'}`} />
                         )}
                       </View>
-                      <View style={[tw`flex-1 pl-3`, !isLast && tw`pb-3.5`]}>
-                        <Text style={[tw`text-xs font-bold`, isCurrent ? tw`text-strawberryPink font-black` : isDone ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`]}>
+                      <View className={`flex-1 pl-3 ${(!isLast) ? 'pb-3.5' : ''}`}>
+                        <Text className={`text-xs font-bold ${(isCurrent ? 'text-strawberryPink font-black' : (isDone ? 'text-chocolateBrown' : 'text-chocolateBrownMuted'))}`}>
                           {step.label}
                         </Text>
-                        <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                        <Text className="text-[9px] text-chocolateBrownMuted">
                           {isCurrent ? '● Current Status' : isDone ? '✓ Completed' : '○ Upcoming'}
                         </Text>
                       </View>
@@ -1761,12 +1704,12 @@ function OrderDetailsModal({
 
           {/* ── Delete Button ── */}
           <TouchableOpacity
-            style={tw`flex-row items-center justify-center gap-2 bg-red-50 border border-red-300 py-3 rounded-2xl`}
+            className="flex-row items-center justify-center gap-2 bg-red-50 border border-red-300 py-3 rounded-2xl"
             onPress={() => { onDelete(order.id); onClose(); }}
             activeOpacity={0.8}
           >
             <Ionicons name="trash-outline" size={16} color="#DC2626" />
-            <Text style={tw`text-sm font-black text-red-600`}>Delete Order</Text>
+            <Text className="text-sm font-black text-red-600">Delete Order</Text>
           </TouchableOpacity>
 
         </ScrollView>
@@ -2592,36 +2535,33 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <View style={[tw`flex-1 bg-vanillaCream`]}>
+    <View className="flex-1 bg-vanillaCream">
       <RNStatusBar barStyle="dark-content" />
 
       {/* ══════════════════ HEADER ══════════════════ */}
       <View
-        style={[
-          tw`bg-white border-b border-vanillaCreamDark px-5 pb-3`,
-          { paddingTop: topInset },
-        ]}
+        className="bg-white border-b border-vanillaCreamDark px-5 pb-3" style={{ paddingTop: topInset }}
       >
-        <View style={tw`flex-row justify-between items-center`}>
-          <View style={tw`flex-row items-center gap-2.5 flex-1`}>
-            <View style={tw`w-9 h-9 rounded-xl bg-strawberryPink items-center justify-center shadow-sm`}>
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center gap-2.5 flex-1">
+            <View className="w-9 h-9 rounded-xl bg-strawberryPink items-center justify-center shadow-sm">
               <Ionicons name="shield-checkmark" size={20} color={COLORS.white} />
             </View>
-            <View style={tw`flex-1`}>
-              <Text style={tw`text-base font-black text-chocolateBrown`}>
+            <View className="flex-1">
+              <Text className="text-base font-black text-chocolateBrown">
                 {t('adminPortal')}
               </Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+              <Text className="text-[10px] text-chocolateBrownMuted">
                 {adminName} · Manager
               </Text>
             </View>
           </View>
 
-          <View style={tw`flex-row items-center gap-2`}>
+          <View className="flex-row items-center gap-2">
             <LanguageSelector />
             {/* Notification Bell with Unread Badge */}
             <TouchableOpacity
-              style={tw`w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center relative`}
+              className="w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center relative"
               onPress={() => setNotifsModalVisible(true)}
               activeOpacity={0.7}
             >
@@ -2632,12 +2572,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               />
               {unreadNotifCount > 0 && (
                 <View
-                  style={[
-                    tw`absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-red-600 rounded-full items-center justify-center px-1 border-2 border-white`,
-                    { elevation: 3 },
-                  ]}
+                  className="absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-red-600 rounded-full items-center justify-center px-1 border-2 border-white" style={{ elevation: 3 }}
                 >
-                  <Text style={tw`text-[9px] font-black text-white leading-none`}>
+                  <Text className="text-[9px] font-black text-white leading-none">
                     {unreadNotifCount > 9 ? '9+' : unreadNotifCount}
                   </Text>
                 </View>
@@ -2645,7 +2582,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={tw`w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center`}
+              className="w-9 h-9 rounded-xl bg-vanillaCream border border-vanillaCreamDark items-center justify-center"
               onPress={() => {
                 fetchOrders();
                 fetchMenu();
@@ -2657,7 +2594,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               <Ionicons name="refresh-outline" size={18} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={tw`w-9 h-9 rounded-xl bg-red-50 border border-red-200 items-center justify-center`}
+              className="w-9 h-9 rounded-xl bg-red-50 border border-red-200 items-center justify-center"
               onPress={handleLogout}
               activeOpacity={0.7}
             >
@@ -2667,26 +2604,26 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         </View>
 
         {/* Revenue pill */}
-        <View style={tw`flex-row items-center gap-2 mt-2.5`}>
-          <View style={tw`flex-1 bg-pistachioGreenLight border border-pistachioGreen rounded-xl px-3 py-2 flex-row items-center justify-between`}>
-            <View style={tw`flex-row items-center gap-1.5`}>
+        <View className="flex-row items-center gap-2 mt-2.5">
+          <View className="flex-1 bg-pistachioGreenLight border border-pistachioGreen rounded-xl px-3 py-2 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-1.5">
               <Ionicons name="wallet-outline" size={14} color={COLORS.pistachioGreen} />
-              <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+              <Text className="text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider">
                 Revenue
               </Text>
             </View>
-            <Text style={tw`text-sm font-black text-chocolateBrown`}>
+            <Text className="text-sm font-black text-chocolateBrown">
               {((analytics?.statistics?.totalRevenue ?? totalRevenue) || 0).toLocaleString()} XAF
             </Text>
           </View>
-          <View style={tw`flex-1 bg-butterYellowLight border border-butterYellow rounded-xl px-3 py-2 flex-row items-center justify-between`}>
-            <View style={tw`flex-row items-center gap-1.5`}>
+          <View className="flex-1 bg-butterYellowLight border border-butterYellow rounded-xl px-3 py-2 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-1.5">
               <Ionicons name="receipt-outline" size={14} color="#B45309" />
-              <Text style={tw`text-[10px] font-black text-amber-800 uppercase tracking-wider`}>
+              <Text className="text-[10px] font-black text-amber-800 uppercase tracking-wider">
                 Orders
               </Text>
             </View>
-            <Text style={tw`text-sm font-black text-chocolateBrown`}>
+            <Text className="text-sm font-black text-chocolateBrown">
               {analytics?.statistics?.totalOrders ?? orderCounts.all}
             </Text>
           </View>
@@ -2694,8 +2631,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       </View>
 
       {/* ══════════════════ TAB SWITCHER ══════════════════ */}
-      <View style={tw`bg-white border-b border-vanillaCreamDark`}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row px-1`}>
+      <View className="bg-white border-b border-vanillaCreamDark">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="flex-row px-1">
           {(['overview', 'orders', 'products', 'daily-menu', 'payments', 'customers', 'settings'] as AdminTab[]).map((tab) => {
             const active = adminTab === tab;
             const iconName =
@@ -2729,7 +2666,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             return (
               <TouchableOpacity
                 key={tab}
-                style={tw`items-center py-3 px-4 flex-row justify-center gap-1.5`}
+                className="items-center py-3 px-4 flex-row justify-center gap-1.5"
                 onPress={() => setAdminTab(tab)}
                 activeOpacity={0.7}
               >
@@ -2739,15 +2676,12 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   color={active ? COLORS.strawberryPink : COLORS.chocolateBrownMuted}
                 />
                 <Text
-                  style={[
-                    tw`text-xs font-black`,
-                    active ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                  ]}
+                  className={`text-xs font-black ${(active) ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}
                 >
                   {tabLabel}
                 </Text>
                 {active && (
-                  <View style={tw`absolute bottom-0 left-2 right-2 h-0.5 bg-strawberryPink rounded-full`} />
+                  <View className="absolute bottom-0 left-2 right-2 h-0.5 bg-strawberryPink rounded-full" />
                 )}
               </TouchableOpacity>
             );
@@ -2758,8 +2692,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       {/* ══════════════════ OVERVIEW & SALES DASHBOARD TAB ══════════════════ */}
       {adminTab === 'overview' && (
         <ScrollView
-          style={tw`flex-1 bg-vanillaCream`}
-          contentContainerStyle={tw`px-5 pt-4 pb-14`}
+          className="flex-1 bg-vanillaCream"
+          contentContainerClassName="px-5 pt-4 pb-14"
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -2774,173 +2708,173 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           }
         >
           {/* Subtitle & Supabase live sync indicator */}
-          <View style={tw`flex-row items-center justify-between mb-4`}>
-            <View style={tw`flex-1 mr-2`}>
-              <Text style={tw`text-lg font-black text-chocolateBrown`}>
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-1 mr-2">
+              <Text className="text-lg font-black text-chocolateBrown">
                 {t('dashboardOverviewTitle')}
               </Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+              <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                 {t('dashboardOverviewSubtitle')}
               </Text>
             </View>
-            <View style={tw`flex-row items-center gap-1 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-full`}>
-              <View style={tw`w-2 h-2 rounded-full bg-emerald-500`} />
-              <Text style={tw`text-[10px] font-black text-emerald-800`}>
+            <View className="flex-row items-center gap-1 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-full">
+              <View className="w-2 h-2 rounded-full bg-emerald-500" />
+              <Text className="text-[10px] font-black text-emerald-800">
                 {t('liveSyncBadge')}
               </Text>
             </View>
           </View>
 
           {/* ── SALES STATISTICS (8 Metrics) ── */}
-          <View style={tw`mb-5`}>
-            <View style={tw`flex-row items-center gap-1.5 mb-2.5`}>
+          <View className="mb-5">
+            <View className="flex-row items-center gap-1.5 mb-2.5">
               <Ionicons name="stats-chart" size={15} color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs font-black uppercase tracking-wider text-chocolateBrown`}>
+              <Text className="text-xs font-black uppercase tracking-wider text-chocolateBrown">
                 {t('salesStatsSection')}
               </Text>
             </View>
 
-            <View style={tw`flex-row flex-wrap gap-2.5`}>
+            <View className="flex-row flex-wrap gap-2.5">
               {/* 1. Total sales for today */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-emerald-200 shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-emerald-100 items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-emerald-200 shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-emerald-100 items-center justify-center">
                     <Ionicons name="today-outline" size={15} color="#059669" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                     Today
                   </Text>
                 </View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {((analytics?.statistics?.salesToday ?? computedStats.salesToday) || 0).toLocaleString()} XAF
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('salesToday')}
                 </Text>
               </View>
 
               {/* 2. Total sales for the week */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-sky-200 shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-sky-100 items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-sky-200 shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-sky-100 items-center justify-center">
                     <Ionicons name="calendar-outline" size={15} color="#0284C7" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded">
                     7 Days
                   </Text>
                 </View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {((analytics?.statistics?.salesThisWeek ?? computedStats.salesThisWeek) || 0).toLocaleString()} XAF
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('salesThisWeek')}
                 </Text>
               </View>
 
               {/* 3. Total sales for the month */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-purple-200 shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-purple-100 items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-purple-200 shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-purple-100 items-center justify-center">
                     <Ionicons name="calendar-number-outline" size={15} color="#7C3AED" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">
                     30 Days
                   </Text>
                 </View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {((analytics?.statistics?.salesThisMonth ?? computedStats.salesThisMonth) || 0).toLocaleString()} XAF
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('salesThisMonth')}
                 </Text>
               </View>
 
               {/* 4. Total revenue from successful payments */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-strawberryPink shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-strawberryPink shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-strawberryPinkLight items-center justify-center">
                     <Ionicons name="wallet-outline" size={15} color={COLORS.strawberryPink} />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-strawberryPink bg-strawberryPinkLight px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-strawberryPink bg-strawberryPinkLight px-1.5 py-0.5 rounded">
                     Paid
                   </Text>
                 </View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {((analytics?.statistics?.totalRevenue ?? totalRevenue) || 0).toLocaleString()} XAF
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`} numberOfLines={1}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5" numberOfLines={1}>
                   {t('totalRevenueTitle')}
                 </Text>
               </View>
 
               {/* 5. Total number of orders */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-amber-200 shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-amber-100 items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-amber-200 shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-amber-100 items-center justify-center">
                     <Ionicons name="receipt-outline" size={15} color="#B45309" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
                     Volume
                   </Text>
                 </View>
-                <Text style={tw`text-xl font-black text-chocolateBrown`}>
+                <Text className="text-xl font-black text-chocolateBrown">
                   {analytics?.statistics?.totalOrders ?? orderCounts.all}
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('totalOrdersMetric')}
                 </Text>
               </View>
 
               {/* 6. Number of pending orders */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-butterYellow shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-butterYellowLight items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-butterYellow shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-butterYellowLight items-center justify-center">
                     <Ionicons name="time-outline" size={15} color="#D97706" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
                     Action
                   </Text>
                 </View>
-                <Text style={tw`text-xl font-black text-amber-600`}>
+                <Text className="text-xl font-black text-amber-600">
                   {analytics?.statistics?.pendingOrders ?? orderCounts.pending}
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('pendingOrdersMetric')}
                 </Text>
               </View>
 
               {/* 7. Number of completed orders */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-pistachioGreen shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-pistachioGreenLight items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-pistachioGreen shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-pistachioGreenLight items-center justify-center">
                     <Ionicons name="checkmark-done-circle-outline" size={15} color={COLORS.pistachioGreen} />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                     Done
                   </Text>
                 </View>
-                <Text style={tw`text-xl font-black text-emerald-600`}>
+                <Text className="text-xl font-black text-emerald-600">
                   {analytics?.statistics?.completedOrders ?? orderCounts.completed}
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('completedOrdersMetric')}
                 </Text>
               </View>
 
               {/* 8. Number of registered customers */}
-              <View style={[tw`bg-white rounded-2xl p-3.5 border border-indigo-200 shadow-sm`, { width: '48%' }]}>
-                <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                  <View style={tw`w-7 h-7 rounded-lg bg-indigo-100 items-center justify-center`}>
+              <View className="bg-white rounded-2xl p-3.5 border border-indigo-200 shadow-sm" style={{ width: '48%' }}>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="w-7 h-7 rounded-lg bg-indigo-100 items-center justify-center">
                     <Ionicons name="people-outline" size={15} color="#4F46E5" />
                   </View>
-                  <Text style={tw`text-[10px] font-black text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded`}>
+                  <Text className="text-[10px] font-black text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
                     Users
                   </Text>
                 </View>
-                <Text style={tw`text-xl font-black text-chocolateBrown`}>
+                <Text className="text-xl font-black text-chocolateBrown">
                   {analytics?.statistics?.registeredCustomers ?? 18}
                 </Text>
-                <Text style={tw`text-[11px] font-semibold text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-[11px] font-semibold text-chocolateBrownMuted mt-0.5">
                   {t('registeredCustomersMetric')}
                 </Text>
               </View>
@@ -2948,13 +2882,13 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </View>
 
           {/* ── SALES CHART (Daily, Weekly, Monthly + Date Range Filters) ── */}
-          <View style={tw`bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-4`}>
-            <View style={tw`flex-row items-center justify-between mb-3`}>
+          <View className="bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-4">
+            <View className="flex-row items-center justify-between mb-3">
               <View>
-                <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <Text className="text-base font-black text-chocolateBrown">
                   {t('salesChartSection')}
                 </Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   {t('tapBarHint')}
                 </Text>
               </View>
@@ -2962,7 +2896,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Period Selector: Daily / Weekly / Monthly */}
-            <View style={tw`flex-row bg-vanillaCream p-1 rounded-2xl mb-3 border border-vanillaCreamDark`}>
+            <View className="flex-row bg-vanillaCream p-1 rounded-2xl mb-3 border border-vanillaCreamDark">
               {(['daily', 'weekly', 'monthly'] as const).map((p) => {
                 const active = chartPeriod === p;
                 const label =
@@ -2978,17 +2912,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       setChartPeriod(p);
                       setSelectedBar(null);
                     }}
-                    style={[
-                      tw`flex-1 py-2 rounded-xl items-center`,
-                      active ? tw`bg-strawberryPink shadow-sm` : tw`bg-transparent`,
-                    ]}
+                    className={`flex-1 py-2 rounded-xl items-center ${(active) ? 'bg-strawberryPink shadow-sm' : 'bg-transparent'}`}
                     activeOpacity={0.8}
                   >
                     <Text
-                      style={[
-                        tw`text-xs font-black`,
-                        active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
-                      ]}
+                      className={`text-xs font-black ${(active) ? 'text-chocolateBrown' : 'text-chocolateBrownMuted'}`}
                     >
                       {label}
                     </Text>
@@ -2999,8 +2927,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* Date Range Quick Filter for Daily period (7D vs 14D) */}
             {chartPeriod === 'daily' && (
-              <View style={tw`flex-row items-center justify-end gap-1.5 mb-3`}>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Range:</Text>
+              <View className="flex-row items-center justify-end gap-1.5 mb-3">
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">Range:</Text>
                 {[7, 14].map((d) => (
                   <TouchableOpacity
                     key={d}
@@ -3008,18 +2936,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       setChartDays(d);
                       fetchAnalytics('daily', d, true);
                     }}
-                    style={[
-                      tw`px-2.5 py-1 rounded-lg border`,
-                      chartDays === d
-                        ? tw`bg-chocolateBrown border-chocolateBrown`
-                        : tw`bg-white border-vanillaCreamDark`,
-                    ]}
+                    className={`px-2.5 py-1 rounded-lg border ${(chartDays === d) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-vanillaCreamDark'}`}
                   >
                     <Text
-                      style={[
-                        tw`text-[10px] font-black`,
-                        chartDays === d ? tw`text-white` : tw`text-chocolateBrown`,
-                      ]}
+                      className={`text-[10px] font-black ${(chartDays === d) ? 'text-white' : 'text-chocolateBrown'}`}
                     >
                       {d} Days
                     </Text>
@@ -3029,23 +2949,23 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             )}
 
             {/* Period Highlights Banner */}
-            <View style={tw`flex-row items-center justify-between bg-vanillaCream rounded-2xl p-3 border border-vanillaCreamDark mb-3`}>
+            <View className="flex-row items-center justify-between bg-vanillaCream rounded-2xl p-3 border border-vanillaCreamDark mb-3">
               <View>
-                <Text style={tw`text-[10px] font-black uppercase text-chocolateBrownMuted`}>
+                <Text className="text-[10px] font-black uppercase text-chocolateBrownMuted">
                   {t('chartPeriodRevenue')}
                 </Text>
-                <Text style={tw`text-base font-black text-chocolateBrown mt-0.5`}>
+                <Text className="text-base font-black text-chocolateBrown mt-0.5">
                   {((analytics?.chart?.totalPeriodRevenue ?? 0) || 0).toLocaleString()} XAF
                 </Text>
               </View>
 
-              <View style={tw`items-end`}>
-                <Text style={tw`text-[10px] font-black uppercase text-chocolateBrownMuted`}>
+              <View className="items-end">
+                <Text className="text-[10px] font-black uppercase text-chocolateBrownMuted">
                   {t('chartPeakPeriod')}
                 </Text>
-                <View style={tw`flex-row items-center gap-1 mt-0.5`}>
+                <View className="flex-row items-center gap-1 mt-0.5">
                   <Ionicons name="sparkles" size={12} color={COLORS.strawberryPink} />
-                  <Text style={tw`text-xs font-black text-strawberryPink`}>
+                  <Text className="text-xs font-black text-strawberryPink">
                     {analytics?.chart?.highestRevenueDay || '—'}
                   </Text>
                 </View>
@@ -3054,15 +2974,15 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* Interactive Bar Chart Visualization */}
             {analyticsLoading && !analytics ? (
-              <View style={tw`h-44 items-center justify-center`}>
+              <View className="h-44 items-center justify-center">
                 <ActivityIndicator size="small" color={COLORS.strawberryPink} />
-                <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-2`}>
+                <Text className="text-xs font-semibold text-chocolateBrownMuted mt-2">
                   Loading Supabase sales data...
                 </Text>
               </View>
             ) : (
-              <View style={tw`pt-1`}>
-                <View style={tw`h-44 flex-row items-end justify-between px-1 border-b border-vanillaCreamDark pb-1`}>
+              <View className="pt-1">
+                <View className="h-44 flex-row items-end justify-between px-1 border-b border-vanillaCreamDark pb-1">
                   {chartPoints.map((point, index) => {
                     const maxRev = Math.max(...chartPoints.map((p) => p.revenue), 1);
                     const barHeightPct = Math.max(Math.round((point.revenue / maxRev) * 100), 12);
@@ -3073,35 +2993,22 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       <TouchableOpacity
                         key={`${point.label}-${index}`}
                         onPress={() => setSelectedBar(point)}
-                        style={tw`items-center flex-1 mx-0.5`}
+                        className="items-center flex-1 mx-0.5"
                         activeOpacity={0.7}
                       >
                         {/* Value tag */}
-                        <Text style={tw`text-[9px] font-black text-chocolateBrownMuted mb-1`} numberOfLines={1}>
+                        <Text className="text-[9px] font-black text-chocolateBrownMuted mb-1" numberOfLines={1}>
                           {point.revenue > 0 ? `${Math.round(point.revenue / 1000)}k` : '0'}
                         </Text>
 
                         {/* Bar */}
                         <View
-                          style={[
-                            tw`w-full max-w-[28px] rounded-t-xl`,
-                            { height: `${barHeightPct}%` },
-                            isSelected
-                              ? tw`bg-chocolateBrown border-2 border-strawberryPink`
-                              : isHighest
-                              ? tw`bg-strawberryPink border border-white shadow-sm`
-                              : tw`bg-butterYellowLight border border-butterYellow`,
-                          ]}
+                          className={`w-full max-w-[28px] rounded-t-xl ${(isSelected ? 'bg-chocolateBrown border-2 border-strawberryPink' : (isHighest ? 'bg-strawberryPink border border-white shadow-sm' : 'bg-butterYellowLight border border-butterYellow'))}`} style={{ height: `${barHeightPct}%` }}
                         />
 
                         {/* Label */}
                         <Text
-                          style={[
-                            tw`text-[10px] mt-1.5 font-bold`,
-                            isSelected
-                              ? tw`text-chocolateBrown font-black`
-                              : tw`text-chocolateBrownMuted`,
-                          ]}
+                          className={`text-[10px] mt-1.5 font-bold ${(isSelected) ? 'text-chocolateBrown font-black' : 'text-chocolateBrownMuted'}`}
                           numberOfLines={1}
                         >
                           {point.label}
@@ -3113,17 +3020,17 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
                 {/* Selected Bar Details Pill */}
                 {selectedBar && (
-                  <View style={tw`mt-3 bg-white p-3 rounded-2xl border border-strawberryPinkLight flex-row items-center justify-between shadow-sm`}>
+                  <View className="mt-3 bg-white p-3 rounded-2xl border border-strawberryPinkLight flex-row items-center justify-between shadow-sm">
                     <View>
-                      <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                      <Text className="text-xs font-bold text-chocolateBrownMuted">
                         📅 {selectedBar.fullDate || selectedBar.label}
                       </Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown mt-0.5`}>
+                      <Text className="text-sm font-black text-chocolateBrown mt-0.5">
                         {selectedBar.revenue.toLocaleString()} XAF
                       </Text>
                     </View>
-                    <View style={tw`bg-strawberryPinkLight px-3 py-1.5 rounded-xl border border-strawberryPink`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    <View className="bg-strawberryPinkLight px-3 py-1.5 rounded-xl border border-strawberryPink">
+                      <Text className="text-xs font-black text-chocolateBrown">
                         📦 {selectedBar.ordersCount} {selectedBar.ordersCount === 1 ? 'order' : 'orders'}
                       </Text>
                     </View>
@@ -3134,27 +3041,27 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </View>
 
           {/* ── SECTION 3: Recent Customer Orders ── */}
-          <View style={tw`bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6`}>
+          <View className="bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6">
             {/* Header: Title, Subtitle, and "View All Orders" button */}
-            <View style={tw`flex-row items-center justify-between mb-4`}>
-              <View style={tw`flex-1 mr-2`}>
-                <View style={tw`flex-row items-center gap-1.5`}>
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-1 mr-2">
+                <View className="flex-row items-center gap-1.5">
                   <Ionicons name="receipt" size={17} color={COLORS.strawberryPink} />
-                  <Text style={tw`text-base font-black text-chocolateBrown`}>
+                  <Text className="text-base font-black text-chocolateBrown">
                     {t('recentOrdersTitle')}
                   </Text>
                 </View>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   {t('recentOrdersSubtitle')}
                 </Text>
               </View>
 
               <TouchableOpacity
                 onPress={() => setAdminTab('orders')}
-                style={tw`flex-row items-center gap-1 bg-vanillaCream px-3 py-1.5 rounded-full border border-vanillaCreamDark`}
+                className="flex-row items-center gap-1 bg-vanillaCream px-3 py-1.5 rounded-full border border-vanillaCreamDark"
                 activeOpacity={0.7}
               >
-                <Text style={tw`text-xs font-black text-strawberryPink`}>
+                <Text className="text-xs font-black text-strawberryPink">
                   {t('viewAllOrdersBtn')}
                 </Text>
               </TouchableOpacity>
@@ -3162,12 +3069,12 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* List of Latest Orders (Top 5) */}
             {orders.length === 0 ? (
-              <View style={tw`items-center justify-center py-8 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark`}>
-                <Text style={tw`text-2xl mb-1`}>🍦</Text>
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>No orders placed yet</Text>
+              <View className="items-center justify-center py-8 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark">
+                <Text className="text-2xl mb-1">🍦</Text>
+                <Text className="text-xs font-bold text-chocolateBrown">No orders placed yet</Text>
               </View>
             ) : (
-              <View style={tw`gap-3`}>
+              <View className="gap-3">
                 {orders.slice(0, 5).map((order) => {
                   const sc = statusColor(order.status);
                   const isPaid = order.paymentStatus === 'paid' || order.status === 'accepted' || order.status === 'completed' || order.status === 'approved' || order.status === 'received';
@@ -3176,34 +3083,26 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   return (
                     <View
                       key={order.id}
-                      style={tw`bg-vanillaCream rounded-2xl p-3.5 border border-vanillaCreamDark`}
+                      className="bg-vanillaCream rounded-2xl p-3.5 border border-vanillaCreamDark"
                     >
                       {/* Top Row: Order ID, Time, and Status Badges */}
-                      <View style={tw`flex-row items-center justify-between mb-2`}>
-                        <View style={tw`flex-row items-center gap-2`}>
-                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-sm font-black text-chocolateBrown">
                             {order.id}
                           </Text>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-medium`}>
+                          <Text className="text-[10px] text-chocolateBrownMuted font-medium">
                             {formatTime(order.createdAt)} · {formatDate(order.createdAt)}
                           </Text>
                         </View>
 
-                        <View style={tw`flex-row items-center gap-1.5`}>
+                        <View className="flex-row items-center gap-1.5">
                           {/* Payment Status Pill */}
                           <View
-                            style={[
-                              tw`px-2 py-0.5 rounded-md border`,
-                              isPaid
-                                ? tw`bg-emerald-50 border-emerald-300`
-                                : tw`bg-amber-50 border-amber-300`,
-                            ]}
+                            className={`px-2 py-0.5 rounded-md border ${(isPaid) ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300'}`}
                           >
                             <Text
-                              style={[
-                                tw`text-[10px] font-black`,
-                                isPaid ? tw`text-emerald-700` : tw`text-amber-700`,
-                              ]}
+                              className={`text-[10px] font-black ${(isPaid) ? 'text-emerald-700' : 'text-amber-700'}`}
                             >
                               {isPaid ? t('paymentPaidBadge') : t('paymentPendingBadge')}
                             </Text>
@@ -3211,14 +3110,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
                           {/* Order Status Pill */}
                           <View
-                            style={[
-                              tw`flex-row items-center gap-1 px-2 py-0.5 rounded-md border`,
-                              sc.bg,
-                              sc.border,
-                            ]}
+                            className="flex-row items-center gap-1 px-2 py-0.5 rounded-md border" style={[sc.bg, sc.border]}
                           >
                             <Ionicons name={sc.icon as any} size={11} color={sc.iconColor} />
-                            <Text style={[tw`text-[10px] font-black`, sc.text]}>
+                            <Text className="text-[10px] font-black" style={sc.text}>
                               {sc.label}
                             </Text>
                           </View>
@@ -3226,29 +3121,29 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       </View>
 
                       {/* Customer Name & Phone */}
-                      <View style={tw`flex-row items-center justify-between mb-2`}>
-                        <View style={tw`flex-row items-center gap-1.5`}>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center gap-1.5">
                           <Ionicons name="person-circle-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                          <Text className="text-xs font-bold text-chocolateBrown">
                             {customerDisplayName}
                           </Text>
                         </View>
-                        <Text style={tw`text-[11px] font-bold text-chocolateBrownMuted`}>
+                        <Text className="text-[11px] font-bold text-chocolateBrownMuted">
                           📱 {order.phoneNumber}
                         </Text>
                       </View>
 
                       {/* Ordered Products */}
-                      <View style={tw`bg-white rounded-xl p-2.5 border border-vanillaCreamDark mb-2`}>
-                        <Text style={tw`text-[10px] font-black uppercase text-chocolateBrownMuted mb-1`}>
+                      <View className="bg-white rounded-xl p-2.5 border border-vanillaCreamDark mb-2">
+                        <Text className="text-[10px] font-black uppercase text-chocolateBrownMuted mb-1">
                           {t('productsOrderedLabel')}:
                         </Text>
                         {order.items.map((item, idx) => (
-                          <View key={idx} style={tw`flex-row items-center justify-between py-0.5`}>
-                            <Text style={tw`text-xs font-bold text-chocolateBrown flex-1 mr-2`} numberOfLines={1}>
+                          <View key={idx} className="flex-row items-center justify-between py-0.5">
+                            <Text className="text-xs font-bold text-chocolateBrown flex-1 mr-2" numberOfLines={1}>
                               {item.quantity}x {item.name} {item.flavor ? `(${item.flavor})` : ''}
                             </Text>
-                            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted`}>
+                            <Text className="text-xs font-semibold text-chocolateBrownMuted">
                               {(item.price * item.quantity).toLocaleString()} XAF
                             </Text>
                           </View>
@@ -3256,23 +3151,23 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       </View>
 
                       {/* Bottom Row: Payment Method & Total Amount */}
-                      <View style={tw`flex-row items-center justify-between pt-1`}>
-                        <View style={tw`flex-row items-center gap-1.5`}>
+                      <View className="flex-row items-center justify-between pt-1">
+                        <View className="flex-row items-center gap-1.5">
                           <Ionicons
                             name={order.paymentMethod === 'mtn-momo' ? 'phone-portrait-outline' : 'card-outline'}
                             size={13}
                             color={COLORS.chocolateBrownMuted}
                           />
-                          <Text style={tw`text-[11px] font-black uppercase text-chocolateBrownLight`}>
+                          <Text className="text-[11px] font-black uppercase text-chocolateBrownLight">
                             {order.paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
                           </Text>
                         </View>
 
-                        <View style={tw`flex-row items-center gap-1`}>
-                          <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                        <View className="flex-row items-center gap-1">
+                          <Text className="text-xs font-bold text-chocolateBrownMuted">
                             {t('orderAmountLabel')}:
                           </Text>
-                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                          <Text className="text-sm font-black text-chocolateBrown">
                             {order.totalAmount.toLocaleString()} XAF
                           </Text>
                         </View>
@@ -3284,10 +3179,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 {/* Bottom shortcut: View all orders */}
                 <TouchableOpacity
                   onPress={() => setAdminTab('orders')}
-                  style={tw`w-full bg-vanillaCream border border-vanillaCreamDark py-3 rounded-2xl items-center justify-center flex-row gap-2 mt-1`}
+                  className="w-full bg-vanillaCream border border-vanillaCreamDark py-3 rounded-2xl items-center justify-center flex-row gap-2 mt-1"
                   activeOpacity={0.7}
                 >
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                  <Text className="text-xs font-black text-chocolateBrown">
                     {t('viewAllOrdersBtn')}
                   </Text>
                   <Ionicons name="arrow-forward" size={14} color={COLORS.chocolateBrown} />
@@ -3297,27 +3192,27 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           </View>
 
           {/* ── SECTION 4: Notifications Overview ── */}
-          <View style={tw`bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6`}>
+          <View className="bg-white rounded-3xl p-5 border border-vanillaCreamDark shadow-lg mb-6">
             {/* Header: Bell Icon, Title, and Unread Count badge */}
-            <View style={tw`flex-row items-center justify-between mb-3`}>
-              <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink`}>
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center gap-2 flex-1 mr-2">
+                <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink">
                   <Ionicons name="notifications" size={16} color={COLORS.strawberryPink} />
                 </View>
-                <View style={tw`flex-1`}>
-                  <View style={tw`flex-row items-center gap-1.5`}>
-                    <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-1.5">
+                    <Text className="text-base font-black text-chocolateBrown">
                       {t('notificationsTitle')}
                     </Text>
                     {unreadNotifCount > 0 && (
-                      <View style={tw`bg-red-100 border border-red-300 px-2 py-0.5 rounded-full`}>
-                        <Text style={tw`text-[10px] font-black text-red-700`}>
+                      <View className="bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">
+                        <Text className="text-[10px] font-black text-red-700">
                           {unreadNotifCount} {t('unreadCountBadge')}
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`} numberOfLines={1}>
+                  <Text className="text-xs text-chocolateBrownMuted mt-0.5" numberOfLines={1}>
                     {t('notificationsSubtitle')}
                   </Text>
                 </View>
@@ -3326,10 +3221,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               {unreadNotifCount > 0 && (
                 <TouchableOpacity
                   onPress={handleMarkAllNotifsAsRead}
-                  style={tw`bg-vanillaCream border border-vanillaCreamDark px-2.5 py-1.5 rounded-xl`}
+                  className="bg-vanillaCream border border-vanillaCreamDark px-2.5 py-1.5 rounded-xl"
                   activeOpacity={0.7}
                 >
-                  <Text style={tw`text-[11px] font-bold text-strawberryPink`}>
+                  <Text className="text-[11px] font-bold text-strawberryPink">
                     {t('markAllAsReadBtn')}
                   </Text>
                 </TouchableOpacity>
@@ -3337,7 +3232,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Filter Tabs: All vs Unread */}
-            <View style={tw`flex-row bg-vanillaCream p-1 rounded-xl mb-3 border border-vanillaCreamDark`}>
+            <View className="flex-row bg-vanillaCream p-1 rounded-xl mb-3 border border-vanillaCreamDark">
               {(['all', 'unread'] as const).map((f) => {
                 const active = notifFilter === f;
                 const count = f === 'unread' ? unreadNotifCount : notifications.length;
@@ -3345,17 +3240,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                   <TouchableOpacity
                     key={f}
                     onPress={() => setNotifFilter(f)}
-                    style={[
-                      tw`flex-1 py-1.5 rounded-lg items-center`,
-                      active ? tw`bg-white shadow-sm` : tw`bg-transparent`,
-                    ]}
+                    className={`flex-1 py-1.5 rounded-lg items-center ${(active) ? 'bg-white shadow-sm' : 'bg-transparent'}`}
                     activeOpacity={0.7}
                   >
                     <Text
-                      style={[
-                        tw`text-xs font-black capitalize`,
-                        active ? tw`text-chocolateBrown` : tw`text-chocolateBrownMuted`,
-                      ]}
+                      className={`text-xs font-black capitalize ${(active) ? 'text-chocolateBrown' : 'text-chocolateBrownMuted'}`}
                     >
                       {f === 'all' ? t('filterAllNotifs') : t('filterUnreadNotifs')} ({count})
                     </Text>
@@ -3366,14 +3255,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* Notification List */}
             {displayedNotifications.length === 0 ? (
-              <View style={tw`items-center justify-center py-6 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark`}>
-                <Text style={tw`text-2xl mb-1`}>🎉</Text>
-                <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+              <View className="items-center justify-center py-6 bg-vanillaCream rounded-2xl border border-dashed border-vanillaCreamDark">
+                <Text className="text-2xl mb-1">🎉</Text>
+                <Text className="text-xs font-bold text-chocolateBrown">
                   {t('allNotificationsRead')}
                 </Text>
               </View>
             ) : (
-              <View style={tw`gap-2.5`}>
+              <View className="gap-2.5">
                 {displayedNotifications.map((n) => {
                   const getNotifStyle = (type: AdminNotification['type']) => {
                     switch (type) {
@@ -3404,42 +3293,37 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                           setAdminTab('orders');
                         }
                       }}
-                      style={[
-                        tw`p-3 rounded-2xl border flex-row items-start gap-3`,
-                        n.read
-                          ? tw`bg-vanillaCream/50 border-vanillaCreamDark opacity-80`
-                          : tw`bg-white border-strawberryPinkLight shadow-sm`,
-                      ]}
+                      className={`p-3 rounded-2xl border flex-row items-start gap-3 ${(n.read) ? 'bg-vanillaCream/50 border-vanillaCreamDark opacity-80' : 'bg-white border-strawberryPinkLight shadow-sm'}`}
                       activeOpacity={0.7}
                     >
                       {/* Category Icon */}
-                      <View style={[tw`w-9 h-9 rounded-xl items-center justify-center border`, tw`${ns.bg} ${ns.border}`]}>
+                      <View className={`w-9 h-9 rounded-xl items-center justify-center border ${ns.bg} ${ns.border}`}>
                         <Ionicons name={ns.icon as any} size={17} color="#4A2810" />
                       </View>
 
                       {/* Content */}
-                      <View style={tw`flex-1`}>
-                        <View style={tw`flex-row items-center justify-between mb-0.5`}>
-                          <Text style={[tw`text-xs font-black`, n.read ? tw`text-chocolateBrown/80` : tw`text-chocolateBrown`]}>
+                      <View className="flex-1">
+                        <View className="flex-row items-center justify-between mb-0.5">
+                          <Text className={`text-xs font-black ${(n.read) ? 'text-chocolateBrown/80' : 'text-chocolateBrown'}`}>
                             {n.title}
                           </Text>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                          <Text className="text-[10px] text-chocolateBrownMuted">
                             {formatTime(n.createdAt)}
                           </Text>
                         </View>
-                        <Text style={tw`text-xs text-chocolateBrownLight font-medium leading-4`}>
+                        <Text className="text-xs text-chocolateBrownLight font-medium leading-4">
                           {n.message}
                         </Text>
 
                         {/* Action hint & unread dot */}
-                        <View style={tw`flex-row items-center justify-between mt-2 pt-1 border-t border-vanillaCreamDark/40`}>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-semibold`}>
+                        <View className="flex-row items-center justify-between mt-2 pt-1 border-t border-vanillaCreamDark/40">
+                          <Text className="text-[10px] text-chocolateBrownMuted font-semibold">
                             {n.orderId ? `Order ${n.orderId} · Tap to inspect` : 'Tap to mark read'}
                           </Text>
                           {!n.read && (
-                            <View style={tw`flex-row items-center gap-1`}>
-                              <View style={tw`w-2 h-2 rounded-full bg-strawberryPink`} />
-                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                            <View className="flex-row items-center gap-1">
+                              <View className="w-2 h-2 rounded-full bg-strawberryPink" />
+                              <Text className="text-[10px] font-black text-strawberryPink">
                                 New
                               </Text>
                             </View>
@@ -3459,18 +3343,18 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       {adminTab === 'orders' && (
         <>
           {/* Last refreshed */}
-          <View style={tw`px-5 pt-2.5`}>
-            <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+          <View className="px-5 pt-2.5">
+            <Text className="text-[10px] text-chocolateBrownMuted">
               Last updated: {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Auto-refreshes every 15s
             </Text>
           </View>
 
           {/* Search bar */}
-          <View style={tw`px-5 pt-2.5 pb-2`}>
-            <View style={tw`flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3 gap-2`}>
+          <View className="px-5 pt-2.5 pb-2">
+            <View className="flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3 gap-2">
               <Ionicons name="search-outline" size={18} color={COLORS.chocolateBrownMuted} />
               <TextInput
-                style={tw`flex-1 py-2.5 text-sm text-chocolateBrown`}
+                className="flex-1 py-2.5 text-sm text-chocolateBrown"
                 placeholder="Search order ID, phone, item…"
                 placeholderTextColor={COLORS.chocolateBrownMuted}
                 value={searchQuery}
@@ -3489,7 +3373,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-2 gap-2`}
+            contentContainerClassName="px-5 pb-2 gap-2"
           >
             {([
               { key: 'all',              label: 'All',           emoji: '📋' },
@@ -3505,35 +3389,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               return (
                 <TouchableOpacity
                   key={tab}
-                  style={[
-                    tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border`,
-                    active
-                      ? tw`bg-strawberryPink border-strawberryPink`
-                      : tw`bg-white border-vanillaCreamDark`,
-                  ]}
+                  className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${(active) ? 'bg-strawberryPink border-strawberryPink' : 'bg-white border-vanillaCreamDark'}`}
                   onPress={() => { setActiveFilter(tab); setOrderPage(1); }}
                   activeOpacity={0.7}
                 >
-                  <Text style={tw`text-xs`}>{emoji}</Text>
+                  <Text className="text-xs">{emoji}</Text>
                   <Text
-                    style={[
-                      tw`text-xs font-black`,
-                      active ? tw`text-white` : tw`text-chocolateBrown`,
-                    ]}
+                    className={`text-xs font-black ${(active) ? 'text-white' : 'text-chocolateBrown'}`}
                   >
                     {label}
                   </Text>
                   <View
-                    style={[
-                      tw`w-4 h-4 rounded-full items-center justify-center`,
-                      active ? tw`bg-white` : tw`bg-vanillaCreamDark`,
-                    ]}
+                    className={`w-4 h-4 rounded-full items-center justify-center ${(active) ? 'bg-white' : 'bg-vanillaCreamDark'}`}
                   >
                     <Text
-                      style={[
-                        tw`text-[10px] font-black`,
-                        active ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                      ]}
+                      className={`text-[10px] font-black ${(active) ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}
                     >
                       {orderCounts[tab]}
                     </Text>
@@ -3547,7 +3417,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+            contentContainerClassName="px-5 pb-3 gap-2"
           >
             {([
               { key: 'all', label: 'All Dates' },
@@ -3559,10 +3429,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               return (
                 <TouchableOpacity
                   key={d.key}
-                  style={[
-                    tw`flex-row items-center gap-1 px-3.5 py-1.5 rounded-full border`,
-                    active ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
-                  ]}
+                  className={`flex-row items-center gap-1 px-3.5 py-1.5 rounded-full border ${(active) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-vanillaCreamDark'}`}
                   onPress={() => { setDateFilter(d.key); setOrderPage(1); }}
                   activeOpacity={0.7}
                 >
@@ -3571,7 +3438,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     size={11}
                     color={active ? COLORS.white : COLORS.chocolateBrownMuted}
                   />
-                  <Text style={[tw`text-[11px] font-bold`, active ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                  <Text className={`text-[11px] font-bold ${(active) ? 'text-white' : 'text-chocolateBrownMuted'}`}>
                     {d.label}
                   </Text>
                 </TouchableOpacity>
@@ -3581,14 +3448,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Order list */}
           {ordersLoading && orders.length === 0 ? (
-            <View style={tw`flex-1 items-center justify-center`}>
+            <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-sm text-chocolateBrownMuted mt-3`}>Loading orders…</Text>
+              <Text className="text-sm text-chocolateBrownMuted mt-3">Loading orders…</Text>
             </View>
           ) : (
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={tw`px-5 pb-28`}
+              contentContainerClassName="px-5 pb-28"
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -3601,12 +3468,12 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               }
             >
               {filteredOrders.length === 0 ? (
-                <View style={tw`items-center justify-center py-20`}>
-                  <Text style={tw`text-5xl mb-4`}>
+                <View className="items-center justify-center py-20">
+                  <Text className="text-5xl mb-4">
                     {activeFilter === 'pending' ? '⏳' : dateFilter !== 'all' ? '📅' : '📭'}
                   </Text>
-                  <Text style={tw`text-base font-black text-chocolateBrown`}>No orders found</Text>
-                  <Text style={tw`text-sm text-chocolateBrownMuted mt-1 text-center`}>
+                  <Text className="text-base font-black text-chocolateBrown">No orders found</Text>
+                  <Text className="text-sm text-chocolateBrownMuted mt-1 text-center">
                     {searchQuery
                       ? `No results for "${searchQuery}"`
                       : dateFilter !== 'all'
@@ -3629,38 +3496,28 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
                   {/* Pagination */}
                   {totalOrderPages > 1 && (
-                    <View style={tw`flex-row items-center justify-between mt-2 mb-4 px-1`}>
+                    <View className="flex-row items-center justify-between mt-2 mb-4 px-1">
                       <TouchableOpacity
-                        style={[
-                          tw`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border`,
-                          orderPage <= 1
-                            ? tw`bg-vanillaCreamDark border-vanillaCreamDark opacity-50`
-                            : tw`bg-white border-vanillaCreamDark`,
-                        ]}
+                        className={`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border ${(orderPage <= 1) ? 'bg-vanillaCreamDark border-vanillaCreamDark opacity-50' : 'bg-white border-vanillaCreamDark'}`}
                         onPress={() => setOrderPage((p) => Math.max(1, p - 1))}
                         disabled={orderPage <= 1}
                         activeOpacity={0.7}
                       >
                         <Ionicons name="chevron-back" size={14} color={COLORS.chocolateBrown} />
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Prev</Text>
+                        <Text className="text-xs font-black text-chocolateBrown">Prev</Text>
                       </TouchableOpacity>
 
-                      <Text style={tw`text-xs font-black text-chocolateBrownMuted`}>
+                      <Text className="text-xs font-black text-chocolateBrownMuted">
                         Page {orderPage} of {totalOrderPages}
                       </Text>
 
                       <TouchableOpacity
-                        style={[
-                          tw`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border`,
-                          orderPage >= totalOrderPages
-                            ? tw`bg-vanillaCreamDark border-vanillaCreamDark opacity-50`
-                            : tw`bg-white border-vanillaCreamDark`,
-                        ]}
+                        className={`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border ${(orderPage >= totalOrderPages) ? 'bg-vanillaCreamDark border-vanillaCreamDark opacity-50' : 'bg-white border-vanillaCreamDark'}`}
                         onPress={() => setOrderPage((p) => Math.min(totalOrderPages, p + 1))}
                         disabled={orderPage >= totalOrderPages}
                         activeOpacity={0.7}
                       >
-                        <Text style={tw`text-xs font-black text-chocolateBrown`}>Next</Text>
+                        <Text className="text-xs font-black text-chocolateBrown">Next</Text>
                         <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrown} />
                       </TouchableOpacity>
                     </View>
@@ -3676,33 +3533,33 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       {adminTab === 'products' && (
         <>
           {/* Section heading + Add button */}
-          <View style={tw`px-5 pt-3.5 pb-2 flex-row items-center justify-between`}>
-            <View style={tw`flex-1`}>
-              <Text style={tw`text-base font-black text-chocolateBrown`}>
+          <View className="px-5 pt-3.5 pb-2 flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-base font-black text-chocolateBrown">
                 {t('adminMenuManagement')}
               </Text>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+              <Text className="text-[10px] text-chocolateBrownMuted">
                 {t('adminMenuSubtitle')}
               </Text>
             </View>
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-3.5 py-2 rounded-xl shadow-sm`}
+              className="flex-row items-center gap-1.5 bg-strawberryPink px-3.5 py-2 rounded-xl shadow-sm"
               onPress={openCreateModal}
               activeOpacity={0.85}
             >
               <Ionicons name="add" size={16} color={COLORS.chocolateBrown} />
-              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+              <Text className="text-xs font-black text-chocolateBrown">
                 {t('adminAddProduct')}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Search bar */}
-          <View style={tw`px-5 pb-2`}>
-            <View style={tw`flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3 gap-2`}>
+          <View className="px-5 pb-2">
+            <View className="flex-row items-center bg-white border border-vanillaCreamDark rounded-2xl px-3 gap-2">
               <Ionicons name="search-outline" size={18} color={COLORS.chocolateBrownMuted} />
               <TextInput
-                style={tw`flex-1 py-2.5 text-sm text-chocolateBrown`}
+                className="flex-1 py-2.5 text-sm text-chocolateBrown"
                 placeholder="Search products…"
                 placeholderTextColor={COLORS.chocolateBrownMuted}
                 value={productSearch}
@@ -3721,7 +3578,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-2 gap-2`}
+            contentContainerClassName="px-5 pb-2 gap-2"
           >
             {([
               { id: 'all', label: t('adminAllCategories'), emoji: '🍽️', count: productCounts.all },
@@ -3736,35 +3593,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               return (
                 <TouchableOpacity
                   key={cat.id}
-                  style={[
-                    tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border`,
-                    active
-                      ? tw`bg-strawberryPink border-strawberryPink`
-                      : tw`bg-white border-vanillaCreamDark`,
-                  ]}
+                  className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${(active) ? 'bg-strawberryPink border-strawberryPink' : 'bg-white border-vanillaCreamDark'}`}
                   onPress={() => setCategoryFilter(cat.id as CategoryFilter)}
                   activeOpacity={0.7}
                 >
-                  <Text style={tw`text-xs`}>{cat.emoji}</Text>
+                  <Text className="text-xs">{cat.emoji}</Text>
                   <Text
-                    style={[
-                      tw`text-xs font-black`,
-                      active ? tw`text-white` : tw`text-chocolateBrown`,
-                    ]}
+                    className={`text-xs font-black ${(active) ? 'text-white' : 'text-chocolateBrown'}`}
                   >
                     {cat.label}
                   </Text>
                   <View
-                    style={[
-                      tw`w-4 h-4 rounded-full items-center justify-center`,
-                      active ? tw`bg-white` : tw`bg-vanillaCreamDark`,
-                    ]}
+                    className={`w-4 h-4 rounded-full items-center justify-center ${(active) ? 'bg-white' : 'bg-vanillaCreamDark'}`}
                   >
                     <Text
-                      style={[
-                        tw`text-[10px] font-black`,
-                        active ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                      ]}
+                      className={`text-[10px] font-black ${(active) ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}
                     >
                       {cat.count}
                     </Text>
@@ -3778,7 +3621,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`px-5 pb-3 gap-2`}
+            contentContainerClassName="px-5 pb-3 gap-2"
           >
             {([
               { id: 'all', label: 'All Status' },
@@ -3790,14 +3633,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               return (
                 <TouchableOpacity
                   key={st.id}
-                  style={[
-                    tw`px-3 py-1.5 rounded-full border`,
-                    active ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
-                  ]}
+                  className={`px-3 py-1.5 rounded-full border ${(active) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-vanillaCreamDark'}`}
                   onPress={() => setProductStatusFilter(st.id)}
                   activeOpacity={0.7}
                 >
-                  <Text style={[tw`text-[11px] font-bold`, active ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                  <Text className={`text-[11px] font-bold ${(active) ? 'text-white' : 'text-chocolateBrownMuted'}`}>
                     {st.label}
                   </Text>
                 </TouchableOpacity>
@@ -3807,22 +3647,22 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Product list */}
           {productsLoading && menuItems.length === 0 ? (
-            <View style={tw`flex-1 items-center justify-center`}>
+            <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-sm text-chocolateBrownMuted mt-3`}>Loading menu…</Text>
+              <Text className="text-sm text-chocolateBrownMuted mt-3">Loading menu…</Text>
             </View>
           ) : (
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={tw`px-5 pb-28`}
+              contentContainerClassName="px-5 pb-28"
             >
               {filteredProducts.length === 0 ? (
-                <View style={tw`items-center justify-center py-20`}>
-                  <Text style={tw`text-5xl mb-4`}>🍽️</Text>
-                  <Text style={tw`text-base font-black text-chocolateBrown`}>
+                <View className="items-center justify-center py-20">
+                  <Text className="text-5xl mb-4">🍽️</Text>
+                  <Text className="text-base font-black text-chocolateBrown">
                     {t('adminNoProducts')}
                   </Text>
-                  <Text style={tw`text-sm text-chocolateBrownMuted mt-1 text-center`}>
+                  <Text className="text-sm text-chocolateBrownMuted mt-1 text-center">
                     {productSearch
                       ? `No results for "${productSearch}"`
                       : 'Add your first product to get started'}
@@ -3863,19 +3703,19 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
         animationType="slide"
         onRequestClose={() => setNotifsModalVisible(false)}
       >
-        <View style={tw`flex-1 bg-black/50 justify-end`}>
-          <View style={tw`bg-white rounded-t-3xl max-h-[85%] border-t border-vanillaCreamDark shadow-2xl pb-8`}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl max-h-[85%] border-t border-vanillaCreamDark shadow-2xl pb-8">
             {/* Header bar */}
-            <View style={tw`flex-row items-center justify-between p-5 border-b border-vanillaCreamDark`}>
-              <View style={tw`flex-row items-center gap-2`}>
-                <View style={tw`w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink`}>
+            <View className="flex-row items-center justify-between p-5 border-b border-vanillaCreamDark">
+              <View className="flex-row items-center gap-2">
+                <View className="w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink">
                   <Ionicons name="notifications" size={18} color={COLORS.strawberryPink} />
                 </View>
                 <View>
-                  <Text style={tw`text-lg font-black text-chocolateBrown`}>
+                  <Text className="text-lg font-black text-chocolateBrown">
                     {t('notificationsTitle')}
                   </Text>
-                  <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                  <Text className="text-xs text-chocolateBrownMuted">
                     {unreadNotifCount} {t('unreadCountBadge')}
                   </Text>
                 </View>
@@ -3883,7 +3723,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               <TouchableOpacity
                 onPress={() => setNotifsModalVisible(false)}
-                style={tw`w-8 h-8 rounded-full bg-vanillaCream items-center justify-center`}
+                className="w-8 h-8 rounded-full bg-vanillaCream items-center justify-center"
                 activeOpacity={0.7}
               >
                 <Ionicons name="close" size={18} color={COLORS.chocolateBrown} />
@@ -3891,24 +3731,16 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Quick Actions & Filter */}
-            <View style={tw`flex-row items-center justify-between px-5 pt-3 pb-2`}>
-              <View style={tw`flex-row gap-2`}>
+            <View className="flex-row items-center justify-between px-5 pt-3 pb-2">
+              <View className="flex-row gap-2">
                 {(['all', 'unread'] as const).map((f) => (
                   <TouchableOpacity
                     key={f}
                     onPress={() => setNotifFilter(f)}
-                    style={[
-                      tw`px-3 py-1 rounded-full border`,
-                      notifFilter === f
-                        ? tw`bg-chocolateBrown border-chocolateBrown`
-                        : tw`bg-vanillaCream border-vanillaCreamDark`,
-                    ]}
+                    className={`px-3 py-1 rounded-full border ${(notifFilter === f) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-vanillaCream border-vanillaCreamDark'}`}
                   >
                     <Text
-                      style={[
-                        tw`text-xs font-black capitalize`,
-                        notifFilter === f ? tw`text-white` : tw`text-chocolateBrown`,
-                      ]}
+                      className={`text-xs font-black capitalize ${(notifFilter === f) ? 'text-white' : 'text-chocolateBrown'}`}
                     >
                       {f === 'all' ? t('filterAllNotifs') : t('filterUnreadNotifs')}
                     </Text>
@@ -3918,7 +3750,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {unreadNotifCount > 0 && (
                 <TouchableOpacity onPress={handleMarkAllNotifsAsRead} activeOpacity={0.7}>
-                  <Text style={tw`text-xs font-black text-strawberryPink`}>
+                  <Text className="text-xs font-black text-strawberryPink">
                     {t('markAllAsReadBtn')}
                   </Text>
                 </TouchableOpacity>
@@ -3926,16 +3758,16 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Notifications List */}
-            <ScrollView style={tw`px-5 pt-2`} showsVerticalScrollIndicator={false}>
+            <ScrollView className="px-5 pt-2" showsVerticalScrollIndicator={false}>
               {displayedNotifications.length === 0 ? (
-                <View style={tw`items-center justify-center py-12`}>
-                  <Text style={tw`text-3xl mb-2`}>🎉</Text>
-                  <Text style={tw`text-sm font-bold text-chocolateBrown`}>
+                <View className="items-center justify-center py-12">
+                  <Text className="text-3xl mb-2">🎉</Text>
+                  <Text className="text-sm font-bold text-chocolateBrown">
                     {t('allNotificationsRead')}
                   </Text>
                 </View>
               ) : (
-                <View style={tw`gap-2.5 pb-6`}>
+                <View className="gap-2.5 pb-6">
                   {displayedNotifications.map((n) => {
                     const getNotifStyle = (type: AdminNotification['type']) => {
                       switch (type) {
@@ -3966,33 +3798,28 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                             setAdminTab('orders');
                           }
                         }}
-                        style={[
-                          tw`p-3.5 rounded-2xl border flex-row items-start gap-3`,
-                          n.read
-                            ? tw`bg-vanillaCream/50 border-vanillaCreamDark opacity-80`
-                            : tw`bg-white border-strawberryPinkLight shadow-sm`,
-                        ]}
+                        className={`p-3.5 rounded-2xl border flex-row items-start gap-3 ${(n.read) ? 'bg-vanillaCream/50 border-vanillaCreamDark opacity-80' : 'bg-white border-strawberryPinkLight shadow-sm'}`}
                         activeOpacity={0.7}
                       >
-                        <View style={[tw`w-9 h-9 rounded-xl items-center justify-center border`, tw`${ns.bg} ${ns.border}`]}>
+                        <View className={`w-9 h-9 rounded-xl items-center justify-center border ${ns.bg} ${ns.border}`}>
                           <Ionicons name={ns.icon as any} size={17} color="#4A2810" />
                         </View>
-                        <View style={tw`flex-1`}>
-                          <View style={tw`flex-row items-center justify-between mb-0.5`}>
-                            <Text style={[tw`text-xs font-black`, n.read ? tw`text-chocolateBrown/80` : tw`text-chocolateBrown`]}>
+                        <View className="flex-1">
+                          <View className="flex-row items-center justify-between mb-0.5">
+                            <Text className={`text-xs font-black ${(n.read) ? 'text-chocolateBrown/80' : 'text-chocolateBrown'}`}>
                               {n.title}
                             </Text>
-                            <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            <Text className="text-[10px] text-chocolateBrownMuted">
                               {formatTime(n.createdAt)}
                             </Text>
                           </View>
-                          <Text style={tw`text-xs text-chocolateBrownLight font-medium leading-4`}>
+                          <Text className="text-xs text-chocolateBrownLight font-medium leading-4">
                             {n.message}
                           </Text>
                           {!n.read && (
-                            <View style={tw`self-start mt-1.5 flex-row items-center gap-1`}>
-                              <View style={tw`w-2 h-2 rounded-full bg-strawberryPink`} />
-                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>New</Text>
+                            <View className="self-start mt-1.5 flex-row items-center gap-1">
+                              <View className="w-2 h-2 rounded-full bg-strawberryPink" />
+                              <Text className="text-[10px] font-black text-strawberryPink">New</Text>
                             </View>
                           )}
                         </View>
@@ -4018,18 +3845,18 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
       {/* ══════════════════ DAILY MENU TAB ══════════════════ */}
       {adminTab === 'daily-menu' && (
-        <ScrollView style={tw`flex-1 bg-vanillaCream`} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-vanillaCream" showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <View style={tw`px-5 pt-4 pb-3`}>
-            <Text style={tw`text-xl font-black text-chocolateBrown`}>📅 Daily Menu</Text>
-            <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>Set what's available each day</Text>
+          <View className="px-5 pt-4 pb-3">
+            <Text className="text-xl font-black text-chocolateBrown">📅 Daily Menu</Text>
+            <Text className="text-xs text-chocolateBrownMuted mt-0.5">Set what's available each day</Text>
           </View>
 
           {/* Date Picker */}
-          <View style={tw`px-5 mb-4`}>
-            <Text style={tw`text-xs font-black text-chocolateBrown mb-2`}>SELECT DATE</Text>
+          <View className="px-5 mb-4">
+            <Text className="text-xs font-black text-chocolateBrown mb-2">SELECT DATE</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={tw`flex-row gap-2`}>
+              <View className="flex-row gap-2">
                 {Array.from({ length: 8 }, (_, i) => {
                   const d = new Date();
                   d.setDate(d.getDate() + i);
@@ -4041,16 +3868,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     <TouchableOpacity
                       key={dateStr}
                       onPress={() => setDmSelectedDate(dateStr)}
-                      style={[
-                        tw`px-4 py-2.5 rounded-2xl border items-center min-w-[72px]`,
-                        isSelected
-                          ? tw`bg-strawberryPink border-strawberryPink`
-                          : tw`bg-white border-vanillaCreamDark`,
-                      ]}
+                      className={`px-4 py-2.5 rounded-2xl border items-center min-w-[72px] ${(isSelected) ? 'bg-strawberryPink border-strawberryPink' : 'bg-white border-vanillaCreamDark'}`}
                     >
-                      <Text style={[tw`text-xs font-black`, isSelected ? tw`text-white` : tw`text-chocolateBrown`]}>{label}</Text>
-                      <Text style={[tw`text-[10px] mt-0.5`, isSelected ? tw`text-white/80` : tw`text-chocolateBrownMuted`]}>{dateStr.slice(5)}</Text>
-                      {hasMenu && !isSelected && <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen mt-1`} />}
+                      <Text className={`text-xs font-black ${(isSelected) ? 'text-white' : 'text-chocolateBrown'}`}>{label}</Text>
+                      <Text className={`text-[10px] mt-0.5 ${(isSelected) ? 'text-white/80' : 'text-chocolateBrownMuted'}`}>{dateStr.slice(5)}</Text>
+                      {hasMenu && !isSelected && <View className="w-1.5 h-1.5 rounded-full bg-pistachioGreen mt-1" />}
                     </TouchableOpacity>
                   );
                 })}
@@ -4060,26 +3882,26 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Loading */}
           {dmLoading && (
-            <View style={tw`items-center py-8`}>
+            <View className="items-center py-8">
               <ActivityIndicator size="small" color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-2`}>Loading menus…</Text>
+              <Text className="text-xs text-chocolateBrownMuted mt-2">Loading menus…</Text>
             </View>
           )}
 
           {!dmLoading && (
             <>
               {/* Create / Status bar */}
-              <View style={tw`mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm`}>
-                <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View className="mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm">
+                <View className="flex-row items-center justify-between mb-3">
                   <View>
-                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                    <Text className="text-sm font-black text-chocolateBrown">
                       {currentDailyMenu ? (currentDailyMenu.isPublished ? '✅ Published' : '📝 Draft') : '➕ No menu yet'}
                     </Text>
-                    <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>{dmSelectedDate}</Text>
+                    <Text className="text-xs text-chocolateBrownMuted mt-0.5">{dmSelectedDate}</Text>
                   </View>
                   {currentDailyMenu && (
-                    <View style={tw`flex-row items-center gap-2`}>
-                      <Text style={tw`text-xs text-chocolateBrownMuted`}>{currentDailyMenu.isPublished ? 'Published' : 'Draft'}</Text>
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-xs text-chocolateBrownMuted">{currentDailyMenu.isPublished ? 'Published' : 'Draft'}</Text>
                       <Switch
                         value={currentDailyMenu.isPublished}
                         onValueChange={(v) => saveDailyMenu({ ...currentDailyMenu, isPublished: v })}
@@ -4092,26 +3914,26 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 {!currentDailyMenu && (
                   <TouchableOpacity
                     onPress={() => saveDailyMenu({ date: dmSelectedDate, isPublished: false, items: [], availableFlavors: [] })}
-                    style={tw`bg-strawberryPink py-3 rounded-2xl items-center`}
+                    className="bg-strawberryPink py-3 rounded-2xl items-center"
                     disabled={dmSaving}
                   >
-                    {dmSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={tw`text-white font-black text-sm`}>Create Menu for {dmSelectedDate}</Text>}
+                    {dmSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white font-black text-sm">Create Menu for {dmSelectedDate}</Text>}
                   </TouchableOpacity>
                 )}
                 {currentDailyMenu && (
-                  <View style={tw`flex-row gap-2`}>
-                    <TouchableOpacity onPress={() => setDmPreviewVisible(true)} style={tw`flex-1 border border-strawberryPink py-2.5 rounded-2xl items-center`}>
-                      <Text style={tw`text-strawberryPink font-black text-xs`}>👁 Preview</Text>
+                  <View className="flex-row gap-2">
+                    <TouchableOpacity onPress={() => setDmPreviewVisible(true)} className="flex-1 border border-strawberryPink py-2.5 rounded-2xl items-center">
+                      <Text className="text-strawberryPink font-black text-xs">👁 Preview</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
                         saveDailyMenu({ ...currentDailyMenu, isPublished: true });
                         Alert.alert('Published!', `Menu for ${dmSelectedDate} is now live.`);
                       }}
-                      style={tw`flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center`}
+                      className="flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center"
                       disabled={dmSaving}
                     >
-                      <Text style={tw`text-white font-black text-xs`}>🚀 Publish</Text>
+                      <Text className="text-white font-black text-xs">🚀 Publish</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -4119,10 +3941,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {/* Ice Cream Flavors */}
               {currentDailyMenu && (
-                <View style={tw`mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm`}>
-                  <Text style={tw`text-sm font-black text-chocolateBrown mb-1`}>🍦 Available Flavours Today</Text>
-                  <Text style={tw`text-xs text-chocolateBrownMuted mb-3`}>Tap to select which flavours are available</Text>
-                  <View style={tw`flex-row flex-wrap gap-2`}>
+                <View className="mx-5 mb-4 p-4 bg-white rounded-3xl border border-vanillaCreamDark shadow-sm">
+                  <Text className="text-sm font-black text-chocolateBrown mb-1">🍦 Available Flavours Today</Text>
+                  <Text className="text-xs text-chocolateBrownMuted mb-3">Tap to select which flavours are available</Text>
+                  <View className="flex-row flex-wrap gap-2">
                     {ICE_CREAM_FLAVORS.map((flavor) => {
                       const selected = currentDailyMenu.availableFlavors.includes(flavor);
                       return (
@@ -4134,18 +3956,15 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                               : [...currentDailyMenu.availableFlavors, flavor];
                             saveDailyMenu({ ...currentDailyMenu, availableFlavors: updated });
                           }}
-                          style={[
-                            tw`px-3 py-1.5 rounded-full border`,
-                            selected ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`,
-                          ]}
+                          className={`px-3 py-1.5 rounded-full border ${(selected) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-vanillaCreamDark'}`}
                         >
-                          <Text style={[tw`text-xs font-bold`, selected ? tw`text-white` : tw`text-chocolateBrownMuted`]}>{flavor}</Text>
+                          <Text className={`text-xs font-bold ${(selected) ? 'text-white' : 'text-chocolateBrownMuted'}`}>{flavor}</Text>
                         </TouchableOpacity>
                       );
                     })}
                   </View>
                   {currentDailyMenu.availableFlavors.length > 0 && (
-                    <Text style={tw`text-xs text-pistachioGreen font-bold mt-2`}>
+                    <Text className="text-xs text-pistachioGreen font-bold mt-2">
                       ✓ {currentDailyMenu.availableFlavors.length} flavour{currentDailyMenu.availableFlavors.length !== 1 ? 's' : ''} selected
                     </Text>
                   )}
@@ -4154,27 +3973,27 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {/* Products availability */}
               {currentDailyMenu && (
-                <View style={tw`mx-5 mb-6`}>
-                  <Text style={tw`text-sm font-black text-chocolateBrown mb-3`}>📋 Products for {dmSelectedDate}</Text>
+                <View className="mx-5 mb-6">
+                  <Text className="text-sm font-black text-chocolateBrown mb-3">📋 Products for {dmSelectedDate}</Text>
                   {menuItems.filter((p) => !p.isArchived).map((product) => {
                     const override = currentDailyMenu.items.find((it) => it.menuItemId === product.id);
                     const isAvail = override ? override.isAvailable : true;
                     const dailyPrice = override?.dailyPrice;
                     const qty = override?.availableQuantity;
                     return (
-                      <View key={product.id} style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm`}>
-                        <View style={tw`flex-row items-center justify-between mb-2`}>
-                          <View style={tw`flex-row items-center gap-2 flex-1`}>
+                      <View key={product.id} className="bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm">
+                        <View className="flex-row items-center justify-between mb-2">
+                          <View className="flex-row items-center gap-2 flex-1">
                             {product.imageUrl ? (
-                              <Image source={{ uri: product.imageUrl }} style={tw`w-10 h-10 rounded-xl`} resizeMode="cover" />
+                              <Image source={{ uri: product.imageUrl }} className="w-10 h-10 rounded-xl" resizeMode="cover" />
                             ) : (
-                              <View style={tw`w-10 h-10 rounded-xl bg-vanillaCream items-center justify-center`}>
-                                <Text style={tw`text-lg`}>{categoryEmoji(product.category)}</Text>
+                              <View className="w-10 h-10 rounded-xl bg-vanillaCream items-center justify-center">
+                                <Text className="text-lg">{categoryEmoji(product.category)}</Text>
                               </View>
                             )}
-                            <View style={tw`flex-1`}>
-                              <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>{product.name}</Text>
-                              <Text style={tw`text-xs text-chocolateBrownMuted`}>{product.price.toLocaleString()} XAF</Text>
+                            <View className="flex-1">
+                              <Text className="text-sm font-black text-chocolateBrown" numberOfLines={1}>{product.name}</Text>
+                              <Text className="text-xs text-chocolateBrownMuted">{product.price.toLocaleString()} XAF</Text>
                             </View>
                           </View>
                           <Switch
@@ -4188,11 +4007,11 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                           />
                         </View>
                         {isAvail && (
-                          <View style={tw`flex-row gap-2`}>
-                            <View style={tw`flex-1`}>
-                              <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold mb-1`}>DAILY PRICE (XAF)</Text>
+                          <View className="flex-row gap-2">
+                            <View className="flex-1">
+                              <Text className="text-[10px] text-chocolateBrownMuted font-bold mb-1">DAILY PRICE (XAF)</Text>
                               <TextInput
-                                style={tw`bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                                className="bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark"
                                 placeholder={`${product.price}`}
                                 keyboardType="numeric"
                                 defaultValue={dailyPrice ? String(dailyPrice) : ''}
@@ -4204,10 +4023,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                                 }}
                               />
                             </View>
-                            <View style={tw`flex-1`}>
-                              <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold mb-1`}>QUANTITY</Text>
+                            <View className="flex-1">
+                              <Text className="text-[10px] text-chocolateBrownMuted font-bold mb-1">QUANTITY</Text>
                               <TextInput
-                                style={tw`bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                                className="bg-vanillaCream rounded-xl px-3 py-2 text-xs text-chocolateBrown border border-vanillaCreamDark"
                                 placeholder="Unlimited"
                                 keyboardType="numeric"
                                 defaultValue={qty ? String(qty) : ''}
@@ -4222,8 +4041,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                           </View>
                         )}
                         {!isAvail && (
-                          <View style={tw`bg-red-50 rounded-xl px-3 py-1.5 mt-1`}>
-                            <Text style={tw`text-xs text-red-500 font-bold`}>Unavailable today</Text>
+                          <View className="bg-red-50 rounded-xl px-3 py-1.5 mt-1">
+                            <Text className="text-xs text-red-500 font-bold">Unavailable today</Text>
                           </View>
                         )}
                       </View>
@@ -4236,46 +4055,46 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Preview Modal */}
           <Modal visible={dmPreviewVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDmPreviewVisible(false)}>
-            <View style={tw`flex-1 bg-vanillaCream`}>
-              <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>👁 Customer Preview</Text>
+            <View className="flex-1 bg-vanillaCream">
+              <View className="flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white">
+                <Text className="text-lg font-black text-chocolateBrown">👁 Customer Preview</Text>
                 <TouchableOpacity onPress={() => setDmPreviewVisible(false)}>
                   <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={tw`flex-1 p-5`}>
+              <ScrollView className="flex-1 p-5">
                 {currentDailyMenu && currentDailyMenu.availableFlavors.length > 0 && (
-                  <View style={tw`mb-4`}>
-                    <Text style={tw`text-sm font-black text-chocolateBrown mb-2`}>Today's Flavours 🍦</Text>
+                  <View className="mb-4">
+                    <Text className="text-sm font-black text-chocolateBrown mb-2">Today's Flavours 🍦</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View style={tw`flex-row gap-2`}>
+                      <View className="flex-row gap-2">
                         {currentDailyMenu.availableFlavors.map((f) => (
-                          <View key={f} style={tw`bg-chocolateBrown px-3 py-1.5 rounded-full`}>
-                            <Text style={tw`text-white text-xs font-bold`}>{f}</Text>
+                          <View key={f} className="bg-chocolateBrown px-3 py-1.5 rounded-full">
+                            <Text className="text-white text-xs font-bold">{f}</Text>
                           </View>
                         ))}
                       </View>
                     </ScrollView>
                   </View>
                 )}
-                <Text style={tw`text-sm font-black text-chocolateBrown mb-3`}>Available Products</Text>
-                <View style={tw`flex-row flex-wrap gap-3`}>
+                <Text className="text-sm font-black text-chocolateBrown mb-3">Available Products</Text>
+                <View className="flex-row flex-wrap gap-3">
                   {menuItems.filter((p) => !p.isArchived && p.isActive !== false).map((product) => {
                     const override = currentDailyMenu?.items.find((it) => it.menuItemId === product.id);
                     if (override && !override.isAvailable) return null;
                     const price = override?.dailyPrice ?? product.price;
                     return (
-                      <View key={product.id} style={tw`bg-white rounded-3xl border border-vanillaCreamDark shadow-sm overflow-hidden`} >
+                      <View key={product.id} className="bg-white rounded-3xl border border-vanillaCreamDark shadow-sm overflow-hidden" >
                         {product.imageUrl ? (
                           <Image source={{ uri: product.imageUrl }} style={{ width: 160, height: 100 }} resizeMode="cover" />
                         ) : (
-                          <View style={[{ width: 160, height: 100 }, tw`bg-vanillaCream items-center justify-center`]}>
-                            <Text style={tw`text-4xl`}>{categoryEmoji(product.category)}</Text>
+                          <View className="bg-vanillaCream items-center justify-center" style={{ width: 160, height: 100 }}>
+                            <Text className="text-4xl">{categoryEmoji(product.category)}</Text>
                           </View>
                         )}
-                        <View style={tw`p-3`}>
-                          <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>{product.name}</Text>
-                          <Text style={tw`text-xs text-strawberryPink font-bold mt-0.5`}>{price.toLocaleString()} XAF</Text>
+                        <View className="p-3">
+                          <Text className="text-xs font-black text-chocolateBrown" numberOfLines={1}>{product.name}</Text>
+                          <Text className="text-xs text-strawberryPink font-bold mt-0.5">{price.toLocaleString()} XAF</Text>
                         </View>
                       </View>
                     );
@@ -4289,41 +4108,41 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
       {/* ══════════════════ PAYMENTS TAB ══════════════════ */}
       {adminTab === 'payments' && (
-        <View style={tw`flex-1 bg-vanillaCream`}>
+        <View className="flex-1 bg-vanillaCream">
           {/* Header */}
-          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
-            <View style={tw`flex-row items-center justify-between mb-3`}>
+          <View className="px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark">
+            <View className="flex-row items-center justify-between mb-3">
               <View>
-                <Text style={tw`text-xl font-black text-chocolateBrown`}>💳 Payments</Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted`}>{filteredPayments.length} transaction{filteredPayments.length !== 1 ? 's' : ''}</Text>
+                <Text className="text-xl font-black text-chocolateBrown">💳 Payments</Text>
+                <Text className="text-xs text-chocolateBrownMuted">{filteredPayments.length} transaction{filteredPayments.length !== 1 ? 's' : ''}</Text>
               </View>
-              <TouchableOpacity onPress={fetchPayments} style={tw`p-2`} disabled={paymentsLoading}>
+              <TouchableOpacity onPress={fetchPayments} className="p-2" disabled={paymentsLoading}>
                 {paymentsLoading ? <ActivityIndicator size="small" color={COLORS.strawberryPink} /> : <Ionicons name="refresh-outline" size={20} color={COLORS.strawberryPink} />}
               </TouchableOpacity>
             </View>
 
             {/* Summary chips */}
-            <View style={tw`flex-row gap-2 mb-3`}>
+            <View className="flex-row gap-2 mb-3">
               {(() => {
                 const today = new Date().toISOString().slice(0, 10);
                 const todayTotal = payments.filter((p) => p.createdAt.startsWith(today) && p.status === 'paid').reduce((s, p) => s + p.amount, 0);
                 const paidTotal = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
                 return (
                   <>
-                    <View style={tw`flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TODAY</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{todayTotal.toLocaleString()}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    <View className="flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">TODAY</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{todayTotal.toLocaleString()}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">XAF</Text>
                     </View>
-                    <View style={tw`flex-1 bg-blue-50 border border-blue-200 rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TOTAL PAID</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{paidTotal.toLocaleString()}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    <View className="flex-1 bg-blue-50 border border-blue-200 rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">TOTAL PAID</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{paidTotal.toLocaleString()}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">XAF</Text>
                     </View>
-                    <View style={tw`flex-1 bg-amber-50 border border-amber-200 rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>PENDING</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{payments.filter((p) => p.status === 'pending').length}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>orders</Text>
+                    <View className="flex-1 bg-amber-50 border border-amber-200 rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">PENDING</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{payments.filter((p) => p.status === 'pending').length}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">orders</Text>
                     </View>
                   </>
                 );
@@ -4331,10 +4150,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Search */}
-            <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 mb-3`}>
+            <View className="flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3 mb-3">
               <Ionicons name="search-outline" size={16} color={COLORS.chocolateBrownMuted} />
               <TextInput
-                style={tw`flex-1 py-2.5 px-2 text-xs text-chocolateBrown`}
+                className="flex-1 py-2.5 px-2 text-xs text-chocolateBrown"
                 placeholder="Search by name, ref or order ID…"
                 placeholderTextColor={COLORS.chocolateBrownMuted}
                 value={paymentSearch}
@@ -4349,14 +4168,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* Method filter */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={tw`flex-row gap-2 mb-2`}>
+              <View className="flex-row gap-2 mb-2">
                 {(['all', 'mtn-momo', 'orange-money'] as const).map((m) => (
                   <TouchableOpacity
                     key={m}
                     onPress={() => setPaymentMethodFilter(m)}
-                    style={[tw`px-3 py-1.5 rounded-full border`, paymentMethodFilter === m ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-white border-vanillaCreamDark`]}
+                    className={`px-3 py-1.5 rounded-full border ${(paymentMethodFilter === m) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-white border-vanillaCreamDark'}`}
                   >
-                    <Text style={[tw`text-xs font-bold`, paymentMethodFilter === m ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                    <Text className={`text-xs font-bold ${(paymentMethodFilter === m) ? 'text-white' : 'text-chocolateBrownMuted'}`}>
                       {m === 'all' ? 'All Methods' : m === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                     </Text>
                   </TouchableOpacity>
@@ -4366,16 +4185,16 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
             {/* Status filter */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={tw`flex-row gap-2`}>
+              <View className="flex-row gap-2">
                 {(['all', 'paid', 'pending', 'failed'] as const).map((s) => {
                   const colors = s === 'paid' ? tw`bg-pistachioGreen border-pistachioGreen` : s === 'pending' ? tw`bg-amber-400 border-amber-400` : s === 'failed' ? tw`bg-red-400 border-red-400` : tw`bg-chocolateBrown border-chocolateBrown`;
                   return (
                     <TouchableOpacity
                       key={s}
                       onPress={() => setPaymentStatusFilter(s)}
-                      style={[tw`px-3 py-1.5 rounded-full border`, paymentStatusFilter === s ? colors : tw`bg-white border-vanillaCreamDark`]}
+                      className="px-3 py-1.5 rounded-full border" style={paymentStatusFilter === s ? colors : tw`bg-white border-vanillaCreamDark`}
                     >
-                      <Text style={[tw`text-xs font-bold`, paymentStatusFilter === s ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                      <Text className={`text-xs font-bold ${(paymentStatusFilter === s) ? 'text-white' : 'text-chocolateBrownMuted'}`}>
                         {s === 'all' ? 'All Status' : s.charAt(0).toUpperCase() + s.slice(1)}
                       </Text>
                     </TouchableOpacity>
@@ -4387,21 +4206,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Transaction list */}
           {paymentsLoading ? (
-            <View style={tw`flex-1 items-center justify-center`}>
+            <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-3`}>Loading transactions…</Text>
+              <Text className="text-xs text-chocolateBrownMuted mt-3">Loading transactions…</Text>
             </View>
           ) : filteredPayments.length === 0 ? (
-            <View style={tw`flex-1 items-center justify-center px-8`}>
-              <Text style={tw`text-4xl mb-3`}>💳</Text>
-              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>No transactions found</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1`}>Adjust filters or refresh</Text>
+            <View className="flex-1 items-center justify-center px-8">
+              <Text className="text-4xl mb-3">💳</Text>
+              <Text className="text-base font-black text-chocolateBrown text-center">No transactions found</Text>
+              <Text className="text-xs text-chocolateBrownMuted text-center mt-1">Adjust filters or refresh</Text>
             </View>
           ) : (
             <FlatList
               data={filteredPayments}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={tw`p-4 pb-8`}
+              contentContainerClassName="p-4 pb-8"
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const statusStyle =
@@ -4413,32 +4232,32 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                 return (
                   <TouchableOpacity
                     onPress={() => { setSelectedPayment(item); setPaymentDetailVisible(true); }}
-                    style={[tw`bg-white rounded-3xl border p-4 mb-3 shadow-sm`, statusStyle.bg]}
+                    className="bg-white rounded-3xl border p-4 mb-3 shadow-sm" style={statusStyle.bg}
                     activeOpacity={0.75}
                   >
                     {/* Top row */}
-                    <View style={tw`flex-row items-start justify-between mb-2`}>
-                      <View style={tw`flex-1`}>
-                        <View style={tw`flex-row items-center gap-2 mb-1`}>
-                          <View style={[tw`px-2 py-0.5 rounded-lg`, statusStyle.badge]}>
-                            <Text style={tw`text-white text-[10px] font-black`}>{item.status.toUpperCase()}</Text>
+                    <View className="flex-row items-start justify-between mb-2">
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-2 mb-1">
+                          <View className="px-2 py-0.5 rounded-lg" style={statusStyle.badge}>
+                            <Text className="text-white text-[10px] font-black">{item.status.toUpperCase()}</Text>
                           </View>
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>{item.transactionRef}</Text>
+                          <Text className="text-[10px] text-chocolateBrownMuted font-bold">{item.transactionRef}</Text>
                         </View>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{item.customerName}</Text>
-                        <Text style={tw`text-xs text-chocolateBrownMuted`}>{item.phoneNumber} · Order #{item.orderId}</Text>
+                        <Text className="text-sm font-black text-chocolateBrown">{item.customerName}</Text>
+                        <Text className="text-xs text-chocolateBrownMuted">{item.phoneNumber} · Order #{item.orderId}</Text>
                       </View>
-                      <View style={tw`items-end`}>
-                        <Text style={[tw`text-base font-black`, statusStyle.text]}>{item.amount.toLocaleString()}</Text>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>XAF</Text>
+                      <View className="items-end">
+                        <Text className="text-base font-black" style={statusStyle.text}>{item.amount.toLocaleString()}</Text>
+                        <Text className="text-[10px] text-chocolateBrownMuted">XAF</Text>
                       </View>
                     </View>
                     {/* Bottom row */}
-                    <View style={tw`flex-row items-center justify-between border-t border-vanillaCreamDark pt-2`}>
-                      <Text style={tw`text-xs font-bold text-chocolateBrownMuted`}>
+                    <View className="flex-row items-center justify-between border-t border-vanillaCreamDark pt-2">
+                      <Text className="text-xs font-bold text-chocolateBrownMuted">
                         {item.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                       </Text>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{formatDate(item.createdAt)} · {formatTime(item.createdAt)}</Text>
+                      <Text className="text-[10px] text-chocolateBrownMuted">{formatDate(item.createdAt)} · {formatTime(item.createdAt)}</Text>
                       <Ionicons name="chevron-forward-outline" size={14} color={COLORS.chocolateBrownMuted} />
                     </View>
                   </TouchableOpacity>
@@ -4450,27 +4269,24 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
           {/* Payment Detail Modal */}
           <Modal visible={paymentDetailVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPaymentDetailVisible(false)}>
             {selectedPayment && (
-              <View style={tw`flex-1 bg-vanillaCream`}>
-                <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
-                  <Text style={tw`text-lg font-black text-chocolateBrown`}>Transaction Details</Text>
+              <View className="flex-1 bg-vanillaCream">
+                <View className="flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white">
+                  <Text className="text-lg font-black text-chocolateBrown">Transaction Details</Text>
                   <TouchableOpacity onPress={() => setPaymentDetailVisible(false)}>
                     <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
                   </TouchableOpacity>
                 </View>
-                <ScrollView style={tw`flex-1 p-5`}>
+                <ScrollView className="flex-1 p-5">
                   {/* Status badge */}
-                  <View style={tw`items-center mb-6`}>
-                    <View style={[
-                      tw`w-16 h-16 rounded-full items-center justify-center mb-3`,
-                      selectedPayment.status === 'paid' ? tw`bg-pistachioGreen` : selectedPayment.status === 'pending' ? tw`bg-amber-400` : tw`bg-red-500`
-                    ]}>
+                  <View className="items-center mb-6">
+                    <View className={`w-16 h-16 rounded-full items-center justify-center mb-3 ${(selectedPayment.status === 'paid' ? 'bg-pistachioGreen' : (selectedPayment.status === 'pending' ? 'bg-amber-400' : 'bg-red-500'))}`}>
                       <Ionicons
                         name={selectedPayment.status === 'paid' ? 'checkmark-done' : selectedPayment.status === 'pending' ? 'time' : 'close'}
                         size={32} color="#fff"
                       />
                     </View>
-                    <Text style={tw`text-2xl font-black text-chocolateBrown`}>{selectedPayment.amount.toLocaleString()} XAF</Text>
-                    <Text style={tw`text-sm text-chocolateBrownMuted mt-1`}>{selectedPayment.status.toUpperCase()}</Text>
+                    <Text className="text-2xl font-black text-chocolateBrown">{selectedPayment.amount.toLocaleString()} XAF</Text>
+                    <Text className="text-sm text-chocolateBrownMuted mt-1">{selectedPayment.status.toUpperCase()}</Text>
                   </View>
 
                   {/* Detail rows */}
@@ -4484,9 +4300,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     { label: 'Date', value: `${formatDate(selectedPayment.createdAt)} at ${formatTime(selectedPayment.createdAt)}` },
                     { label: 'Fee', value: selectedPayment.fee ? `${selectedPayment.fee.toLocaleString()} XAF` : 'N/A' },
                   ].map((row) => (
-                    <View key={row.label} style={tw`flex-row items-center justify-between py-3 border-b border-vanillaCreamDark`}>
-                      <Text style={tw`text-xs text-chocolateBrownMuted font-bold`}>{row.label}</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown text-right flex-1 ml-4`}>{row.value}</Text>
+                    <View key={row.label} className="flex-row items-center justify-between py-3 border-b border-vanillaCreamDark">
+                      <Text className="text-xs text-chocolateBrownMuted font-bold">{row.label}</Text>
+                      <Text className="text-sm font-black text-chocolateBrown text-right flex-1 ml-4">{row.value}</Text>
                     </View>
                   ))}
 
@@ -4503,9 +4319,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                         Alert.alert('Order', `Order ${selectedPayment.orderId} could not be found in current session.`);
                       }
                     }}
-                    style={tw`mt-6 bg-strawberryPink py-4 rounded-3xl items-center`}
+                    className="mt-6 bg-strawberryPink py-4 rounded-3xl items-center"
                   >
-                    <Text style={tw`text-white font-black`}>View Related Order →</Text>
+                    <Text className="text-white font-black">View Related Order →</Text>
                   </TouchableOpacity>
                 </ScrollView>
               </View>
@@ -4515,17 +4331,17 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
       )}
       {/* ══════════════════ CUSTOMERS TAB ══════════════════ */}
       {adminTab === 'customers' && (
-        <View style={tw`flex-1 bg-vanillaCream`}>
+        <View className="flex-1 bg-vanillaCream">
           {/* Header */}
-          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
-            <View style={tw`flex-row items-center justify-between mb-3`}>
+          <View className="px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark">
+            <View className="flex-row items-center justify-between mb-3">
               <View>
-                <Text style={tw`text-xl font-black text-chocolateBrown`}>👥 Registered Customers</Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-xl font-black text-chocolateBrown">👥 Registered Customers</Text>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   {filteredCustomers.length} registered customer{filteredCustomers.length !== 1 ? 's' : ''}
                 </Text>
               </View>
-              <TouchableOpacity onPress={fetchCustomers} style={tw`p-2`} disabled={customersLoading}>
+              <TouchableOpacity onPress={fetchCustomers} className="p-2" disabled={customersLoading}>
                 {customersLoading ? (
                   <ActivityIndicator size="small" color={COLORS.strawberryPink} />
                 ) : (
@@ -4535,27 +4351,27 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* KPI Cards */}
-            <View style={tw`flex-row gap-2 mb-3`}>
+            <View className="flex-row gap-2 mb-3">
               {(() => {
                 const totalCust = customers.length;
                 const activeCust = customers.filter((c) => (c.ordersCount || 0) > 0).length;
                 const totalSpent = customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
                 return (
                   <>
-                    <View style={tw`flex-1 bg-strawberryPink/10 border border-strawberryPink/20 rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>CUSTOMERS</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{totalCust}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>registered</Text>
+                    <View className="flex-1 bg-strawberryPink/10 border border-strawberryPink/20 rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">CUSTOMERS</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{totalCust}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">registered</Text>
                     </View>
-                    <View style={tw`flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>ORDERED</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{activeCust}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>active buyers</Text>
+                    <View className="flex-1 bg-pistachioGreen/10 border border-pistachioGreen/30 rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">ORDERED</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{activeCust}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">active buyers</Text>
                     </View>
-                    <View style={tw`flex-1 bg-butterYellowLight border border-butterYellow rounded-2xl p-2.5 items-center`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>LIFETIME</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{totalSpent.toLocaleString()}</Text>
-                      <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                    <View className="flex-1 bg-butterYellowLight border border-butterYellow rounded-2xl p-2.5 items-center">
+                      <Text className="text-[10px] text-chocolateBrownMuted font-bold">LIFETIME</Text>
+                      <Text className="text-sm font-black text-chocolateBrown">{totalSpent.toLocaleString()}</Text>
+                      <Text className="text-[9px] text-chocolateBrownMuted">XAF</Text>
                     </View>
                   </>
                 );
@@ -4563,10 +4379,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* Search Input */}
-            <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3`}>
+            <View className="flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3">
               <Ionicons name="search-outline" size={16} color={COLORS.chocolateBrownMuted} />
               <TextInput
-                style={tw`flex-1 py-2.5 px-2 text-xs text-chocolateBrown`}
+                className="flex-1 py-2.5 px-2 text-xs text-chocolateBrown"
                 placeholder="Search by name, email, or phone…"
                 placeholderTextColor={COLORS.chocolateBrownMuted}
                 value={customerSearch}
@@ -4582,21 +4398,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
           {/* Customer List */}
           {customersLoading ? (
-            <View style={tw`flex-1 items-center justify-center`}>
+            <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-3`}>Loading customers…</Text>
+              <Text className="text-xs text-chocolateBrownMuted mt-3">Loading customers…</Text>
             </View>
           ) : filteredCustomers.length === 0 ? (
-            <View style={tw`flex-1 items-center justify-center px-8`}>
-              <Text style={tw`text-4xl mb-3`}>👥</Text>
-              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>No customers found</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1`}>Try adjusting your search query</Text>
+            <View className="flex-1 items-center justify-center px-8">
+              <Text className="text-4xl mb-3">👥</Text>
+              <Text className="text-base font-black text-chocolateBrown text-center">No customers found</Text>
+              <Text className="text-xs text-chocolateBrownMuted text-center mt-1">Try adjusting your search query</Text>
             </View>
           ) : (
             <FlatList
               data={filteredCustomers}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={tw`p-4 pb-8`}
+              contentContainerClassName="p-4 pb-8"
               showsVerticalScrollIndicator={false}
               renderItem={({ item, index }) => {
                 const initials = item.name
@@ -4611,68 +4427,68 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       setSelectedCustomer(item);
                       setCustomerDetailVisible(true);
                     }}
-                    style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm`}
+                    className="bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-3 shadow-sm"
                     activeOpacity={0.75}
                   >
                     {/* Top Row: Avatar + Name + Orders count */}
-                    <View style={tw`flex-row items-center gap-3 mb-2.5`}>
-                      <View style={[tw`w-12 h-12 rounded-2xl items-center justify-center`, tw`${avatarColor}`]}>
-                        <Text style={tw`text-white font-black text-sm tracking-wider`}>{initials}</Text>
+                    <View className="flex-row items-center gap-3 mb-2.5">
+                      <View className={`w-12 h-12 rounded-2xl items-center justify-center ${avatarColor}`}>
+                        <Text className="text-white font-black text-sm tracking-wider">{initials}</Text>
                       </View>
-                      <View style={tw`flex-1`}>
-                        <View style={tw`flex-row items-center justify-between`}>
-                          <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>
+                      <View className="flex-1">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-sm font-black text-chocolateBrown" numberOfLines={1}>
                             {item.name}
                           </Text>
                           {(item.ordersCount || 0) > 0 && (
-                            <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-lg border border-pistachioGreen`}>
-                              <Text style={tw`text-[10px] font-black text-green-800`}>
+                            <View className="bg-pistachioGreenLight px-2 py-0.5 rounded-lg border border-pistachioGreen">
+                              <Text className="text-[10px] font-black text-green-800">
                                 {item.ordersCount} {item.ordersCount === 1 ? 'order' : 'orders'}
                               </Text>
                             </View>
                           )}
                         </View>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        <Text className="text-[10px] text-chocolateBrownMuted">
                           Customer ID: {item.id}
                         </Text>
                       </View>
                     </View>
 
                     {/* Email Row */}
-                    <View style={tw`flex-row items-center gap-2 mb-1.5`}>
+                    <View className="flex-row items-center gap-2 mb-1.5">
                       <Ionicons name="mail-outline" size={14} color={COLORS.chocolateBrownMuted} />
-                      <Text style={tw`text-xs text-chocolateBrown font-medium flex-1`} numberOfLines={1}>
+                      <Text className="text-xs text-chocolateBrown font-medium flex-1" numberOfLines={1}>
                         {item.email}
                       </Text>
                     </View>
 
                     {/* Phone Number Row + Quick Call */}
-                    <View style={tw`flex-row items-center justify-between`}>
-                      <View style={tw`flex-row items-center gap-2 flex-1`}>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-2 flex-1">
                         <Ionicons name="call-outline" size={14} color={COLORS.pistachioGreen} />
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                        <Text className="text-xs font-bold text-chocolateBrown">
                           {item.phone || 'No phone provided'}
                         </Text>
                       </View>
                       {item.phone && (
                         <TouchableOpacity
                           onPress={() => Linking.openURL(`tel:${item.phone?.replace(/[^0-9+]/g, '')}`)}
-                          style={tw`bg-pistachioGreen/10 border border-pistachioGreen/30 px-2.5 py-1 rounded-xl flex-row items-center gap-1`}
+                          className="bg-pistachioGreen/10 border border-pistachioGreen/30 px-2.5 py-1 rounded-xl flex-row items-center gap-1"
                         >
                           <Ionicons name="call" size={11} color={COLORS.pistachioGreen} />
-                          <Text style={tw`text-[10px] font-black text-green-800`}>Call</Text>
+                          <Text className="text-[10px] font-black text-green-800">Call</Text>
                         </TouchableOpacity>
                       )}
                     </View>
 
                     {/* Total spent and last order date footer */}
                     {((item.totalSpent || 0) > 0 || item.lastOrderDate) && (
-                      <View style={tw`flex-row items-center justify-between border-t border-vanillaCreamDark/60 pt-2 mt-2.5`}>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                      <View className="flex-row items-center justify-between border-t border-vanillaCreamDark/60 pt-2 mt-2.5">
+                        <Text className="text-[10px] text-chocolateBrownMuted">
                           {item.lastOrderDate ? `Last order: ${formatDate(item.lastOrderDate)}` : 'No recent orders'}
                         </Text>
                         {(item.totalSpent || 0) > 0 && (
-                          <Text style={tw`text-xs font-black text-strawberryPink`}>
+                          <Text className="text-xs font-black text-strawberryPink">
                             {(item.totalSpent || 0).toLocaleString()} XAF
                           </Text>
                         )}
@@ -4692,84 +4508,84 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             onRequestClose={() => setCustomerDetailVisible(false)}
           >
             {selectedCustomer && (
-              <View style={tw`flex-1 bg-vanillaCream`}>
-                <View style={tw`flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white`}>
-                  <Text style={tw`text-lg font-black text-chocolateBrown`}>Customer Profile</Text>
+              <View className="flex-1 bg-vanillaCream">
+                <View className="flex-row items-center justify-between px-5 pt-6 pb-4 border-b border-vanillaCreamDark bg-white">
+                  <Text className="text-lg font-black text-chocolateBrown">Customer Profile</Text>
                   <TouchableOpacity onPress={() => setCustomerDetailVisible(false)}>
                     <Ionicons name="close" size={24} color={COLORS.chocolateBrown} />
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView style={tw`flex-1 p-5`}>
+                <ScrollView className="flex-1 p-5">
                   {/* Top Avatar & Name */}
-                  <View style={tw`items-center mb-6 bg-white p-5 rounded-3xl border border-vanillaCreamDark shadow-sm`}>
-                    <View style={tw`w-20 h-20 rounded-3xl bg-strawberryPink items-center justify-center mb-3 shadow-md`}>
-                      <Text style={tw`text-white font-black text-2xl`}>
+                  <View className="items-center mb-6 bg-white p-5 rounded-3xl border border-vanillaCreamDark shadow-sm">
+                    <View className="w-20 h-20 rounded-3xl bg-strawberryPink items-center justify-center mb-3 shadow-md">
+                      <Text className="text-white font-black text-2xl">
                         {selectedCustomer.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
                       </Text>
                     </View>
-                    <Text style={tw`text-xl font-black text-chocolateBrown`}>{selectedCustomer.name}</Text>
-                    <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>{selectedCustomer.email}</Text>
-                    <View style={tw`flex-row items-center gap-1 mt-2 bg-vanillaCream px-3 py-1 rounded-full border border-vanillaCreamDark`}>
+                    <Text className="text-xl font-black text-chocolateBrown">{selectedCustomer.name}</Text>
+                    <Text className="text-xs text-chocolateBrownMuted mt-0.5">{selectedCustomer.email}</Text>
+                    <View className="flex-row items-center gap-1 mt-2 bg-vanillaCream px-3 py-1 rounded-full border border-vanillaCreamDark">
                       <Ionicons name="call-outline" size={12} color={COLORS.pistachioGreen} />
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>{selectedCustomer.phone || 'No phone'}</Text>
+                      <Text className="text-xs font-bold text-chocolateBrown">{selectedCustomer.phone || 'No phone'}</Text>
                     </View>
 
                     {/* Action buttons (Call / WhatsApp / Email) */}
-                    <View style={tw`flex-row gap-2 mt-4 w-full`}>
+                    <View className="flex-row gap-2 mt-4 w-full">
                       {selectedCustomer.phone && (
                         <>
                           <TouchableOpacity
                             onPress={() => Linking.openURL(`tel:${selectedCustomer.phone?.replace(/[^0-9+]/g, '')}`)}
-                            style={tw`flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                            className="flex-1 bg-pistachioGreen py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5"
                           >
                             <Ionicons name="call" size={14} color="#fff" />
-                            <Text style={tw`text-white text-xs font-black`}>Call</Text>
+                            <Text className="text-white text-xs font-black">Call</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={() => Linking.openURL(`https://wa.me/${selectedCustomer.phone?.replace(/[^0-9]/g, '')}`)}
-                            style={tw`flex-1 bg-emerald-600 py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                            className="flex-1 bg-emerald-600 py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5"
                           >
                             <Ionicons name="logo-whatsapp" size={14} color="#fff" />
-                            <Text style={tw`text-white text-xs font-black`}>WhatsApp</Text>
+                            <Text className="text-white text-xs font-black">WhatsApp</Text>
                           </TouchableOpacity>
                         </>
                       )}
                       <TouchableOpacity
                         onPress={() => Linking.openURL(`mailto:${selectedCustomer.email}`)}
-                        style={tw`flex-1 bg-chocolateBrown py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5`}
+                        className="flex-1 bg-chocolateBrown py-2.5 rounded-2xl items-center flex-row justify-center gap-1.5"
                       >
                         <Ionicons name="mail" size={14} color="#fff" />
-                        <Text style={tw`text-white text-xs font-black`}>Email</Text>
+                        <Text className="text-white text-xs font-black">Email</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   {/* Summary Stats */}
-                  <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm`}>
-                    <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
+                  <View className="bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm">
+                    <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3">
                       Purchase Activity
                     </Text>
-                    <View style={tw`flex-row gap-3`}>
-                      <View style={tw`flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark`}>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>TOTAL ORDERS</Text>
-                        <Text style={tw`text-lg font-black text-chocolateBrown mt-0.5`}>
+                    <View className="flex-row gap-3">
+                      <View className="flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark">
+                        <Text className="text-[10px] text-chocolateBrownMuted font-bold">TOTAL ORDERS</Text>
+                        <Text className="text-lg font-black text-chocolateBrown mt-0.5">
                           {selectedCustomer.ordersCount || 0}
                         </Text>
                       </View>
-                      <View style={tw`flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark`}>
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>LIFETIME SPENT</Text>
-                        <Text style={tw`text-lg font-black text-strawberryPink mt-0.5`}>
+                      <View className="flex-1 bg-vanillaCream p-3 rounded-2xl items-center border border-vanillaCreamDark">
+                        <Text className="text-[10px] text-chocolateBrownMuted font-bold">LIFETIME SPENT</Text>
+                        <Text className="text-lg font-black text-strawberryPink mt-0.5">
                           {(selectedCustomer.totalSpent || 0).toLocaleString()}
                         </Text>
-                        <Text style={tw`text-[9px] text-chocolateBrownMuted`}>XAF</Text>
+                        <Text className="text-[9px] text-chocolateBrownMuted">XAF</Text>
                       </View>
                     </View>
                   </View>
 
                   {/* Details Rows */}
-                  <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm`}>
-                    <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2`}>
+                  <View className="bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-4 shadow-sm">
+                    <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2">
                       Customer Information
                     </Text>
                     {[
@@ -4780,9 +4596,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                       { label: 'Member Since', value: selectedCustomer.registeredAt ? formatDate(selectedCustomer.registeredAt) : 'Recent' },
                       { label: 'Last Order', value: selectedCustomer.lastOrderDate ? `${formatDate(selectedCustomer.lastOrderDate)} at ${formatTime(selectedCustomer.lastOrderDate)}` : 'No orders placed yet' },
                     ].map((row) => (
-                      <View key={row.label} style={tw`py-2.5 border-b border-vanillaCreamDark/60 flex-row items-center justify-between`}>
-                        <Text style={tw`text-xs text-chocolateBrownMuted font-bold`}>{row.label}</Text>
-                        <Text style={tw`text-xs font-black text-chocolateBrown text-right flex-1 ml-4`} numberOfLines={2}>
+                      <View key={row.label} className="py-2.5 border-b border-vanillaCreamDark/60 flex-row items-center justify-between">
+                        <Text className="text-xs text-chocolateBrownMuted font-bold">{row.label}</Text>
+                        <Text className="text-xs font-black text-chocolateBrown text-right flex-1 ml-4" numberOfLines={2}>
                           {row.value}
                         </Text>
                       </View>
@@ -4798,8 +4614,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                     );
                     if (custOrders.length === 0) return null;
                     return (
-                      <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-6 shadow-sm`}>
-                        <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
+                      <View className="bg-white rounded-3xl border border-vanillaCreamDark p-4 mb-6 shadow-sm">
+                        <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3">
                           Order History ({custOrders.length})
                         </Text>
                         {custOrders.map((ord) => (
@@ -4811,21 +4627,21 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                               setOrderDetailsVisible(true);
                               setAdminTab('orders');
                             }}
-                            style={tw`p-3 bg-vanillaCream rounded-2xl border border-vanillaCreamDark mb-2 flex-row items-center justify-between`}
+                            className="p-3 bg-vanillaCream rounded-2xl border border-vanillaCreamDark mb-2 flex-row items-center justify-between"
                           >
-                            <View style={tw`flex-1`}>
-                              <View style={tw`flex-row items-center gap-2 mb-0.5`}>
-                                <Text style={tw`text-xs font-black text-chocolateBrown`}>{ord.id}</Text>
-                                <View style={tw`bg-pistachioGreenLight px-2 py-0.5 rounded-md`}>
-                                  <Text style={tw`text-[9px] font-black text-green-800 uppercase`}>{ord.status}</Text>
+                            <View className="flex-1">
+                              <View className="flex-row items-center gap-2 mb-0.5">
+                                <Text className="text-xs font-black text-chocolateBrown">{ord.id}</Text>
+                                <View className="bg-pistachioGreenLight px-2 py-0.5 rounded-md">
+                                  <Text className="text-[9px] font-black text-green-800 uppercase">{ord.status}</Text>
                                 </View>
                               </View>
-                              <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                              <Text className="text-[10px] text-chocolateBrownMuted">
                                 {formatDate(ord.createdAt)} · {ord.items.length} item{ord.items.length !== 1 ? 's' : ''}
                               </Text>
                             </View>
-                            <View style={tw`items-end flex-row items-center gap-1.5`}>
-                              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                            <View className="items-end flex-row items-center gap-1.5">
+                              <Text className="text-xs font-black text-chocolateBrown">
                                 {ord.totalAmount.toLocaleString()} XAF
                               </Text>
                               <Ionicons name="chevron-forward" size={14} color={COLORS.chocolateBrownMuted} />
@@ -4844,17 +4660,17 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
       {/* ══════════════════ SETTINGS TAB ══════════════════ */}
       {adminTab === 'settings' && (
-        <ScrollView style={tw`flex-1 bg-vanillaCream`} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-vanillaCream" showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <View style={tw`px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark`}>
-            <View style={tw`flex-row items-center justify-between`}>
+          <View className="px-5 pt-4 pb-3 bg-white border-b border-vanillaCreamDark">
+            <View className="flex-row items-center justify-between">
               <View>
-                <Text style={tw`text-xl font-black text-chocolateBrown`}>⚙️ Business Settings</Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-xl font-black text-chocolateBrown">⚙️ Business Settings</Text>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   Configure store info, hours, delivery & ordering rules
                 </Text>
               </View>
-              <TouchableOpacity onPress={fetchSettings} style={tw`p-2`} disabled={settingsLoading}>
+              <TouchableOpacity onPress={fetchSettings} className="p-2" disabled={settingsLoading}>
                 {settingsLoading ? (
                   <ActivityIndicator size="small" color={COLORS.strawberryPink} />
                 ) : (
@@ -4864,40 +4680,40 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
           </View>
 
-          <View style={tw`p-5 gap-4`}>
+          <View className="p-5 gap-4">
             {/* 1. Identity & Branding */}
-            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
-              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>🏢 Identity & Branding</Text>
+            <View className="bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm">
+              <Text className="text-sm font-black text-chocolateBrown mb-4">🏢 Identity & Branding</Text>
 
               {/* Logo Upload Section */}
-              <View style={tw`flex-row items-center gap-4 mb-4 pb-4 border-b border-vanillaCreamDark/60`}>
-                <View style={tw`relative`}>
+              <View className="flex-row items-center gap-4 mb-4 pb-4 border-b border-vanillaCreamDark/60">
+                <View className="relative">
                   {settings.logoUrl ? (
-                    <Image source={{ uri: settings.logoUrl }} style={tw`w-20 h-20 rounded-2xl`} resizeMode="cover" />
+                    <Image source={{ uri: settings.logoUrl }} className="w-20 h-20 rounded-2xl" resizeMode="cover" />
                   ) : (
-                    <View style={tw`w-20 h-20 rounded-2xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark`}>
+                    <View className="w-20 h-20 rounded-2xl bg-vanillaCream items-center justify-center border border-vanillaCreamDark">
                       <Ionicons name="image-outline" size={32} color={COLORS.chocolateBrownMuted} />
                     </View>
                   )}
                   {logoUploading && (
-                    <View style={tw`absolute inset-0 bg-black/40 rounded-2xl items-center justify-center`}>
+                    <View className="absolute inset-0 bg-black/40 rounded-2xl items-center justify-center">
                       <ActivityIndicator size="small" color="#fff" />
                     </View>
                   )}
                 </View>
 
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-xs font-black text-chocolateBrown mb-1`}>Business Logo</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted mb-2`}>
+                <View className="flex-1">
+                  <Text className="text-xs font-black text-chocolateBrown mb-1">Business Logo</Text>
+                  <Text className="text-[10px] text-chocolateBrownMuted mb-2">
                     Uploaded directly to Cloudinary and displayed across the customer app.
                   </Text>
                   <TouchableOpacity
                     onPress={handleUploadLogo}
                     disabled={logoUploading}
-                    style={tw`self-start bg-strawberryPink/10 border border-strawberryPink/30 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5`}
+                    className="self-start bg-strawberryPink/10 border border-strawberryPink/30 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5"
                   >
                     <Ionicons name="cloud-upload-outline" size={13} color={COLORS.strawberryPink} />
-                    <Text style={tw`text-xs font-bold text-strawberryPink`}>
+                    <Text className="text-xs font-bold text-strawberryPink">
                       {logoUploading ? 'Uploading…' : 'Upload New Logo'}
                     </Text>
                   </TouchableOpacity>
@@ -4905,10 +4721,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
 
               {/* Business Name */}
-              <View style={tw`mb-3`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS NAME</Text>
+              <View className="mb-3">
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">BUSINESS NAME</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-sm font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-sm font-bold text-chocolateBrown border border-vanillaCreamDark"
                   value={settings.businessName}
                   onChangeText={(text) => setSettings((prev) => ({ ...prev, businessName: text }))}
                   placeholder="e.g. Best Cream"
@@ -4918,9 +4734,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {/* Tagline */}
               <View>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>TAGLINE / SLOGAN</Text>
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">TAGLINE / SLOGAN</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark"
                   value={settings.tagline || ''}
                   onChangeText={(text) => setSettings((prev) => ({ ...prev, tagline: text }))}
                   placeholder="e.g. Handcrafted Ice Creams & Hot Fluffy Pancakes"
@@ -4930,14 +4746,14 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* 2. Contact & Address */}
-            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
-              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>📍 Contact & Address</Text>
+            <View className="bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm">
+              <Text className="text-sm font-black text-chocolateBrown mb-4">📍 Contact & Address</Text>
 
               {/* Phone */}
-              <View style={tw`mb-3`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS PHONE NUMBER</Text>
+              <View className="mb-3">
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">BUSINESS PHONE NUMBER</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark"
                   value={settings.phone}
                   onChangeText={(text) => setSettings((prev) => ({ ...prev, phone: text }))}
                   placeholder="+237 6XX XXX XXX"
@@ -4947,10 +4763,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
 
               {/* Email */}
-              <View style={tw`mb-3`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BUSINESS EMAIL</Text>
+              <View className="mb-3">
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">BUSINESS EMAIL</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark"
                   value={settings.email}
                   onChangeText={(text) => setSettings((prev) => ({ ...prev, email: text }))}
                   placeholder="contact@bestcream.cm"
@@ -4962,9 +4778,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {/* Physical Address */}
               <View>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>PHYSICAL STORE ADDRESS</Text>
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">PHYSICAL STORE ADDRESS</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs text-chocolateBrown border border-vanillaCreamDark"
                   value={settings.address}
                   onChangeText={(text) => setSettings((prev) => ({ ...prev, address: text }))}
                   placeholder="Store location in Yaoundé"
@@ -4975,25 +4791,25 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             </View>
 
             {/* 3. Opening Hours & Operating Days */}
-            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
-              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>⏰ Hours & Operating Days</Text>
+            <View className="bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm">
+              <Text className="text-sm font-black text-chocolateBrown mb-4">⏰ Hours & Operating Days</Text>
 
               {/* Hours row */}
-              <View style={tw`flex-row gap-3 mb-4`}>
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>OPENING TIME</Text>
+              <View className="flex-row gap-3 mb-4">
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">OPENING TIME</Text>
                   <TextInput
-                    style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center`}
+                    className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center"
                     value={settings.openingTime}
                     onChangeText={(text) => setSettings((prev) => ({ ...prev, openingTime: text }))}
                     placeholder="08:00"
                     placeholderTextColor={COLORS.chocolateBrownMuted}
                   />
                 </View>
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>CLOSING TIME</Text>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">CLOSING TIME</Text>
                   <TextInput
-                    style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center`}
+                    className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark text-center"
                     value={settings.closingTime}
                     onChangeText={(text) => setSettings((prev) => ({ ...prev, closingTime: text }))}
                     placeholder="22:00"
@@ -5003,8 +4819,8 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
 
               {/* Operating Days */}
-              <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-2`}>OPERATING DAYS</Text>
-              <View style={tw`flex-row flex-wrap gap-2`}>
+              <Text className="text-xs font-bold text-chocolateBrownMuted mb-2">OPERATING DAYS</Text>
+              <View className="flex-row flex-wrap gap-2">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                   const isSelected = settings.operatingDays.includes(day);
                   return (
@@ -5016,32 +4832,29 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
                           : [...settings.operatingDays, day];
                         setSettings((prev) => ({ ...prev, operatingDays: updated }));
                       }}
-                      style={[
-                        tw`px-3 py-2 rounded-2xl border items-center min-w-[42px]`,
-                        isSelected ? tw`bg-chocolateBrown border-chocolateBrown` : tw`bg-vanillaCream border-vanillaCreamDark`,
-                      ]}
+                      className={`px-3 py-2 rounded-2xl border items-center min-w-[42px] ${(isSelected) ? 'bg-chocolateBrown border-chocolateBrown' : 'bg-vanillaCream border-vanillaCreamDark'}`}
                     >
-                      <Text style={[tw`text-xs font-bold`, isSelected ? tw`text-white` : tw`text-chocolateBrownMuted`]}>
+                      <Text className={`text-xs font-bold ${(isSelected) ? 'text-white' : 'text-chocolateBrownMuted'}`}>
                         {day}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
-              <Text style={tw`text-[10px] text-chocolateBrownMuted mt-2`}>
+              <Text className="text-[10px] text-chocolateBrownMuted mt-2">
                 Open {settings.operatingDays.length} day{settings.operatingDays.length !== 1 ? 's' : ''} a week ({settings.operatingDays.join(', ') || 'None'})
               </Text>
             </View>
 
             {/* 4. Delivery & Order Rules */}
-            <View style={tw`bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm`}>
-              <Text style={tw`text-sm font-black text-chocolateBrown mb-4`}>🚚 Delivery & Order Rules</Text>
+            <View className="bg-white rounded-3xl border border-vanillaCreamDark p-5 shadow-sm">
+              <Text className="text-sm font-black text-chocolateBrown mb-4">🚚 Delivery & Order Rules</Text>
 
               {/* Delivery Availability Toggle */}
-              <View style={tw`flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60`}>
-                <View style={tw`flex-1 mr-3`}>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Home Delivery Availability</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+              <View className="flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60">
+                <View className="flex-1 mr-3">
+                  <Text className="text-xs font-black text-chocolateBrown">Home Delivery Availability</Text>
+                  <Text className="text-[10px] text-chocolateBrownMuted mt-0.5">
                     When turned on, customers can place delivery orders.
                   </Text>
                 </View>
@@ -5053,10 +4866,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
 
               {/* In-Store Pickup Toggle */}
-              <View style={tw`flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60`}>
-                <View style={tw`flex-1 mr-3`}>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Store Pickup Availability</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted mt-0.5`}>
+              <View className="flex-row items-center justify-between py-2 border-b border-vanillaCreamDark/60">
+                <View className="flex-1 mr-3">
+                  <Text className="text-xs font-black text-chocolateBrown">Store Pickup Availability</Text>
+                  <Text className="text-[10px] text-chocolateBrownMuted mt-0.5">
                     Allow customers to order ahead and pick up in store.
                   </Text>
                 </View>
@@ -5068,10 +4881,10 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               </View>
 
               {/* Base Delivery Fee */}
-              <View style={tw`mt-3 mb-3`}>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>BASE DELIVERY CHARGE (XAF)</Text>
+              <View className="mt-3 mb-3">
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">BASE DELIVERY CHARGE (XAF)</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark"
                   value={String(settings.baseDeliveryFee ?? 1000)}
                   onChangeText={(text) => {
                     const parsed = parseInt(text.replace(/[^0-9]/g, '')) || 0;
@@ -5085,9 +4898,9 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
 
               {/* Minimum Order Amount */}
               <View>
-                <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-1`}>MINIMUM ORDER AMOUNT (XAF)</Text>
+                <Text className="text-xs font-bold text-chocolateBrownMuted mb-1">MINIMUM ORDER AMOUNT (XAF)</Text>
                 <TextInput
-                  style={tw`bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark`}
+                  className="bg-vanillaCream rounded-2xl px-3.5 py-2.5 text-xs font-bold text-chocolateBrown border border-vanillaCreamDark"
                   value={String(settings.minOrderAmount ?? 2000)}
                   onChangeText={(text) => {
                     const parsed = parseInt(text.replace(/[^0-9]/g, '')) || 0;
@@ -5104,7 +4917,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
             <TouchableOpacity
               onPress={handleSaveSettings}
               disabled={settingsSaving}
-              style={tw`bg-strawberryPink py-4 rounded-3xl items-center flex-row justify-center gap-2 shadow-md mb-8`}
+              className="bg-strawberryPink py-4 rounded-3xl items-center flex-row justify-center gap-2 shadow-md mb-8"
               activeOpacity={0.8}
             >
               {settingsSaving ? (
@@ -5112,7 +4925,7 @@ export default function AdminScreen({ apiUrl, adminName, onLogout }: AdminScreen
               ) : (
                 <>
                   <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                  <Text style={tw`text-white text-sm font-black`}>Save Changes</Text>
+                  <Text className="text-white text-sm font-black">Save Changes</Text>
                 </>
               )}
             </TouchableOpacity>

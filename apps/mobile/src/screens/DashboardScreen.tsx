@@ -28,7 +28,6 @@ import { downloadReceiptPdf } from '../utils/receipt';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
 import type { Language, TranslationKey } from '../utils/i18n';
-import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import {
   STORE_LOCATION,
@@ -927,49 +926,46 @@ export default function DashboardScreen({
     Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) + 12 : 12;
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-pageBg`}>
+    <SafeAreaView className="flex-1 bg-pageBg">
       <StatusBar style="dark" />
 
       {/* ── Top Header Bar ── */}
       <View
-        style={[
-          tw`flex-row items-center justify-between px-5 pb-3 bg-white border-b border-borderSubtle`,
-          { paddingTop: topInset },
-        ]}
+        className="flex-row items-center justify-between px-5 pb-3 bg-white border-b border-borderSubtle" style={{ paddingTop: topInset }}
       >
-        <View style={tw`flex-row items-center gap-3 flex-1 mr-3`}>
-          <View style={tw`w-11 h-11 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20 shadow-sm`}>
-            <Text style={tw`text-2xl`}>🍦</Text>
+        <View className="flex-row items-center gap-3 flex-1 mr-3">
+          <View className="w-11 h-11 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20 shadow-sm">
+            <Text className="text-2xl">🍦</Text>
           </View>
-          <View style={tw`flex-1`}>
-            <Text style={tw`text-lg font-black text-chocolateBrown tracking-tight`} numberOfLines={1}>
+          <View className="flex-1">
+            <Text className="text-lg font-black text-chocolateBrown tracking-tight" numberOfLines={1}>
               {isNewUser ? `${t('welcomeUser')} ${userName}` : `${t('welcomeBackUser')} ${userName}`}
             </Text>
-            <Text style={tw`text-xs font-semibold text-chocolateBrownLight mt-0.5`} numberOfLines={1}>
+            <Text className="text-xs font-semibold text-chocolateBrownLight mt-0.5" numberOfLines={1}>
               {t('readyForTreats')}
             </Text>
           </View>
         </View>
 
         {/* Header Action Buttons (Cart, Notification) */}
-        <View style={tw`flex-row items-center gap-2`}>
+        <View className="flex-row items-center gap-2">
           {/* 1. Cart Button */}
           <TouchableOpacity
-            style={tw`w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm`}
+            className="w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm"
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.8}
           >
             <Ionicons name="cart" size={19} color={COLORS.chocolateBrown} />
             {totalCartCount > 0 && (
-              <View style={tw`absolute -top-1.5 -right-1.5 bg-strawberryPink min-w-5 h-5 rounded-full items-center justify-center px-1 shadow-sm`}>
-                <Text style={tw`text-[10px] font-black text-white`}>{totalCartCount}</Text>
+              <View className="absolute -top-1.5 -right-1.5 bg-strawberryPink min-w-5 h-5 rounded-full items-center justify-center px-1 shadow-sm">
+                <Text className="text-[10px] font-black text-white">{totalCartCount}</Text>
               </View>
             )}
           </TouchableOpacity>
 
           {/* 2. Notification Button */}
           <TouchableOpacity
-            style={tw`w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm relative`}
+            className="w-10 h-10 rounded-2xl bg-surfaceBright items-center justify-center border border-borderSubtle shadow-sm relative"
             onPress={() =>
               Alert.alert(
                 '🔔 Notifications',
@@ -979,17 +975,17 @@ export default function DashboardScreen({
             activeOpacity={0.8}
           >
             <Ionicons name="notifications-outline" size={19} color={COLORS.chocolateBrown} />
-            <View style={tw`absolute top-2 right-2 w-2 h-2 rounded-full bg-strawberryPink`} />
+            <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-strawberryPink" />
           </TouchableOpacity>
 
           {/* 3. Profile Button */}
           <TouchableOpacity
-            style={tw`w-10 h-10 rounded-2xl bg-strawberryPink items-center justify-center border border-strawberryPinkDark shadow-sm overflow-hidden`}
+            className="w-10 h-10 rounded-2xl bg-strawberryPink items-center justify-center border border-strawberryPinkDark shadow-sm overflow-hidden"
             onPress={() => setActiveTab('profile')}
             activeOpacity={0.8}
           >
             {profilePicture ? (
-              <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
+              <Image source={{ uri: profilePicture }} className="w-full h-full" resizeMode="cover" />
             ) : (
               <Ionicons name="person" size={19} color={COLORS.chocolateBrown} />
             )}
@@ -999,36 +995,36 @@ export default function DashboardScreen({
 
       {/* ── Prominent Location Bar (Yaoundé Store & Delivery Destination) ── */}
       <TouchableOpacity
-        style={tw`flex-row items-center justify-between bg-white mx-4 mt-3 mb-2 px-3.5 py-2.5 rounded-2xl border border-borderSubtle shadow-sm`}
+        className="flex-row items-center justify-between bg-white mx-4 mt-3 mb-2 px-3.5 py-2.5 rounded-2xl border border-borderSubtle shadow-sm"
         onPress={() => setIsLocationModalVisible(true)}
         activeOpacity={0.8}
       >
-        <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
-          <View style={tw`w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+        <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+          <View className="w-9 h-9 rounded-xl bg-strawberryPinkLight items-center justify-center">
             <Ionicons name="location" size={18} color={COLORS.strawberryPink} />
           </View>
-          <View style={tw`flex-1`}>
-            <View style={tw`flex-row items-center gap-1.5`}>
-              <Text style={tw`text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider`}>
+          <View className="flex-1">
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-[10px] font-black text-chocolateBrownMuted uppercase tracking-wider">
                 Delivery Destination
               </Text>
-              <Text style={tw`text-[9px] bg-strawberryPinkLight text-strawberryPink font-bold px-1.5 py-0.2 rounded-md`}>
+              <Text className="text-[9px] bg-strawberryPinkLight text-strawberryPink font-bold px-1.5 py-0.2 rounded-md">
                 Yaoundé
               </Text>
             </View>
-            <Text style={tw`text-xs font-black text-chocolateBrown mt-0.5`} numberOfLines={1}>
+            <Text className="text-xs font-black text-chocolateBrown mt-0.5" numberOfLines={1}>
               {locationResult ? locationResult.displayName : 'Tap to set location or detect GPS'}
             </Text>
             {locationResult && (
-              <Text style={tw`text-[10px] font-bold text-pistachioGreen mt-0.5`}>
+              <Text className="text-[10px] font-bold text-pistachioGreen mt-0.5">
                 {formatDistance(locationResult.distanceKm)} from Centre-ville • {locationResult.tier.fee === 0 ? 'FREE delivery' : `${formatXAF(locationResult.tier.fee)} fee`} • {locationResult.tier.estimatedMinutes}
               </Text>
             )}
           </View>
         </View>
 
-        <View style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1.5 rounded-xl border border-borderSubtle`}>
-          <Text style={tw`text-[11px] font-black text-chocolateBrown`}>
+        <View className="flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1.5 rounded-xl border border-borderSubtle">
+          <Text className="text-[11px] font-black text-chocolateBrown">
             {locationResult ? 'Change' : 'Set 📍'}
           </Text>
           <Ionicons name="chevron-down" size={12} color={COLORS.chocolateBrown} />
@@ -1039,15 +1035,15 @@ export default function DashboardScreen({
       {activeTab === 'menu' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw`px-5 pt-2 pb-28`}
+          contentContainerClassName="px-5 pt-2 pb-28"
         >
           {/* Search Bar */}
-          <View style={tw`flex-row items-center bg-white rounded-2xl px-4 py-3 my-2 border border-borderSubtle shadow-md`}>
-            <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center mr-3`}>
+          <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 my-2 border border-borderSubtle shadow-md">
+            <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center mr-3">
               <Ionicons name="search" size={18} color={COLORS.strawberryPink} />
             </View>
             <TextInput
-              style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+              className="flex-1 text-sm font-semibold text-chocolateBrown"
               placeholder={t('searchPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={searchQuery}
@@ -1057,22 +1053,22 @@ export default function DashboardScreen({
             {searchQuery.length > 0 ? (
               <TouchableOpacity
                 onPress={() => setSearchQuery('')}
-                style={tw`w-7 h-7 rounded-lg bg-vanillaCream items-center justify-center ml-1`}
+                className="w-7 h-7 rounded-lg bg-vanillaCream items-center justify-center ml-1"
                 activeOpacity={0.7}
               >
                 <Ionicons name="close" size={14} color={COLORS.chocolateBrownMuted} />
               </TouchableOpacity>
             ) : (
-              <View style={tw`px-2.5 py-1 rounded-lg bg-butterYellowLight border border-butterYellow/40 ml-1`}>
-                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>⌘ K</Text>
+              <View className="px-2.5 py-1 rounded-lg bg-butterYellowLight border border-butterYellow/40 ml-1">
+                <Text className="text-[10px] font-black text-chocolateBrown">⌘ K</Text>
               </View>
             )}
           </View>
 
           {/* Sort & Availability Controls */}
-          <View style={tw`flex-row items-center justify-between my-1 px-1`}>
+          <View className="flex-row items-center justify-between my-1 px-1">
             <TouchableOpacity
-              style={tw`flex-row items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-borderSubtle shadow-sm`}
+              className="flex-row items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-borderSubtle shadow-sm"
               onPress={() => {
                 Alert.alert(
                   t('sortBy'),
@@ -1090,9 +1086,9 @@ export default function DashboardScreen({
               activeOpacity={0.8}
             >
               <Ionicons name="funnel-outline" size={15} color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+              <Text className="text-xs font-bold text-chocolateBrown">
                 {t('sortBy')}:{' '}
-                <Text style={tw`text-strawberryPink font-black`}>
+                <Text className="text-strawberryPink font-black">
                   {sortBy === 'default' ? t('sortDefault')
                     : sortBy === 'price-asc' ? t('sortPriceLowHigh')
                     : sortBy === 'price-desc' ? t('sortPriceHighLow')
@@ -1103,10 +1099,7 @@ export default function DashboardScreen({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1 px-3 py-2 rounded-xl border border-borderSubtle bg-white shadow-sm`,
-                showUnavailable && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1 px-3 py-2 rounded-xl border border-borderSubtle bg-white shadow-sm ${(showUnavailable) ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setShowUnavailable((prev) => !prev)}
               activeOpacity={0.8}
             >
@@ -1116,10 +1109,7 @@ export default function DashboardScreen({
                 color={showUnavailable ? COLORS.white : COLORS.chocolateBrownMuted}
               />
               <Text
-                style={[
-                  tw`text-[11px] font-bold`,
-                  showUnavailable ? tw`text-white font-black` : tw`text-chocolateBrownMuted`,
-                ]}
+                className={`text-[11px] font-bold ${(showUnavailable) ? 'text-white font-black' : 'text-chocolateBrownMuted'}`}
               >
                 {showUnavailable ? t('hideUnavailable') : t('showUnavailable')}
               </Text>
@@ -1127,27 +1117,27 @@ export default function DashboardScreen({
           </View>
 
           {/* ── Interactive Yaoundé Map Card on Main Dashboard ── */}
-          <View style={tw`bg-white rounded-3xl p-4 my-2 border border-borderSubtle shadow-md`}>
-            <View style={tw`flex-row justify-between items-center mb-3 px-0.5`}>
-              <View style={tw`flex-row items-center gap-2.5`}>
-                <View style={tw`w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
+          <View className="bg-white rounded-3xl p-4 my-2 border border-borderSubtle shadow-md">
+            <View className="flex-row justify-between items-center mb-3 px-0.5">
+              <View className="flex-row items-center gap-2.5">
+                <View className="w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20">
                   <Ionicons name="map" size={17} color={COLORS.strawberryPink} />
                 </View>
                 <View>
-                  <Text style={tw`text-sm font-black text-chocolateBrown`}>Yaoundé Delivery Map</Text>
-                  <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                  <Text className="text-sm font-black text-chocolateBrown">Yaoundé Delivery Map</Text>
+                  <Text className="text-[11px] text-chocolateBrownMuted font-medium">
                     Best Cream Centre-ville ➔ Destination
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1 bg-strawberryPinkLight px-3 py-1.5 rounded-xl border border-strawberryPink/30`}
+                className="flex-row items-center gap-1 bg-strawberryPinkLight px-3 py-1.5 rounded-xl border border-strawberryPink/30"
                 onPress={() => setIsMapExpanded(!isMapExpanded)}
                 activeOpacity={0.8}
               >
                 <Ionicons name={isMapExpanded ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.strawberryPink} />
-                <Text style={tw`text-[11px] font-black text-strawberryPink`}>
+                <Text className="text-[11px] font-black text-strawberryPink">
                   {isMapExpanded ? 'Hide' : 'View Map'}
                 </Text>
               </TouchableOpacity>
@@ -1156,15 +1146,15 @@ export default function DashboardScreen({
             {isMapExpanded && (
               <>
                 {/* Dual-Point Delivery Route Header Strip */}
-                <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-2.5 border border-borderSubtle`}>
-                  <View style={tw`flex-row items-center gap-1.5`}>
-                    <View style={tw`w-2.5 h-2.5 rounded-full bg-strawberryPink shadow-sm`} />
-                    <Text style={tw`text-[11px] font-black text-chocolateBrown`}>🍦 Best Cream Shop</Text>
+                <View className="flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-2.5 border border-borderSubtle">
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="w-2.5 h-2.5 rounded-full bg-strawberryPink shadow-sm" />
+                    <Text className="text-[11px] font-black text-chocolateBrown">🍦 Best Cream Shop</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={12} color={COLORS.strawberryPink} />
-                  <View style={tw`flex-row items-center gap-1.5 flex-1 justify-end ml-2`}>
-                    <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm`} />
-                    <Text style={tw`text-[11px] font-black text-emerald-800`} numberOfLines={1}>
+                  <View className="flex-row items-center gap-1.5 flex-1 justify-end ml-2">
+                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+                    <Text className="text-[11px] font-black text-emerald-800" numberOfLines={1}>
                       📍 {locationResult ? locationResult.displayName : 'Select Destination'}
                     </Text>
                   </View>
@@ -1180,47 +1170,44 @@ export default function DashboardScreen({
 
                 {/* Status bar under map */}
                 {locationResult ? (
-                  <View style={tw`flex-row justify-between items-center bg-emerald-50 mt-2.5 px-3.5 py-2.5 rounded-2xl border border-emerald-200`}>
-                    <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                      <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
+                  <View className="flex-row justify-between items-center bg-emerald-50 mt-2.5 px-3.5 py-2.5 rounded-2xl border border-emerald-200">
+                    <View className="flex-row items-center gap-2 flex-1 mr-2">
+                      <Text className="text-base">{locationResult.tier.emoji}</Text>
                       <View>
-                        <Text style={tw`text-xs font-black text-emerald-950`} numberOfLines={1}>
+                        <Text className="text-xs font-black text-emerald-950" numberOfLines={1}>
                           {locationResult.displayName}
                         </Text>
-                        <Text style={tw`text-[10px] font-bold text-emerald-700`}>
+                        <Text className="text-[10px] font-bold text-emerald-700">
                           {locationResult.tier.label} • ~{locationResult.tier.estimatedMinutes}
                         </Text>
                       </View>
                     </View>
-                    <View style={tw`items-end`}>
-                      <Text style={tw`text-xs font-black text-emerald-900`}>
+                    <View className="items-end">
+                      <Text className="text-xs font-black text-emerald-900">
                         {locationResult.tier.fee === 0 ? 'FREE DELIVERY' : formatXAF(locationResult.tier.fee)}
                       </Text>
-                      <Text style={tw`text-[10px] font-bold text-emerald-600`}>
+                      <Text className="text-[10px] font-bold text-emerald-600">
                         {formatDistance(locationResult.distanceKm)} away
                       </Text>
                     </View>
                   </View>
                 ) : (
-                  <View style={tw`bg-surfaceBright rounded-xl p-2.5 mt-2 border border-borderSubtle`}>
-                    <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                  <View className="bg-surfaceBright rounded-xl p-2.5 mt-2 border border-borderSubtle">
+                    <Text className="text-[11px] text-chocolateBrownMuted font-medium">
                       💡 Tap anywhere on the map or pick a Yaoundé quarter below to see delivery route & fees:
                     </Text>
                   </View>
                 )}
 
                 {/* Quick Yaoundé Quarter Chips directly under map */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-2.5`}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2.5">
                   <TouchableOpacity
-                    style={[
-                      tw`flex-row items-center gap-1.5 bg-strawberryPinkLight border border-strawberryPink/40 px-3 py-1.5 rounded-xl mr-2`,
-                      locationLoading && tw`opacity-70`,
-                    ]}
+                    className={`flex-row items-center gap-1.5 bg-strawberryPinkLight border border-strawberryPink/40 px-3 py-1.5 rounded-xl mr-2 ${(locationLoading) ? 'opacity-70' : ''}`}
                     onPress={detectGPSLocation}
                     disabled={locationLoading}
                   >
                     <Ionicons name="navigate" size={12} color={COLORS.strawberryPink} />
-                    <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                    <Text className="text-[10px] font-black text-strawberryPink">
                       {locationLoading ? 'Locating...' : 'My GPS'}
                     </Text>
                   </TouchableOpacity>
@@ -1230,17 +1217,11 @@ export default function DashboardScreen({
                     return (
                       <TouchableOpacity
                         key={quarter}
-                        style={[
-                          tw`px-3 py-1.5 rounded-xl border border-borderSubtle bg-white mr-2 shadow-xs`,
-                          isSel && tw`bg-strawberryPink border-strawberryPink shadow-sm`,
-                        ]}
+                        className={`px-3 py-1.5 rounded-xl border border-borderSubtle bg-white mr-2 shadow-xs ${(isSel) ? 'bg-strawberryPink border-strawberryPink shadow-sm' : ''}`}
                         onPress={() => selectQuarter(quarter)}
                       >
                         <Text
-                          style={[
-                            tw`text-[10px] font-bold text-chocolateBrown`,
-                            isSel && tw`text-white font-black`,
-                          ]}
+                          className={`text-[10px] font-bold text-chocolateBrown ${(isSel) ? 'text-white font-black' : ''}`}
                         >
                           📍 {quarter}
                         </Text>
@@ -1253,42 +1234,42 @@ export default function DashboardScreen({
           </View>
 
           {/* Hero Promotional Banner (Artisanal Sweets & Today's Special) */}
-          <View style={tw`bg-chocolateBrown rounded-3xl p-5 my-2 shadow-lg relative overflow-hidden`}>
+          <View className="bg-chocolateBrown rounded-3xl p-5 my-2 shadow-lg relative overflow-hidden">
             {/* Soft decorative accent shapes */}
-            <View style={tw`absolute -right-8 -top-8 w-32 h-32 rounded-full bg-strawberryPink/20`} />
-            <View style={tw`absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-butterYellow/15`} />
+            <View className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-strawberryPink/20" />
+            <View className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-butterYellow/15" />
 
-            <View style={tw`flex-row items-center justify-between mb-2.5`}>
-              <View style={tw`flex-row items-center bg-strawberryPink px-3 py-1 rounded-full gap-1.5 shadow-sm`}>
+            <View className="flex-row items-center justify-between mb-2.5">
+              <View className="flex-row items-center bg-strawberryPink px-3 py-1 rounded-full gap-1.5 shadow-sm">
                 <Ionicons name="sparkles" size={12} color={COLORS.white} />
-                <Text style={tw`text-[10px] font-black text-white tracking-wider uppercase`}>
+                <Text className="text-[10px] font-black text-white tracking-wider uppercase">
                   TODAY'S SPECIAL
                 </Text>
               </View>
-              <View style={tw`bg-white/15 px-2.5 py-1 rounded-full`}>
-                <Text style={tw`text-[11px] font-bold text-butterYellow`}>20% OFF COMBO</Text>
+              <View className="bg-white/15 px-2.5 py-1 rounded-full">
+                <Text className="text-[11px] font-bold text-butterYellow">20% OFF COMBO</Text>
               </View>
             </View>
 
-            <Text style={tw`text-lg font-black text-white mb-1 tracking-tight`}>
+            <Text className="text-lg font-black text-white mb-1 tracking-tight">
               Double Scoop & Hot Pancake Combo! 🍦🥞
             </Text>
-            <Text style={tw`text-xs font-medium text-white/80 leading-4 mb-3.5`}>
+            <Text className="text-xs font-medium text-white/80 leading-4 mb-3.5">
               Pair any fresh artisanal ice cream scoop with warm fluffy pancakes. Freshly prepared to order.
             </Text>
 
-            <View style={tw`flex-row items-center justify-between`}>
-              <View style={tw`flex-row items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl`}>
-                <Text style={tw`text-[11px] font-bold text-white/90`}>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl">
+                <Text className="text-[11px] font-bold text-white/90">
                   📱 MTN MoMo & Orange Money
                 </Text>
               </View>
               <TouchableOpacity
-                style={tw`bg-strawberryPink px-3.5 py-1.5 rounded-xl shadow-sm`}
+                className="bg-strawberryPink px-3.5 py-1.5 rounded-xl shadow-sm"
                 onPress={() => setSelectedCategory('combo')}
                 activeOpacity={0.85}
               >
-                <Text style={tw`text-xs font-black text-white`}>Order Now →</Text>
+                <Text className="text-xs font-black text-white">Order Now →</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1297,13 +1278,10 @@ export default function DashboardScreen({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`flex-row gap-2 py-3`}
+            contentContainerClassName="flex-row gap-2 py-3"
           >
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'all' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'all') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('all')}
             >
               <MaterialCommunityIcons
@@ -1312,20 +1290,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'all' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'all' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'all') ? 'text-white font-black' : ''}`}
               >
                 {t('allTreats')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'ice-cream' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'ice-cream') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('ice-cream')}
             >
               <Ionicons
@@ -1334,20 +1306,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'ice-cream' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'ice-cream' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'ice-cream') ? 'text-white font-black' : ''}`}
               >
                 {t('iceCream')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'pancake' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'pancake') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('pancake')}
             >
               <MaterialCommunityIcons
@@ -1356,20 +1322,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'pancake' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'pancake' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'pancake') ? 'text-white font-black' : ''}`}
               >
                 {t('pancakeCategory')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'topping' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'topping') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('topping')}
             >
               <MaterialCommunityIcons
@@ -1378,20 +1338,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'topping' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'topping' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'topping') ? 'text-white font-black' : ''}`}
               >
                 Toppings
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'drink' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'drink') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('drink')}
             >
               <Ionicons
@@ -1400,20 +1354,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'drink' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'drink' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'drink') ? 'text-white font-black' : ''}`}
               >
                 Drinks
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'special-offer' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'special-offer') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('special-offer')}
             >
               <Ionicons
@@ -1422,20 +1370,14 @@ export default function DashboardScreen({
                 color={selectedCategory === 'special-offer' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'special-offer' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'special-offer') ? 'text-white font-black' : ''}`}
               >
                 Special Offers
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                tw`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm`,
-                selectedCategory === 'combo' && tw`bg-strawberryPink border-strawberryPink`,
-              ]}
+              className={`flex-row items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border border-borderSubtle shadow-sm ${(selectedCategory === 'combo') ? 'bg-strawberryPink border-strawberryPink' : ''}`}
               onPress={() => setSelectedCategory('combo')}
             >
               <Feather
@@ -1444,10 +1386,7 @@ export default function DashboardScreen({
                 color={selectedCategory === 'combo' ? COLORS.white : COLORS.chocolateBrown}
               />
               <Text
-                style={[
-                  tw`text-xs font-bold text-chocolateBrown`,
-                  selectedCategory === 'combo' && tw`text-white font-black`,
-                ]}
+                className={`text-xs font-bold text-chocolateBrown ${(selectedCategory === 'combo') ? 'text-white font-black' : ''}`}
               >
                 {t('combosCategory')}
               </Text>
@@ -1456,27 +1395,27 @@ export default function DashboardScreen({
 
           {/* Today's Ice Cream Flavours Banner if published */}
           {dailyMenu && dailyMenu.availableFlavors && dailyMenu.availableFlavors.length > 0 && (
-            <View style={tw`my-2 p-4 bg-white rounded-3xl border border-borderSubtle shadow-sm`}>
-              <View style={tw`flex-row items-center justify-between mb-2.5`}>
-                <View style={tw`flex-row items-center gap-2`}>
-                  <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
-                    <Text style={tw`text-base`}>🍦</Text>
+            <View className="my-2 p-4 bg-white rounded-3xl border border-borderSubtle shadow-sm">
+              <View className="flex-row items-center justify-between mb-2.5">
+                <View className="flex-row items-center gap-2">
+                  <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center">
+                    <Text className="text-base">🍦</Text>
                   </View>
                   <View>
-                    <Text style={tw`text-xs font-black text-chocolateBrown`}>Today's Fresh Churned Flavours</Text>
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted font-medium`}>Handcrafted fresh every morning</Text>
+                    <Text className="text-xs font-black text-chocolateBrown">Today's Fresh Churned Flavours</Text>
+                    <Text className="text-[10px] text-chocolateBrownMuted font-medium">Handcrafted fresh every morning</Text>
                   </View>
                 </View>
-                <View style={tw`bg-strawberryPinkLight px-2.5 py-1 rounded-full`}>
-                  <Text style={tw`text-[10px] font-black text-strawberryPink`}>{dailyMenu.availableFlavors.length} today</Text>
+                <View className="bg-strawberryPinkLight px-2.5 py-1 rounded-full">
+                  <Text className="text-[10px] font-black text-strawberryPink">{dailyMenu.availableFlavors.length} today</Text>
                 </View>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={tw`flex-row gap-2`}>
+                <View className="flex-row gap-2">
                   {dailyMenu.availableFlavors.map((flv) => (
-                    <View key={flv} style={tw`bg-surfaceBright px-3 py-1.5 rounded-full border border-borderSubtle shadow-xs flex-row items-center gap-1.5`}>
-                      <View style={tw`w-2 h-2 rounded-full bg-pistachioGreen`} />
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>{flv}</Text>
+                    <View key={flv} className="bg-surfaceBright px-3 py-1.5 rounded-full border border-borderSubtle shadow-xs flex-row items-center gap-1.5">
+                      <View className="w-2 h-2 rounded-full bg-pistachioGreen" />
+                      <Text className="text-xs font-bold text-chocolateBrown">{flv}</Text>
                     </View>
                   ))}
                 </View>
@@ -1485,8 +1424,8 @@ export default function DashboardScreen({
           )}
 
           {/* Section Heading */}
-          <View style={tw`flex-row justify-between items-center my-2`}>
-            <Text style={tw`text-xl font-black text-chocolateBrown`}>
+          <View className="flex-row justify-between items-center my-2">
+            <Text className="text-xl font-black text-chocolateBrown">
               {selectedCategory === 'all'
                 ? 'Fresh Today'
                 : selectedCategory === 'ice-cream'
@@ -1501,8 +1440,8 @@ export default function DashboardScreen({
                 ? 'Special Offers & Bundles'
                 : 'Special Combo Stacks'}
             </Text>
-            <View style={tw`bg-surfaceBright px-2.5 py-1 rounded-full border border-borderSubtle`}>
-              <Text style={tw`text-xs font-black text-chocolateBrownMuted`}>
+            <View className="bg-surfaceBright px-2.5 py-1 rounded-full border border-borderSubtle">
+              <Text className="text-xs font-black text-chocolateBrownMuted">
                 {filteredProducts.length} items
               </Text>
             </View>
@@ -1510,12 +1449,12 @@ export default function DashboardScreen({
 
           {/* Products List */}
           {loading ? (
-            <View style={tw`items-center py-12 gap-2`}>
+            <View className="items-center py-12 gap-2">
               <ActivityIndicator size="large" color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs text-chocolateBrownMuted font-semibold`}>Loading fresh treats...</Text>
+              <Text className="text-xs text-chocolateBrownMuted font-semibold">Loading fresh treats...</Text>
             </View>
           ) : (
-            <View style={tw`flex-row flex-wrap justify-between mt-1`}>
+            <View className="flex-row flex-wrap justify-between mt-1">
               {filteredProducts.map((product) => {
                 const qtyInCart = cart
                   .filter((ci) => ci.menuItemId === product.id)
@@ -1523,69 +1462,63 @@ export default function DashboardScreen({
                 return (
                   <View
                     key={product.id}
-                    style={[
-                      { width: CARD_WIDTH },
-                      tw`bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSubtle mb-3`,
-                    ]}
+                    className="bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSubtle mb-3" style={{ width: CARD_WIDTH }}
                   >
                     {/* Image & Tags (Tappable to customize) */}
                     <TouchableOpacity
                       activeOpacity={0.9}
                       onPress={() => setSelectedProductForDetails(product)}
-                      style={tw`w-full h-32 bg-surfaceBright relative`}
+                      className="w-full h-32 bg-surfaceBright relative"
                     >
                       <Image
                         source={{ uri: product.imageUrl }}
-                        style={tw`w-full h-full`}
+                        className="w-full h-full"
                         resizeMode="cover"
                       />
                       {product.isSpecialOffer && (
-                        <View style={tw`absolute top-2 left-2 bg-butterYellow px-2 py-0.5 rounded-lg shadow-xs`}>
-                          <Text style={tw`text-[9px] font-black text-chocolateBrown uppercase tracking-wider`}>
+                        <View className="absolute top-2 left-2 bg-butterYellow px-2 py-0.5 rounded-lg shadow-xs">
+                          <Text className="text-[9px] font-black text-chocolateBrown uppercase tracking-wider">
                             {product.offerTag || 'Special'}
                           </Text>
                         </View>
                       )}
-                      <View style={tw`absolute top-2 right-2 flex-row items-center gap-1 bg-white/95 px-1.5 py-0.5 rounded-full shadow-xs`}>
+                      <View className="absolute top-2 right-2 flex-row items-center gap-1 bg-white/95 px-1.5 py-0.5 rounded-full shadow-xs">
                         <Ionicons name="star" size={10} color={COLORS.butterYellow} />
-                        <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                        <Text className="text-[10px] font-black text-chocolateBrown">
                           {product.rating || '4.9'}
                         </Text>
                       </View>
                     </TouchableOpacity>
 
                     {/* Body Details (Tight, well-spaced) */}
-                    <View style={tw`p-2.5`}>
+                    <View className="p-2.5">
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={() => setSelectedProductForDetails(product)}
                       >
-                        <Text style={tw`text-[13px] font-black text-chocolateBrown tracking-tight`} numberOfLines={1}>
+                        <Text className="text-[13px] font-black text-chocolateBrown tracking-tight" numberOfLines={1}>
                           {product.name}
                         </Text>
-                        <Text style={tw`text-[11px] font-bold text-strawberryPink mt-0.5`} numberOfLines={1}>
+                        <Text className="text-[11px] font-bold text-strawberryPink mt-0.5" numberOfLines={1}>
                           {product.flavor}
                         </Text>
                         {product.description ? (
-                          <Text style={tw`text-[10px] text-chocolateBrownMuted leading-3.5 mt-0.5`} numberOfLines={1}>
+                          <Text className="text-[10px] text-chocolateBrownMuted leading-3.5 mt-0.5" numberOfLines={1}>
                             {product.description}
                           </Text>
                         ) : null}
                       </TouchableOpacity>
 
                       {/* Compact Price & Add to Cart Row */}
-                      <View style={tw`flex-row items-center justify-between mt-2 pt-1.5 border-t border-borderSubtle`}>
+                      <View className="flex-row items-center justify-between mt-2 pt-1.5 border-t border-borderSubtle">
                         <View>
-                          <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                          <Text className="text-xs font-black text-chocolateBrown">
                             {product.price.toLocaleString()} XAF
                           </Text>
-                          <View style={tw`flex-row items-center gap-1 mt-0.5`}>
-                            <View style={[tw`w-1.5 h-1.5 rounded-full`, product.inStock ? tw`bg-pistachioGreen` : tw`bg-errorRed`]} />
+                          <View className="flex-row items-center gap-1 mt-0.5">
+                            <View className={`w-1.5 h-1.5 rounded-full ${(product.inStock) ? 'bg-pistachioGreen' : 'bg-errorRed'}`} />
                             <Text
-                              style={[
-                                tw`text-[9px] font-bold`,
-                                product.inStock ? tw`text-chocolateBrown` : tw`text-errorRed`,
-                              ]}
+                              className={`text-[9px] font-bold ${(product.inStock) ? 'text-chocolateBrown' : 'text-errorRed'}`}
                             >
                               {product.inStock ? 'Available' : 'Sold Out'}
                             </Text>
@@ -1594,18 +1527,18 @@ export default function DashboardScreen({
 
                         {/* Add to Cart Actions */}
                         {qtyInCart > 0 ? (
-                          <View style={tw`flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-0.5 gap-1.5`}>
+                          <View className="flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-0.5 gap-1.5">
                             <TouchableOpacity
-                              style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
+                              className="w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle"
                               onPress={() => removeFromCartSimple(product.id)}
                             >
                               <Feather name="minus" size={11} color={COLORS.chocolateBrown} />
                             </TouchableOpacity>
-                            <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
+                            <Text className="text-xs font-black text-chocolateBrown min-w-4 text-center">
                               {qtyInCart}
                             </Text>
                             <TouchableOpacity
-                              style={tw`w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
+                              className="w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs"
                               onPress={() => addToCartSimple(product.id)}
                             >
                               <Feather name="plus" size={11} color={COLORS.white} />
@@ -1613,16 +1546,13 @@ export default function DashboardScreen({
                           </View>
                         ) : (
                           <TouchableOpacity
-                            style={[
-                              tw`flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1.5 rounded-xl shadow-xs`,
-                              !product.inStock && tw`bg-borderSubtle opacity-50`,
-                            ]}
+                            className={`flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1.5 rounded-xl shadow-xs ${(!product.inStock) ? 'bg-borderSubtle opacity-50' : ''}`}
                             disabled={!product.inStock}
                             onPress={() => addToCartSimple(product.id)}
                             activeOpacity={0.85}
                           >
                             <Ionicons name="cart" size={11} color={COLORS.white} />
-                            <Text style={tw`text-[11px] font-black text-white`}>
+                            <Text className="text-[11px] font-black text-white">
                               Add
                             </Text>
                           </TouchableOpacity>
@@ -1641,7 +1571,7 @@ export default function DashboardScreen({
       {activeTab === 'orders' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw`px-5 pt-3 pb-28`}
+          contentContainerClassName="px-5 pt-3 pb-28"
           refreshControl={
             <RefreshControl
               refreshing={refreshingOrders}
@@ -1652,16 +1582,16 @@ export default function DashboardScreen({
           }
         >
           {/* 1. Header & Title */}
-          <View style={tw`flex-row justify-between items-center mb-3`}>
+          <View className="flex-row justify-between items-center mb-3">
             <View>
-              <Text style={tw`text-2xl font-black text-chocolateBrown`}>{t('myOrders')} 🧾</Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+              <Text className="text-2xl font-black text-chocolateBrown">{t('myOrders')} 🧾</Text>
+              <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                 {t('ordersSubtitle')}
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleRefreshOrders}
-              style={tw`w-10 h-10 rounded-2xl bg-white items-center justify-center border border-strawberryPink/30 shadow-xs`}
+              className="w-10 h-10 rounded-2xl bg-white items-center justify-center border border-strawberryPink/30 shadow-xs"
               activeOpacity={0.7}
             >
               {refreshingOrders ? (
@@ -1673,51 +1603,51 @@ export default function DashboardScreen({
           </View>
 
           {/* 2. Quick Stat Overview Cards (Vibrant, Eye-Catching Triad) */}
-          <View style={tw`flex-row gap-2.5 mb-3.5`}>
+          <View className="flex-row gap-2.5 mb-3.5">
             {/* Total Orders (Strawberry Pink) */}
-            <View style={tw`flex-1 bg-white p-3 rounded-2xl border-2 border-strawberryPink/30 shadow-xs`}>
-              <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                <View style={tw`w-7 h-7 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
-                  <Text style={tw`text-xs`}>🧾</Text>
+            <View className="flex-1 bg-white p-3 rounded-2xl border-2 border-strawberryPink/30 shadow-xs">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <View className="w-7 h-7 rounded-xl bg-strawberryPinkLight items-center justify-center">
+                  <Text className="text-xs">🧾</Text>
                 </View>
-                <View style={tw`bg-strawberryPinkLight px-1.5 py-0.2 rounded-md`}>
-                  <Text style={tw`text-[9px] font-black text-strawberryPink`}>ALL</Text>
+                <View className="bg-strawberryPinkLight px-1.5 py-0.2 rounded-md">
+                  <Text className="text-[9px] font-black text-strawberryPink">ALL</Text>
                 </View>
               </View>
-              <Text style={tw`text-2xl font-black text-strawberryPink`}>{orderCounts.all}</Text>
-              <Text style={tw`text-[10px] font-black text-chocolateBrown uppercase tracking-wider mt-0.5`}>{t('totalPlaced')}</Text>
+              <Text className="text-2xl font-black text-strawberryPink">{orderCounts.all}</Text>
+              <Text className="text-[10px] font-black text-chocolateBrown uppercase tracking-wider mt-0.5">{t('totalPlaced')}</Text>
             </View>
 
             {/* In Progress (Warm Radiant Amber / Gold) */}
-            <View style={tw`flex-1 bg-amber-50/90 p-3 rounded-2xl border-2 border-amber-300 shadow-xs`}>
-              <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                <View style={tw`w-7 h-7 rounded-xl bg-amber-100 items-center justify-center`}>
-                  <Text style={tw`text-xs`}>🛵</Text>
+            <View className="flex-1 bg-amber-50/90 p-3 rounded-2xl border-2 border-amber-300 shadow-xs">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <View className="w-7 h-7 rounded-xl bg-amber-100 items-center justify-center">
+                  <Text className="text-xs">🛵</Text>
                 </View>
-                <View style={tw`w-2 h-2 rounded-full bg-amber-500`} />
+                <View className="w-2 h-2 rounded-full bg-amber-500" />
               </View>
-              <Text style={tw`text-2xl font-black text-amber-700`}>{orderCounts.active}</Text>
-              <Text style={tw`text-[10px] font-black text-amber-900 uppercase tracking-wider mt-0.5`}>{t('activeOrders')}</Text>
+              <Text className="text-2xl font-black text-amber-700">{orderCounts.active}</Text>
+              <Text className="text-[10px] font-black text-amber-900 uppercase tracking-wider mt-0.5">{t('activeOrders')}</Text>
             </View>
 
             {/* Completed (Fresh Emerald Celebration) */}
-            <View style={tw`flex-1 bg-emerald-50/90 p-3 rounded-2xl border-2 border-emerald-300 shadow-xs`}>
-              <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                <View style={tw`w-7 h-7 rounded-xl bg-emerald-100 items-center justify-center`}>
-                  <Text style={tw`text-xs`}>🎉</Text>
+            <View className="flex-1 bg-emerald-50/90 p-3 rounded-2xl border-2 border-emerald-300 shadow-xs">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <View className="w-7 h-7 rounded-xl bg-emerald-100 items-center justify-center">
+                  <Text className="text-xs">🎉</Text>
                 </View>
-                <View style={tw`w-2 h-2 rounded-full bg-emerald-500`} />
+                <View className="w-2 h-2 rounded-full bg-emerald-500" />
               </View>
-              <Text style={tw`text-2xl font-black text-emerald-700`}>{orderCounts.completed}</Text>
-              <Text style={tw`text-[10px] font-black text-emerald-900 uppercase tracking-wider mt-0.5`}>{t('completedOrders')}</Text>
+              <Text className="text-2xl font-black text-emerald-700">{orderCounts.completed}</Text>
+              <Text className="text-[10px] font-black text-emerald-900 uppercase tracking-wider mt-0.5">{t('completedOrders')}</Text>
             </View>
           </View>
 
           {/* 3. Search Bar */}
-          <View style={tw`flex-row items-center bg-white border border-borderSubtle rounded-2xl px-3.5 py-2.5 mb-3 shadow-xs`}>
+          <View className="flex-row items-center bg-white border border-borderSubtle rounded-2xl px-3.5 py-2.5 mb-3 shadow-xs">
             <Ionicons name="search" size={16} color={COLORS.strawberryPink} />
             <TextInput
-              style={tw`flex-1 text-xs text-chocolateBrown ml-2 font-semibold`}
+              className="flex-1 text-xs text-chocolateBrown ml-2 font-semibold"
               placeholder={t('searchOrdersPlaceholder')}
               placeholderTextColor={COLORS.chocolateBrownMuted}
               value={orderSearchQuery}
@@ -1725,7 +1655,7 @@ export default function DashboardScreen({
               returnKeyType="search"
             />
             {orderSearchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setOrderSearchQuery('')} style={tw`p-1`}>
+              <TouchableOpacity onPress={() => setOrderSearchQuery('')} className="p-1">
                 <Ionicons name="close-circle" size={16} color={COLORS.chocolateBrownMuted} />
               </TouchableOpacity>
             )}
@@ -1735,7 +1665,7 @@ export default function DashboardScreen({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw`gap-2 pb-3`}
+            contentContainerClassName="gap-2 pb-3"
           >
             {[
               { id: 'all', label: t('allTab'), count: orderCounts.all },
@@ -1747,34 +1677,20 @@ export default function DashboardScreen({
               return (
                 <TouchableOpacity
                   key={tab.id}
-                  style={[
-                    tw`flex-row items-center gap-1.5 px-3.5 py-2 rounded-2xl border`,
-                    active
-                      ? tw`bg-strawberryPink border-strawberryPink shadow-sm`
-                      : tw`bg-white border-borderSubtle shadow-xs`,
-                  ]}
+                  className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-2xl border ${(active) ? 'bg-strawberryPink border-strawberryPink shadow-sm' : 'bg-white border-borderSubtle shadow-xs'}`}
                   onPress={() => setOrderFilter(tab.id as OrderFilterType)}
                   activeOpacity={0.8}
                 >
                   <Text
-                    style={[
-                      tw`text-xs font-black`,
-                      active ? tw`text-white` : tw`text-chocolateBrown`,
-                    ]}
+                    className={`text-xs font-black ${(active) ? 'text-white' : 'text-chocolateBrown'}`}
                   >
                     {tab.label}
                   </Text>
                   <View
-                    style={[
-                      tw`px-1.5 py-0.2 rounded-full`,
-                      active ? tw`bg-white/25` : tw`bg-strawberryPinkLight`,
-                    ]}
+                    className={`px-1.5 py-0.2 rounded-full ${(active) ? 'bg-white/25' : 'bg-strawberryPinkLight'}`}
                   >
                     <Text
-                      style={[
-                        tw`text-[10px] font-black`,
-                        active ? tw`text-white` : tw`text-strawberryPink`,
-                      ]}
+                      className={`text-[10px] font-black ${(active) ? 'text-white' : 'text-strawberryPink'}`}
                     >
                       {tab.count}
                     </Text>
@@ -1786,8 +1702,8 @@ export default function DashboardScreen({
 
           {/* 5. Order List or Empty State */}
           {filteredOrders.length === 0 ? (
-            <View style={tw`bg-white rounded-3xl p-8 items-center justify-center border border-borderSubtle mt-2 shadow-sm`}>
-              <Text style={tw`text-5xl mb-3`}>
+            <View className="bg-white rounded-3xl p-8 items-center justify-center border border-borderSubtle mt-2 shadow-sm">
+              <Text className="text-5xl mb-3">
                 {orderFilter === 'completed'
                   ? '🎉'
                   : orderFilter === 'active'
@@ -1796,7 +1712,7 @@ export default function DashboardScreen({
                   ? '🔍'
                   : '🥞'}
               </Text>
-              <Text style={tw`text-base font-black text-chocolateBrown text-center`}>
+              <Text className="text-base font-black text-chocolateBrown text-center">
                 {orderSearchQuery
                   ? `${language === 'fr' ? 'Aucune commande correspondant à' : 'No orders matching'} "${orderSearchQuery}"`
                   : orderFilter === 'active'
@@ -1805,13 +1721,13 @@ export default function DashboardScreen({
                   ? (language === 'fr' ? 'Aucune commande livrée' : 'No completed orders yet')
                   : t('noOrdersTitle')}
               </Text>
-              <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-1.5 px-4 leading-4`}>
+              <Text className="text-xs text-chocolateBrownMuted text-center mt-1.5 px-4 leading-4">
                 {orderSearchQuery
                   ? (language === 'fr' ? 'Essayez de chercher par numéro de commande, parfum ou quartier.' : 'Try searching by a different order number, ice cream flavor, or destination.')
                   : t('noOrdersDesc')}
               </Text>
               <TouchableOpacity
-                style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-6 py-3 rounded-2xl mt-5 shadow-sm`}
+                className="flex-row items-center gap-1.5 bg-strawberryPink px-6 py-3 rounded-2xl mt-5 shadow-sm"
                 onPress={() => {
                   setOrderSearchQuery('');
                   setOrderFilter('all');
@@ -1820,7 +1736,7 @@ export default function DashboardScreen({
                 activeOpacity={0.85}
               >
                 <Ionicons name="sparkles" size={14} color={COLORS.white} />
-                <Text style={tw`text-xs font-black text-white`}>
+                <Text className="text-xs font-black text-white">
                   {t('exploreMenu')}
                 </Text>
               </TouchableOpacity>
@@ -1833,37 +1749,22 @@ export default function DashboardScreen({
               return (
                 <View
                   key={order.id}
-                  style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-md relative overflow-hidden`}
+                  className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-md relative overflow-hidden"
                 >
                   {/* Top Status Accent Stripe */}
                   <View
-                    style={[
-                      tw`h-1.5 w-full absolute top-0 left-0 right-0`,
-                      order.status === 'completed' || (order.status as string) === 'received'
-                        ? tw`bg-emerald-500`
-                        : order.status === 'out-for-delivery'
-                        ? tw`bg-purple-500`
-                        : order.status === 'ready'
-                        ? tw`bg-blue-500`
-                        : order.status === 'preparing'
-                        ? tw`bg-orange-500`
-                        : order.status === 'accepted' || (order.status as string) === 'approved'
-                        ? tw`bg-pistachioGreen`
-                        : order.status === 'cancelled' || order.status === 'rejected'
-                        ? tw`bg-red-500`
-                        : tw`bg-amber-400`,
-                    ]}
+                    className={`h-1.5 w-full absolute top-0 left-0 right-0 ${(order.status === 'completed' || (order.status as string) === 'received' ? 'bg-emerald-500' : (order.status === 'out-for-delivery' ? 'bg-purple-500' : (order.status === 'ready' ? 'bg-blue-500' : (order.status === 'preparing' ? 'bg-orange-500' : (order.status === 'accepted' || (order.status as string) === 'approved' ? 'bg-pistachioGreen' : (order.status === 'cancelled' || order.status === 'rejected' ? 'bg-red-500' : 'bg-amber-400'))))))}`}
                   />
 
                   {/* Card Header: ID, Date & Eye-Catching Status Badge */}
-                  <View style={tw`flex-row justify-between items-start pt-1 pb-2.5 border-b border-borderSubtle`}>
-                    <View style={tw`flex-row items-center gap-2`}>
-                      <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
-                        <Text style={tw`text-sm`}>🧾</Text>
+                  <View className="flex-row justify-between items-start pt-1 pb-2.5 border-b border-borderSubtle">
+                    <View className="flex-row items-center gap-2">
+                      <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20">
+                        <Text className="text-sm">🧾</Text>
                       </View>
                       <View>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>{order.id}</Text>
-                        <Text style={tw`text-[10px] font-semibold text-chocolateBrownMuted mt-0.2`}>
+                        <Text className="text-sm font-black text-chocolateBrown">{order.id}</Text>
+                        <Text className="text-[10px] font-semibold text-chocolateBrownMuted mt-0.2">
                           {formatOrderDate(order.createdAt, language)} • {itemCount} {language === 'fr' ? 'article(s)' : `item${itemCount > 1 ? 's' : ''}`}
                         </Text>
                       </View>
@@ -1871,41 +1772,11 @@ export default function DashboardScreen({
 
                     {/* Status Pill Badge */}
                     <View
-                      style={[
-                        tw`flex-row items-center gap-1.5 px-3 py-1 rounded-xl border`,
-                        order.status === 'completed' || (order.status as string) === 'received'
-                          ? tw`bg-emerald-50 border-emerald-300`
-                          : order.status === 'out-for-delivery'
-                          ? tw`bg-purple-50 border-purple-300`
-                          : order.status === 'ready'
-                          ? tw`bg-blue-50 border-blue-300`
-                          : order.status === 'preparing'
-                          ? tw`bg-orange-50 border-orange-300`
-                          : order.status === 'accepted' || (order.status as string) === 'approved'
-                          ? tw`bg-green-50 border-green-300`
-                          : order.status === 'cancelled' || order.status === 'rejected'
-                          ? tw`bg-red-50 border-red-300`
-                          : tw`bg-amber-50 border-amber-300`,
-                      ]}
+                      className={`flex-row items-center gap-1.5 px-3 py-1 rounded-xl border ${(order.status === 'completed' || (order.status as string) === 'received' ? 'bg-emerald-50 border-emerald-300' : (order.status === 'out-for-delivery' ? 'bg-purple-50 border-purple-300' : (order.status === 'ready' ? 'bg-blue-50 border-blue-300' : (order.status === 'preparing' ? 'bg-orange-50 border-orange-300' : (order.status === 'accepted' || (order.status as string) === 'approved' ? 'bg-green-50 border-green-300' : (order.status === 'cancelled' || order.status === 'rejected' ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-300'))))))}`}
                     >
                       <Ionicons name={statusInfo.icon} size={13} color={statusInfo.iconColor} />
                       <Text
-                        style={[
-                          tw`text-[11px] font-black`,
-                          order.status === 'completed' || (order.status as string) === 'received'
-                            ? tw`text-emerald-800`
-                            : order.status === 'out-for-delivery'
-                            ? tw`text-purple-800`
-                            : order.status === 'ready'
-                            ? tw`text-blue-800`
-                            : order.status === 'preparing'
-                            ? tw`text-orange-800`
-                            : order.status === 'accepted' || (order.status as string) === 'approved'
-                            ? tw`text-green-800`
-                            : order.status === 'cancelled' || order.status === 'rejected'
-                            ? tw`text-red-700`
-                            : tw`text-amber-800`,
-                        ]}
+                        className={`text-[11px] font-black ${(order.status === 'completed' || (order.status as string) === 'received' ? 'text-emerald-800' : (order.status === 'out-for-delivery' ? 'text-purple-800' : (order.status === 'ready' ? 'text-blue-800' : (order.status === 'preparing' ? 'text-orange-800' : (order.status === 'accepted' || (order.status as string) === 'approved' ? 'text-green-800' : (order.status === 'cancelled' || order.status === 'rejected' ? 'text-red-700' : 'text-amber-800'))))))}`}
                       >
                         {statusInfo.label}
                       </Text>
@@ -1913,22 +1784,16 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Visual 3-Stage Progress Timeline */}
-                  <View style={tw`flex-row items-center justify-between bg-surfaceBright rounded-2xl px-3.5 py-2.5 mt-2.5 mb-2 border border-borderSubtle shadow-xs`}>
+                  <View className="flex-row items-center justify-between bg-surfaceBright rounded-2xl px-3.5 py-2.5 mt-2.5 mb-2 border border-borderSubtle shadow-xs">
                     {/* Step 1: Placed */}
-                    <View style={tw`flex-row items-center gap-1.5`}>
+                    <View className="flex-row items-center gap-1.5">
                       <View
-                        style={[
-                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
-                          statusInfo.step >= 1 ? tw`bg-strawberryPink` : tw`bg-borderSubtle`,
-                        ]}
+                        className={`w-5 h-5 rounded-full items-center justify-center shadow-xs ${(statusInfo.step >= 1) ? 'bg-strawberryPink' : 'bg-borderSubtle'}`}
                       >
                         <Ionicons name="checkmark" size={11} color={COLORS.white} />
                       </View>
                       <Text
-                        style={[
-                          tw`text-[10px] font-black`,
-                          statusInfo.step >= 1 ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                        ]}
+                        className={`text-[10px] font-black ${(statusInfo.step >= 1) ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}
                       >
                         {t('placedStep')}
                       </Text>
@@ -1936,19 +1801,13 @@ export default function DashboardScreen({
 
                     {/* Connector */}
                     <View
-                      style={[
-                        tw`flex-1 h-0.5 mx-2`,
-                        statusInfo.step >= 2 ? tw`bg-amber-400` : tw`bg-borderSubtle`,
-                      ]}
+                      className={`flex-1 h-0.5 mx-2 ${(statusInfo.step >= 2) ? 'bg-amber-400' : 'bg-borderSubtle'}`}
                     />
 
                     {/* Step 2: Kitchen */}
-                    <View style={tw`flex-row items-center gap-1.5`}>
+                    <View className="flex-row items-center gap-1.5">
                       <View
-                        style={[
-                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
-                          statusInfo.step >= 2 ? tw`bg-amber-500` : tw`bg-borderSubtle`,
-                        ]}
+                        className={`w-5 h-5 rounded-full items-center justify-center shadow-xs ${(statusInfo.step >= 2) ? 'bg-amber-500' : 'bg-borderSubtle'}`}
                       >
                         <Ionicons
                           name={statusInfo.step >= 2 ? 'checkmark' : 'restaurant-outline'}
@@ -1957,10 +1816,7 @@ export default function DashboardScreen({
                         />
                       </View>
                       <Text
-                        style={[
-                          tw`text-[10px] font-black`,
-                          statusInfo.step >= 2 ? tw`text-amber-800` : tw`text-chocolateBrownMuted`,
-                        ]}
+                        className={`text-[10px] font-black ${(statusInfo.step >= 2) ? 'text-amber-800' : 'text-chocolateBrownMuted'}`}
                       >
                         {t('kitchenStep')}
                       </Text>
@@ -1968,19 +1824,13 @@ export default function DashboardScreen({
 
                     {/* Connector */}
                     <View
-                      style={[
-                        tw`flex-1 h-0.5 mx-2`,
-                        statusInfo.step >= 3 ? tw`bg-emerald-400` : tw`bg-borderSubtle`,
-                      ]}
+                      className={`flex-1 h-0.5 mx-2 ${(statusInfo.step >= 3) ? 'bg-emerald-400' : 'bg-borderSubtle'}`}
                     />
 
                     {/* Step 3: Delivered */}
-                    <View style={tw`flex-row items-center gap-1.5`}>
+                    <View className="flex-row items-center gap-1.5">
                       <View
-                        style={[
-                          tw`w-5 h-5 rounded-full items-center justify-center shadow-xs`,
-                          statusInfo.step >= 3 ? tw`bg-emerald-500` : tw`bg-borderSubtle`,
-                        ]}
+                        className={`w-5 h-5 rounded-full items-center justify-center shadow-xs ${(statusInfo.step >= 3) ? 'bg-emerald-500' : 'bg-borderSubtle'}`}
                       >
                         <Ionicons
                           name={statusInfo.step >= 3 ? 'checkmark-done' : 'bicycle-outline'}
@@ -1989,10 +1839,7 @@ export default function DashboardScreen({
                         />
                       </View>
                       <Text
-                        style={[
-                          tw`text-[10px] font-black`,
-                          statusInfo.step >= 3 ? tw`text-emerald-800` : tw`text-chocolateBrownMuted`,
-                        ]}
+                        className={`text-[10px] font-black ${(statusInfo.step >= 3) ? 'text-emerald-800' : 'text-chocolateBrownMuted'}`}
                       >
                         {t('deliveredStep')}
                       </Text>
@@ -2000,7 +1847,7 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Items List */}
-                  <View style={tw`py-1.5 gap-1.5`}>
+                  <View className="py-1.5 gap-1.5">
                     {order.items.map((item, idx) => {
                       const isPancake = item.category === 'pancake';
                       const isIceCream = item.category === 'ice-cream';
@@ -2020,56 +1867,56 @@ export default function DashboardScreen({
                       return (
                         <View
                           key={idx}
-                          style={tw`bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle`}
+                          className="bg-surfaceBright px-3 py-2 rounded-2xl border border-borderSubtle"
                         >
-                          <View style={tw`flex-row items-center`}>
-                            <View style={tw`w-7 h-7 rounded-lg bg-white items-center justify-center border border-borderSubtle mr-2 shadow-xs`}>
-                              <Text style={tw`text-sm`}>{emoji}</Text>
+                          <View className="flex-row items-center">
+                            <View className="w-7 h-7 rounded-lg bg-white items-center justify-center border border-borderSubtle mr-2 shadow-xs">
+                              <Text className="text-sm">{emoji}</Text>
                             </View>
-                            <View style={tw`bg-strawberryPinkLight px-1.5 py-0.5 rounded-md mr-1.5`}>
-                              <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                            <View className="bg-strawberryPinkLight px-1.5 py-0.5 rounded-md mr-1.5">
+                              <Text className="text-[10px] font-black text-strawberryPink">
                                 {item.quantity}×
                               </Text>
                             </View>
-                            <View style={tw`flex-1`}>
-                              <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
+                            <View className="flex-1">
+                              <Text className="text-xs font-bold text-chocolateBrown">{item.name}</Text>
                               {item.flavor ? (
-                                <Text style={tw`text-[10px] font-bold text-strawberryPink`} numberOfLines={1}>
+                                <Text className="text-[10px] font-bold text-strawberryPink" numberOfLines={1}>
                                   {item.flavor}
                                 </Text>
                               ) : null}
                             </View>
-                            <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                            <Text className="text-xs font-black text-chocolateBrown">
                               {(item.price * item.quantity).toLocaleString()} XAF
                             </Text>
                           </View>
                           {/* Customization tags */}
                           {(item.servingStyle || item.sizeOption || item.pancakeStyle || (item.selectedToppings && item.selectedToppings.length > 0)) && (
-                            <View style={tw`ml-9 flex-row flex-wrap gap-1 mt-1`}>
+                            <View className="ml-9 flex-row flex-wrap gap-1 mt-1">
                               {item.servingStyle && (
-                                <View style={tw`bg-strawberryPinkLight border border-strawberryPink/30 px-2 py-0.5 rounded-md`}>
-                                  <Text style={tw`text-[9px] font-bold text-strawberryPink`}>
+                                <View className="bg-strawberryPinkLight border border-strawberryPink/30 px-2 py-0.5 rounded-md">
+                                  <Text className="text-[9px] font-bold text-strawberryPink">
                                     {item.servingStyle}
                                   </Text>
                                 </View>
                               )}
                               {item.sizeOption && (
-                                <View style={tw`bg-white px-2 py-0.5 rounded-md border border-borderSubtle`}>
-                                  <Text style={tw`text-[9px] text-chocolateBrownMuted`}>
+                                <View className="bg-white px-2 py-0.5 rounded-md border border-borderSubtle">
+                                  <Text className="text-[9px] text-chocolateBrownMuted">
                                     {item.sizeOption}
                                   </Text>
                                 </View>
                               )}
                               {item.pancakeStyle && (
-                                <View style={tw`bg-butterYellowLight border border-butterYellow px-2 py-0.5 rounded-md`}>
-                                  <Text style={tw`text-[9px] font-bold text-amber-900`}>
+                                <View className="bg-butterYellowLight border border-butterYellow px-2 py-0.5 rounded-md">
+                                  <Text className="text-[9px] font-bold text-amber-900">
                                     {item.pancakeStyle}
                                   </Text>
                                 </View>
                               )}
                               {item.selectedToppings && item.selectedToppings.map((topping, ti) => (
-                                <View key={ti} style={tw`bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md`}>
-                                  <Text style={tw`text-[9px] font-bold text-amber-800`}>
+                                <View key={ti} className="bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
+                                  <Text className="text-[9px] font-bold text-amber-800">
                                     + {topping.name}
                                   </Text>
                                 </View>
@@ -2078,8 +1925,8 @@ export default function DashboardScreen({
                           )}
                           {/* Special notes */}
                           {item.specialNotes && (
-                            <View style={tw`ml-9 mt-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg`}>
-                              <Text style={tw`text-[10px] font-bold text-red-700`}>
+                            <View className="ml-9 mt-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg">
+                              <Text className="text-[10px] font-bold text-red-700">
                                 📝 {item.specialNotes}
                               </Text>
                             </View>
@@ -2091,18 +1938,18 @@ export default function DashboardScreen({
 
                   {/* Delivery Address Pill (if destination specified) */}
                   {order.deliveryAddress ? (
-                    <View style={tw`flex-row items-center justify-between bg-emerald-50/80 px-3 py-2 rounded-2xl mt-1.5 border border-emerald-200`}>
-                      <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                        <View style={tw`w-6 h-6 rounded-lg bg-emerald-100 items-center justify-center`}>
+                    <View className="flex-row items-center justify-between bg-emerald-50/80 px-3 py-2 rounded-2xl mt-1.5 border border-emerald-200">
+                      <View className="flex-row items-center gap-2 flex-1 mr-2">
+                        <View className="w-6 h-6 rounded-lg bg-emerald-100 items-center justify-center">
                           <Ionicons name="location-sharp" size={13} color="#059669" />
                         </View>
-                        <Text style={tw`text-[11px] font-bold text-emerald-950 flex-1`} numberOfLines={1}>
+                        <Text className="text-[11px] font-bold text-emerald-950 flex-1" numberOfLines={1}>
                           {order.deliveryAddress}
                         </Text>
                       </View>
                       {order.distanceKm ? (
-                        <View style={tw`bg-emerald-600 px-2 py-0.5 rounded-lg`}>
-                          <Text style={tw`text-[10px] font-black text-white`}>
+                        <View className="bg-emerald-600 px-2 py-0.5 rounded-lg">
+                          <Text className="text-[10px] font-black text-white">
                             {order.distanceKm.toFixed(1)} km
                           </Text>
                         </View>
@@ -2111,40 +1958,30 @@ export default function DashboardScreen({
                   ) : null}
 
                   {/* Card Footer: Total Paid & Action Buttons */}
-                  <View style={tw`border-t border-borderSubtle pt-2.5 mt-2`}>
-                    <View style={tw`flex-row justify-between items-center mb-2.5`}>
-                      <View style={tw`flex-row items-center gap-2`}>
+                  <View className="border-t border-borderSubtle pt-2.5 mt-2">
+                    <View className="flex-row justify-between items-center mb-2.5">
+                      <View className="flex-row items-center gap-2">
                         <View
-                          style={[
-                            tw`px-2.5 py-1 rounded-xl border`,
-                            order.paymentMethod === 'mtn-momo'
-                              ? tw`bg-yellow-400/20 border-yellow-500/40`
-                              : tw`bg-orange-500/20 border-orange-500/40`,
-                          ]}
+                          className={`px-2.5 py-1 rounded-xl border ${(order.paymentMethod === 'mtn-momo') ? 'bg-yellow-400/20 border-yellow-500/40' : 'bg-orange-500/20 border-orange-500/40'}`}
                         >
                           <Text
-                            style={[
-                              tw`text-[10px] font-black`,
-                              order.paymentMethod === 'mtn-momo'
-                                ? tw`text-yellow-950`
-                                : tw`text-orange-950`,
-                            ]}
+                            className={`text-[10px] font-black ${(order.paymentMethod === 'mtn-momo') ? 'text-yellow-950' : 'text-orange-950'}`}
                           >
                             {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                           </Text>
                         </View>
                         {order.deliveryFee ? (
-                          <Text style={tw`text-[10px] font-bold text-pistachioGreen`}>
+                          <Text className="text-[10px] font-bold text-pistachioGreen">
                             + {formatXAF(order.deliveryFee)} delivery
                           </Text>
                         ) : null}
                       </View>
 
-                      <View style={tw`items-end`}>
-                        <Text style={tw`text-[9px] uppercase font-black text-chocolateBrownMuted`}>
+                      <View className="items-end">
+                        <Text className="text-[9px] uppercase font-black text-chocolateBrownMuted">
                           {t('totalPaid')}
                         </Text>
-                        <Text style={tw`text-base font-black text-chocolateBrown`}>
+                        <Text className="text-base font-black text-chocolateBrown">
                           {order.totalAmount.toLocaleString()} XAF
                         </Text>
                       </View>
@@ -2152,13 +1989,13 @@ export default function DashboardScreen({
 
                     {/* Primary Action Button: Track Live Order (Vibrant Pink CTA) */}
                     <TouchableOpacity
-                      style={tw`w-full flex-row items-center justify-center gap-2 bg-strawberryPink py-3 rounded-2xl shadow-sm mb-2`}
+                      className="w-full flex-row items-center justify-center gap-2 bg-strawberryPink py-3 rounded-2xl shadow-sm mb-2"
                       onPress={() => setSelectedOrderForTracking(order)}
                       activeOpacity={0.85}
                     >
                       <Ionicons name="map" size={15} color={COLORS.white} />
                       <Text
-                        style={tw`text-xs font-black text-white tracking-wide`}
+                        className="text-xs font-black text-white tracking-wide"
                         numberOfLines={1}
                       >
                         {t('trackLive')}
@@ -2166,10 +2003,10 @@ export default function DashboardScreen({
                     </TouchableOpacity>
 
                     {/* Secondary Actions: Receipt, Reorder, Delete */}
-                    <View style={tw`flex-row items-center gap-2`}>
+                    <View className="flex-row items-center gap-2">
                       {/* Download Receipt Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-borderSubtle shadow-xs`}
+                        className="flex-1 flex-row items-center justify-center gap-1.5 bg-white py-2.5 rounded-xl border border-borderSubtle shadow-xs"
                         onPress={() => handleDownloadReceipt(order)}
                         disabled={downloadingOrderId === order.id}
                         activeOpacity={0.8}
@@ -2180,7 +2017,7 @@ export default function DashboardScreen({
                           <>
                             <Ionicons name="document-text-outline" size={14} color={COLORS.chocolateBrown} />
                             <Text
-                              style={tw`text-xs font-extrabold text-chocolateBrown`}
+                              className="text-xs font-extrabold text-chocolateBrown"
                               numberOfLines={1}
                             >
                               {t('receiptPdf')}
@@ -2191,13 +2028,13 @@ export default function DashboardScreen({
 
                       {/* Reorder Button */}
                       <TouchableOpacity
-                        style={tw`flex-1 flex-row items-center justify-center gap-1.5 bg-strawberryPinkLight py-2.5 rounded-xl border border-strawberryPink/30 shadow-xs`}
+                        className="flex-1 flex-row items-center justify-center gap-1.5 bg-strawberryPinkLight py-2.5 rounded-xl border border-strawberryPink/30 shadow-xs"
                         onPress={() => handleReorder(order)}
                         activeOpacity={0.8}
                       >
                         <Ionicons name="repeat" size={14} color={COLORS.strawberryPink} />
                         <Text
-                          style={tw`text-xs font-black text-strawberryPink`}
+                          className="text-xs font-black text-strawberryPink"
                           numberOfLines={1}
                         >
                           {t('reorder')}
@@ -2206,7 +2043,7 @@ export default function DashboardScreen({
 
                       {/* Delete Button */}
                       <TouchableOpacity
-                        style={tw`w-10 h-10 rounded-xl bg-rose-50 items-center justify-center border border-rose-200`}
+                        className="w-10 h-10 rounded-xl bg-rose-50 items-center justify-center border border-rose-200"
                         onPress={() => deleteOrder(order.id)}
                         activeOpacity={0.7}
                       >
@@ -2225,60 +2062,60 @@ export default function DashboardScreen({
       {activeTab === 'deals' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw`px-5 pt-3 pb-28`}
+          contentContainerClassName="px-5 pt-3 pb-28"
         >
-          <Text style={tw`text-xl font-black text-chocolateBrown`}>Special Offers 🌟</Text>
-          <Text style={tw`text-xs text-chocolateBrownLight mt-0.5 mb-4`}>
+          <Text className="text-xl font-black text-chocolateBrown">Special Offers 🌟</Text>
+          <Text className="text-xs text-chocolateBrownLight mt-0.5 mb-4">
             Handcrafted sweets on promotional discounts
           </Text>
 
           {/* Deal 1 */}
-          <View style={tw`bg-butterYellowLight rounded-3xl p-4 mb-4 border border-butterYellow shadow-sm`}>
-            <View style={tw`flex-row justify-between items-center mb-2`}>
-              <View style={tw`flex-row items-center gap-1 bg-butterYellow px-2.5 py-1 rounded-xl`}>
+          <View className="bg-butterYellowLight rounded-3xl p-4 mb-4 border border-butterYellow shadow-sm">
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex-row items-center gap-1 bg-butterYellow px-2.5 py-1 rounded-xl">
                 <Ionicons name="flame" size={14} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>HOT OFFER</Text>
+                <Text className="text-xs font-black text-chocolateBrown">HOT OFFER</Text>
               </View>
-              <Text style={tw`text-base font-black text-chocolateBrown`}>50% OFF</Text>
+              <Text className="text-base font-black text-chocolateBrown">50% OFF</Text>
             </View>
-            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
+            <Text className="text-lg font-black text-chocolateBrown mb-1">
               Pancake Syrup Combo
             </Text>
-            <Text style={tw`text-xs text-chocolateBrownLight leading-4 mb-3`}>
+            <Text className="text-xs text-chocolateBrownLight leading-4 mb-3">
               Buy any 2 artisanal ice cream scoops and get warm chocolate pancake syrup for half the price!
             </Text>
             <TouchableOpacity
-              style={tw`flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm`}
+              className="flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm"
               onPress={() => {
                 setActiveTab('menu');
                 setSelectedCategory('combo');
               }}
             >
-              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>Order Combo Now</Text>
+              <Text className="text-xs font-extrabold text-chocolateBrown">Order Combo Now</Text>
               <Feather name="arrow-right" size={14} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
 
           {/* Deal 2 */}
-          <View style={tw`bg-strawberryPinkLight rounded-3xl p-4 mb-4 border border-strawberryPink/30 shadow-sm`}>
-            <View style={tw`flex-row justify-between items-center mb-2`}>
-              <View style={tw`flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1 rounded-xl`}>
+          <View className="bg-strawberryPinkLight rounded-3xl p-4 mb-4 border border-strawberryPink/30 shadow-sm">
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex-row items-center gap-1 bg-strawberryPink px-2.5 py-1 rounded-xl">
                 <Ionicons name="gift" size={14} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>WELCOME BONUS</Text>
+                <Text className="text-xs font-black text-chocolateBrown">WELCOME BONUS</Text>
               </View>
-              <Text style={tw`text-base font-black text-chocolateBrown`}>10% OFF</Text>
+              <Text className="text-base font-black text-chocolateBrown">10% OFF</Text>
             </View>
-            <Text style={tw`text-lg font-black text-chocolateBrown mb-1`}>
+            <Text className="text-lg font-black text-chocolateBrown mb-1">
               First Mobile Money Payment
             </Text>
-            <Text style={tw`text-xs text-chocolateBrownLight leading-4 mb-3`}>
+            <Text className="text-xs text-chocolateBrownLight leading-4 mb-3">
               Pay with MTN Mobile Money or Orange Money to automatically enjoy 10% cash discount on checkout.
             </Text>
             <TouchableOpacity
-              style={tw`flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm`}
+              className="flex-row items-center self-start gap-1.5 bg-white px-3.5 py-2 rounded-xl shadow-sm"
               onPress={() => setActiveTab('menu')}
             >
-              <Text style={tw`text-xs font-extrabold text-chocolateBrown`}>Explore Treats</Text>
+              <Text className="text-xs font-extrabold text-chocolateBrown">Explore Treats</Text>
               <Feather name="arrow-right" size={14} color={COLORS.chocolateBrown} />
             </TouchableOpacity>
           </View>
@@ -2289,50 +2126,50 @@ export default function DashboardScreen({
       {activeTab === 'profile' && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw`px-5 pt-3 pb-28`}
+          contentContainerClassName="px-5 pt-3 pb-28"
         >
           {/* 🌟 Profile Card Header with Gelato Hero Glow */}
-          <View style={tw`bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm`}>
+          <View className="bg-white rounded-3xl p-6 items-center mb-4 border border-borderSubtle shadow-sm">
             {/* Profile Avatar & Live Upload Button */}
             <TouchableOpacity
               onPress={pickProfilePicture}
               activeOpacity={0.8}
               disabled={uploadingAvatar}
-              style={tw`relative`}
+              className="relative"
             >
-              <View style={tw`w-28 h-28 rounded-full bg-strawberryPinkLight items-center justify-center border-4 border-white shadow-md overflow-hidden`}>
+              <View className="w-28 h-28 rounded-full bg-strawberryPinkLight items-center justify-center border-4 border-white shadow-md overflow-hidden">
                 {uploadingAvatar ? (
                   <ActivityIndicator size="small" color={COLORS.strawberryPink} />
                 ) : profilePicture ? (
-                  <Image source={{ uri: profilePicture }} style={tw`w-full h-full`} resizeMode="cover" />
+                  <Image source={{ uri: profilePicture }} className="w-full h-full" resizeMode="cover" />
                 ) : (
                   <Ionicons name="person" size={54} color={COLORS.strawberryPink} />
                 )}
               </View>
-              <View style={tw`absolute bottom-0 right-0 w-9 h-9 rounded-full bg-strawberryPink items-center justify-center border-2 border-white shadow-md`}>
+              <View className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-strawberryPink items-center justify-center border-2 border-white shadow-md">
                 <Ionicons name="camera" size={17} color={COLORS.white} />
               </View>
             </TouchableOpacity>
 
-            <Text style={tw`text-2xl font-black text-chocolateBrown mt-4 text-center`}>{displayName}</Text>
-            <Text style={tw`text-xs font-semibold text-chocolateBrownMuted mt-0.5 text-center`}>{userEmail}</Text>
+            <Text className="text-2xl font-black text-chocolateBrown mt-4 text-center">{displayName}</Text>
+            <Text className="text-xs font-semibold text-chocolateBrownMuted mt-0.5 text-center">{userEmail}</Text>
 
             {/* Badges / Membership Tier */}
-            <View style={tw`flex-row items-center gap-2 mt-3`}>
-              <View style={tw`flex-row items-center gap-1.5 bg-butterYellowLight px-3 py-1 rounded-full border border-butterYellow/40 shadow-xs`}>
+            <View className="flex-row items-center gap-2 mt-3">
+              <View className="flex-row items-center gap-1.5 bg-butterYellowLight px-3 py-1 rounded-full border border-butterYellow/40 shadow-xs">
                 <Ionicons name="sparkles" size={12} color={COLORS.chocolateBrown} />
-                <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                <Text className="text-xs font-black text-chocolateBrown">
                   {t('verifiedSweetTooth')}
                 </Text>
               </View>
-              <View style={tw`bg-strawberryPinkLight px-3 py-1 rounded-full border border-strawberryPink/20`}>
-                <Text style={tw`text-xs font-black text-strawberryPink`}>VIP Member</Text>
+              <View className="bg-strawberryPinkLight px-3 py-1 rounded-full border border-strawberryPink/20">
+                <Text className="text-xs font-black text-strawberryPink">VIP Member</Text>
               </View>
             </View>
 
             {/* Edit / Cancel Profile Button */}
             <TouchableOpacity
-              style={tw`mt-4 flex-row items-center gap-2 bg-vanillaCream px-5 py-2.5 rounded-2xl border border-vanillaCreamDark shadow-xs`}
+              className="mt-4 flex-row items-center gap-2 bg-vanillaCream px-5 py-2.5 rounded-2xl border border-vanillaCreamDark shadow-xs"
               onPress={() => setIsEditingProfile(!isEditingProfile)}
               activeOpacity={0.8}
             >
@@ -2341,21 +2178,21 @@ export default function DashboardScreen({
                 size={16}
                 color={COLORS.chocolateBrown}
               />
-              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+              <Text className="text-xs font-black text-chocolateBrown">
                 {isEditingProfile ? 'Close Editor' : 'Edit Personal Info'}
               </Text>
             </TouchableOpacity>
 
             {/* Inline Profile Editing Form */}
             {isEditingProfile && (
-              <View style={tw`w-full mt-4 gap-3 pt-3 border-t border-borderSubtle`}>
+              <View className="w-full mt-4 gap-3 pt-3 border-t border-borderSubtle">
                 {/* Full Name Input */}
                 <View>
-                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>FULL NAME</Text>
-                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
-                    <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                  <Text className="text-[11px] font-black text-chocolateBrown mb-1 ml-1">FULL NAME</Text>
+                  <View className="flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5">
+                    <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrownMuted} className="mr-2.5" />
                     <TextInput
-                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      className="flex-1 text-sm font-semibold text-chocolateBrown"
                       value={editName}
                       onChangeText={setEditName}
                       placeholder="Your Full Name"
@@ -2366,11 +2203,11 @@ export default function DashboardScreen({
 
                 {/* Email Address */}
                 <View>
-                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>EMAIL ADDRESS</Text>
-                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
-                    <Ionicons name="mail-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                  <Text className="text-[11px] font-black text-chocolateBrown mb-1 ml-1">EMAIL ADDRESS</Text>
+                  <View className="flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5">
+                    <Ionicons name="mail-outline" size={16} color={COLORS.chocolateBrownMuted} className="mr-2.5" />
                     <TextInput
-                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      className="flex-1 text-sm font-semibold text-chocolateBrown"
                       value={editEmail}
                       onChangeText={setEditEmail}
                       placeholder="your@email.com"
@@ -2384,11 +2221,11 @@ export default function DashboardScreen({
 
                 {/* Phone Number */}
                 <View>
-                  <Text style={tw`text-[11px] font-black text-chocolateBrown mb-1 ml-1`}>PHONE NUMBER (MOMO / ORANGE)</Text>
-                  <View style={tw`flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5`}>
-                    <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2.5`} />
+                  <Text className="text-[11px] font-black text-chocolateBrown mb-1 ml-1">PHONE NUMBER (MOMO / ORANGE)</Text>
+                  <View className="flex-row items-center bg-vanillaCream rounded-2xl border border-vanillaCreamDark px-3.5 py-2.5">
+                    <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrownMuted} className="mr-2.5" />
                     <TextInput
-                      style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                      className="flex-1 text-sm font-semibold text-chocolateBrown"
                       value={editPhone}
                       onChangeText={setEditPhone}
                       placeholder="+237 6XX XXX XXX"
@@ -2400,10 +2237,7 @@ export default function DashboardScreen({
 
                 {/* Save Button */}
                 <TouchableOpacity
-                  style={[
-                    tw`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 mt-2 shadow-sm`,
-                    savingProfile && tw`opacity-70`,
-                  ]}
+                  className={`w-full bg-strawberryPink py-3.5 rounded-2xl flex-row items-center justify-center gap-2 mt-2 shadow-sm ${(savingProfile) ? 'opacity-70' : ''}`}
                   onPress={saveProfile}
                   disabled={savingProfile}
                   activeOpacity={0.85}
@@ -2413,7 +2247,7 @@ export default function DashboardScreen({
                   ) : (
                     <>
                       <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
-                      <Text style={tw`text-xs font-black text-white`}>Save Profile Changes</Text>
+                      <Text className="text-xs font-black text-white">Save Profile Changes</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -2422,118 +2256,118 @@ export default function DashboardScreen({
           </View>
 
           {/* 📊 Customer Stats Card */}
-          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
-            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1`}>
+          <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+            <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1">
               TREAT ACTIVITY & STATS
             </Text>
-            <View style={tw`flex-row items-center justify-between`}>
+            <View className="flex-row items-center justify-between">
               <TouchableOpacity
-                style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2`}
+                className="flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2"
                 onPress={() => setActiveTab('orders')}
                 activeOpacity={0.8}
               >
-                <View style={tw`w-8 h-8 rounded-full bg-strawberryPinkLight items-center justify-center mb-1.5`}>
+                <View className="w-8 h-8 rounded-full bg-strawberryPinkLight items-center justify-center mb-1.5">
                   <Ionicons name="receipt" size={15} color={COLORS.strawberryPink} />
                 </View>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>{orders.length}</Text>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Total Orders</Text>
+                <Text className="text-lg font-black text-chocolateBrown">{orders.length}</Text>
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">Total Orders</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2`}
+                className="flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle mr-2"
                 onPress={() => setActiveTab('orders')}
                 activeOpacity={0.8}
               >
-                <View style={tw`w-8 h-8 rounded-full bg-emerald-100 items-center justify-center mb-1.5`}>
+                <View className="w-8 h-8 rounded-full bg-emerald-100 items-center justify-center mb-1.5">
                   <Ionicons name="checkmark-done" size={15} color="#059669" />
                 </View>
-                <Text style={tw`text-lg font-black text-emerald-800`}>{orderCounts.completed}</Text>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Delivered</Text>
+                <Text className="text-lg font-black text-emerald-800">{orderCounts.completed}</Text>
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">Delivered</Text>
               </TouchableOpacity>
 
-              <View style={tw`flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle`}>
-                <View style={tw`w-8 h-8 rounded-full bg-butterYellowLight items-center justify-center mb-1.5`}>
+              <View className="flex-1 bg-surfaceBright p-3 rounded-2xl items-center border border-borderSubtle">
+                <View className="w-8 h-8 rounded-full bg-butterYellowLight items-center justify-center mb-1.5">
                   <Ionicons name="star" size={15} color={COLORS.chocolateBrown} />
                 </View>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>150</Text>
-                <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>Gelato Points</Text>
+                <Text className="text-lg font-black text-chocolateBrown">150</Text>
+                <Text className="text-[10px] font-bold text-chocolateBrownMuted">Gelato Points</Text>
               </View>
             </View>
           </View>
 
           {/* 📍 Default Delivery Location Card */}
-          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
-            <View style={tw`flex-row justify-between items-center mb-2.5`}>
-              <View style={tw`flex-row items-center gap-2`}>
-                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+          <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+            <View className="flex-row justify-between items-center mb-2.5">
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center">
                   <Ionicons name="location" size={16} color={COLORS.strawberryPink} />
                 </View>
                 <View>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>Delivery Destination</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Yaoundé, Cameroon</Text>
+                  <Text className="text-xs font-black text-chocolateBrown">Delivery Destination</Text>
+                  <Text className="text-[10px] text-chocolateBrownMuted">Yaoundé, Cameroon</Text>
                 </View>
               </View>
               <TouchableOpacity
-                style={tw`bg-surfaceBright px-3 py-1.5 rounded-xl border border-borderSubtle`}
+                className="bg-surfaceBright px-3 py-1.5 rounded-xl border border-borderSubtle"
                 onPress={() => setIsLocationModalVisible(true)}
                 activeOpacity={0.8}
               >
-                <Text style={tw`text-[10px] font-black text-strawberryPink`}>Update</Text>
+                <Text className="text-[10px] font-black text-strawberryPink">Update</Text>
               </TouchableOpacity>
             </View>
-            <View style={tw`bg-surfaceBright p-3 rounded-2xl border border-borderSubtle`}>
-              <Text style={tw`text-xs font-bold text-chocolateBrown`} numberOfLines={2}>
+            <View className="bg-surfaceBright p-3 rounded-2xl border border-borderSubtle">
+              <Text className="text-xs font-bold text-chocolateBrown" numberOfLines={2}>
                 {deliveryAddress || locationResult?.displayName || 'Centre-ville, Yaoundé (Auto-detected)'}
               </Text>
             </View>
           </View>
 
           {/* 💳 Payment Methods & Preferences Card */}
-          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
-            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1`}>
+          <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+            <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3 px-1">
               PAYMENT & PREFERENCES
             </Text>
-            <View style={tw`gap-2.5`}>
-              <View style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle`}>
-                <View style={tw`flex-row items-center gap-3`}>
-                  <View style={tw`w-8 h-8 rounded-xl bg-yellow-400/20 items-center justify-center`}>
-                    <Text style={tw`text-sm`}>📱</Text>
+            <View className="gap-2.5">
+              <View className="flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-xl bg-yellow-400/20 items-center justify-center">
+                    <Text className="text-sm">📱</Text>
                   </View>
                   <View>
-                    <Text style={tw`text-xs font-black text-chocolateBrown`}>MTN Mobile Money</Text>
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>{editPhone || '+237 670 123 456'}</Text>
+                    <Text className="text-xs font-black text-chocolateBrown">MTN Mobile Money</Text>
+                    <Text className="text-[10px] text-chocolateBrownMuted">{editPhone || '+237 670 123 456'}</Text>
                   </View>
                 </View>
-                <View style={tw`bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300`}>
-                  <Text style={tw`text-[9px] font-black text-emerald-800`}>ACTIVE</Text>
+                <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300">
+                  <Text className="text-[9px] font-black text-emerald-800">ACTIVE</Text>
                 </View>
               </View>
 
-              <View style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle`}>
-                <View style={tw`flex-row items-center gap-3`}>
-                  <View style={tw`w-8 h-8 rounded-xl bg-orange-500/20 items-center justify-center`}>
-                    <Text style={tw`text-sm`}>🟠</Text>
+              <View className="flex-row items-center justify-between p-3 rounded-2xl bg-surfaceBright border border-borderSubtle">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-xl bg-orange-500/20 items-center justify-center">
+                    <Text className="text-sm">🟠</Text>
                   </View>
                   <View>
-                    <Text style={tw`text-xs font-black text-chocolateBrown`}>Orange Money</Text>
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Direct Checkout Ready</Text>
+                    <Text className="text-xs font-black text-chocolateBrown">Orange Money</Text>
+                    <Text className="text-[10px] text-chocolateBrownMuted">Direct Checkout Ready</Text>
                   </View>
                 </View>
-                <View style={tw`bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300`}>
-                  <Text style={tw`text-[9px] font-black text-emerald-800`}>READY</Text>
+                <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300">
+                  <Text className="text-[9px] font-black text-emerald-800">READY</Text>
                 </View>
               </View>
             </View>
           </View>
 
           {/* 🌐 Language Switcher Setting Card */}
-          <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
-            <View style={tw`flex-row justify-between items-center`}>
-              <View style={tw`flex-row items-center gap-2.5`}>
-                <View style={tw`w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center`}>
+          <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+            <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2.5">
+                <View className="w-8 h-8 rounded-xl bg-strawberryPinkLight items-center justify-center">
                   <Ionicons name="language" size={16} color={COLORS.strawberryPink} />
                 </View>
-                <Text style={tw`text-sm font-extrabold text-chocolateBrown`}>
+                <Text className="text-sm font-extrabold text-chocolateBrown">
                   {t('languageSetting')}
                 </Text>
               </View>
@@ -2543,55 +2377,55 @@ export default function DashboardScreen({
 
           {/* 🏪 Best Cream Store Information Card */}
           {businessSettings && (
-            <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm`}>
-              <View style={tw`flex-row items-center gap-3 mb-3 pb-3 border-b border-borderSubtle`}>
+            <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+              <View className="flex-row items-center gap-3 mb-3 pb-3 border-b border-borderSubtle">
                 {businessSettings.logoUrl ? (
-                  <Image source={{ uri: businessSettings.logoUrl }} style={tw`w-12 h-12 rounded-2xl`} resizeMode="cover" />
+                  <Image source={{ uri: businessSettings.logoUrl }} className="w-12 h-12 rounded-2xl" resizeMode="cover" />
                 ) : (
-                  <View style={tw`w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center`}>
-                    <Text style={tw`text-2xl`}>🍦</Text>
+                  <View className="w-12 h-12 rounded-2xl bg-strawberryPinkLight items-center justify-center">
+                    <Text className="text-2xl">🍦</Text>
                   </View>
                 )}
-                <View style={tw`flex-1`}>
-                  <Text style={tw`text-sm font-black text-chocolateBrown`}>{businessSettings.businessName}</Text>
+                <View className="flex-1">
+                  <Text className="text-sm font-black text-chocolateBrown">{businessSettings.businessName}</Text>
                   {businessSettings.tagline && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted`} numberOfLines={1}>{businessSettings.tagline}</Text>
+                    <Text className="text-[10px] text-chocolateBrownMuted" numberOfLines={1}>{businessSettings.tagline}</Text>
                   )}
                 </View>
               </View>
 
-              <View style={tw`gap-2.5`}>
-                <View style={tw`flex-row items-center gap-2.5`}>
+              <View className="gap-2.5">
+                <View className="flex-row items-center gap-2.5">
                   <Ionicons name="location-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                  <Text style={tw`text-xs text-chocolateBrown flex-1`} numberOfLines={1}>{businessSettings.address}</Text>
+                  <Text className="text-xs text-chocolateBrown flex-1" numberOfLines={1}>{businessSettings.address}</Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2.5`}>
+                <View className="flex-row items-center gap-2.5">
                   <Ionicons name="time-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                  <Text style={tw`text-xs text-chocolateBrown`}>
+                  <Text className="text-xs text-chocolateBrown">
                     {businessSettings.openingTime} – {businessSettings.closingTime} ({businessSettings.operatingDays.join(', ')})
                   </Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2.5`}>
+                <View className="flex-row items-center gap-2.5">
                   <Ionicons name="call-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                  <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.phone}</Text>
+                  <Text className="text-xs text-chocolateBrown">{businessSettings.phone}</Text>
                 </View>
 
-                <View style={tw`flex-row items-center gap-2.5`}>
+                <View className="flex-row items-center gap-2.5">
                   <Ionicons name="mail-outline" size={15} color={COLORS.chocolateBrownMuted} />
-                  <Text style={tw`text-xs text-chocolateBrown`}>{businessSettings.email}</Text>
+                  <Text className="text-xs text-chocolateBrown">{businessSettings.email}</Text>
                 </View>
               </View>
 
-              <View style={tw`flex-row gap-2 mt-3 pt-3 border-t border-borderSubtle`}>
-                <View style={[tw`flex-1 py-2 px-2 rounded-2xl items-center`, businessSettings.isDeliveryAvailable ? tw`bg-pistachioGreen/15 border border-pistachioGreen/30` : tw`bg-gray-100`]}>
-                  <Text style={[tw`text-[10px] font-black`, businessSettings.isDeliveryAvailable ? tw`text-green-800` : tw`text-gray-500`]}>
+              <View className="flex-row gap-2 mt-3 pt-3 border-t border-borderSubtle">
+                <View className={`flex-1 py-2 px-2 rounded-2xl items-center ${(businessSettings.isDeliveryAvailable) ? 'bg-pistachioGreen/15 border border-pistachioGreen/30' : 'bg-gray-100'}`}>
+                  <Text className={`text-[10px] font-black ${(businessSettings.isDeliveryAvailable) ? 'text-green-800' : 'text-gray-500'}`}>
                     {businessSettings.isDeliveryAvailable ? '🛵 Delivery Open' : 'Delivery Closed'}
                   </Text>
                 </View>
-                <View style={[tw`flex-1 py-2 px-2 rounded-2xl items-center`, businessSettings.isPickupAvailable ? tw`bg-blue-50 border border-blue-200` : tw`bg-gray-100`]}>
-                  <Text style={[tw`text-[10px] font-black`, businessSettings.isPickupAvailable ? tw`text-blue-800` : tw`text-gray-500`]}>
+                <View className={`flex-1 py-2 px-2 rounded-2xl items-center ${(businessSettings.isPickupAvailable) ? 'bg-blue-50 border border-blue-200' : 'bg-gray-100'}`}>
+                  <Text className={`text-[10px] font-black ${(businessSettings.isPickupAvailable) ? 'text-blue-800' : 'text-gray-500'}`}>
                     {businessSettings.isPickupAvailable ? '🏬 Store Pickup' : 'No Pickup'}
                   </Text>
                 </View>
@@ -2600,22 +2434,22 @@ export default function DashboardScreen({
           )}
 
           {/* 🚪 Account Actions Card */}
-          <View style={tw`bg-white rounded-3xl p-4 border border-borderSubtle shadow-sm`}>
-            <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2 px-1`}>
+          <View className="bg-white rounded-3xl p-4 border border-borderSubtle shadow-sm">
+            <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2 px-1">
               {t('accountActions')}
             </Text>
             <TouchableOpacity
-              style={tw`flex-row items-center justify-between p-3 rounded-2xl bg-red-50/60 border border-red-100`}
+              className="flex-row items-center justify-between p-3 rounded-2xl bg-red-50/60 border border-red-100"
               onPress={onLogout}
               activeOpacity={0.8}
             >
-              <View style={tw`flex-row items-center gap-2.5`}>
-                <View style={tw`w-8 h-8 rounded-xl bg-red-100 items-center justify-center`}>
+              <View className="flex-row items-center gap-2.5">
+                <View className="w-8 h-8 rounded-xl bg-red-100 items-center justify-center">
                   <Ionicons name="log-out-outline" size={18} color={COLORS.errorRed} />
                 </View>
                 <View>
-                  <Text style={tw`text-xs font-black text-errorRed`}>{t('logOut')}</Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Sign out of your Best Cream account</Text>
+                  <Text className="text-xs font-black text-errorRed">{t('logOut')}</Text>
+                  <Text className="text-[10px] text-chocolateBrownMuted">Sign out of your Best Cream account</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={16} color={COLORS.errorRed} />
@@ -2626,26 +2460,26 @@ export default function DashboardScreen({
 
       {/* ── Floating Cart Checkout Bar (When Cart Has Items) ── */}
       {totalCartCount > 0 && activeTab === 'menu' && (
-        <View style={tw`absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl p-3 shadow-2xl flex-row items-center justify-between`}>
-          <View style={tw`flex-row items-center gap-3 ml-1`}>
-            <View style={tw`w-10 h-10 rounded-xl bg-strawberryPink items-center justify-center shadow-sm`}>
+        <View className="absolute bottom-20 left-4 right-4 bg-chocolateBrown rounded-2xl p-3 shadow-2xl flex-row items-center justify-between">
+          <View className="flex-row items-center gap-3 ml-1">
+            <View className="w-10 h-10 rounded-xl bg-strawberryPink items-center justify-center shadow-sm">
               <Ionicons name="cart" size={19} color={COLORS.white} />
             </View>
             <View>
-              <Text style={tw`text-[11px] font-bold text-white/70 uppercase tracking-wider`}>
+              <Text className="text-[11px] font-bold text-white/70 uppercase tracking-wider">
                 {totalCartCount} {t('itemsInCart')}
               </Text>
-              <Text style={tw`text-sm font-black text-white`}>
+              <Text className="text-sm font-black text-white">
                 {totalCartPrice.toLocaleString()} XAF
               </Text>
             </View>
           </View>
           <TouchableOpacity
-            style={tw`flex-row items-center gap-1.5 bg-strawberryPink px-4 py-2.5 rounded-xl shadow-sm`}
+            className="flex-row items-center gap-1.5 bg-strawberryPink px-4 py-2.5 rounded-xl shadow-sm"
             onPress={() => setIsCartModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Text style={tw`text-xs font-black text-white`}>{t('viewCartAndPay')}</Text>
+            <Text className="text-xs font-black text-white">{t('viewCartAndPay')}</Text>
             <Ionicons name="chevron-forward" size={14} color={COLORS.white} />
           </TouchableOpacity>
         </View>
@@ -2653,13 +2487,13 @@ export default function DashboardScreen({
 
       {/* ── Bottom Navigation Bar ── */}
       {/* Background: Pure Crisp White | Subtle Top Border | Selected: Strawberry Pink */}
-      <View style={tw`absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-borderSubtle flex-row items-center justify-around shadow-lg`}>
+      <View className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-borderSubtle flex-row items-center justify-around shadow-lg">
         <TouchableOpacity
-          style={tw`items-center justify-center py-1 px-3`}
+          className="items-center justify-center py-1 px-3"
           onPress={() => setActiveTab('menu')}
           activeOpacity={0.7}
         >
-          <View style={[tw`p-1 rounded-xl`, activeTab === 'menu' && tw`bg-strawberryPinkLight`]}>
+          <View className={`p-1 rounded-xl ${(activeTab === 'menu') ? 'bg-strawberryPinkLight' : ''}`}>
             <Ionicons
               name={activeTab === 'menu' ? 'ice-cream' : 'ice-cream-outline'}
               size={20}
@@ -2667,21 +2501,18 @@ export default function DashboardScreen({
             />
           </View>
           <Text
-            style={[
-              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
-              activeTab === 'menu' && tw`text-strawberryPink font-black`,
-            ]}
+            className={`text-[10px] font-bold text-chocolateBrownMuted mt-0.5 ${(activeTab === 'menu') ? 'text-strawberryPink font-black' : ''}`}
           >
             {t('menuNav')}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={tw`items-center justify-center py-1 px-3`}
+          className="items-center justify-center py-1 px-3"
           onPress={() => setActiveTab('orders')}
           activeOpacity={0.7}
         >
-          <View style={[tw`p-1 rounded-xl`, activeTab === 'orders' && tw`bg-strawberryPinkLight`]}>
+          <View className={`p-1 rounded-xl ${(activeTab === 'orders') ? 'bg-strawberryPinkLight' : ''}`}>
             <Ionicons
               name={activeTab === 'orders' ? 'receipt' : 'receipt-outline'}
               size={20}
@@ -2689,21 +2520,18 @@ export default function DashboardScreen({
             />
           </View>
           <Text
-            style={[
-              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
-              activeTab === 'orders' && tw`text-strawberryPink font-black`,
-            ]}
+            className={`text-[10px] font-bold text-chocolateBrownMuted mt-0.5 ${(activeTab === 'orders') ? 'text-strawberryPink font-black' : ''}`}
           >
             {t('ordersNav')}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={tw`items-center justify-center py-1 px-3`}
+          className="items-center justify-center py-1 px-3"
           onPress={() => setActiveTab('deals')}
           activeOpacity={0.7}
         >
-          <View style={[tw`p-1 rounded-xl`, activeTab === 'deals' && tw`bg-strawberryPinkLight`]}>
+          <View className={`p-1 rounded-xl ${(activeTab === 'deals') ? 'bg-strawberryPinkLight' : ''}`}>
             <Ionicons
               name={activeTab === 'deals' ? 'pricetag' : 'pricetag-outline'}
               size={20}
@@ -2711,21 +2539,18 @@ export default function DashboardScreen({
             />
           </View>
           <Text
-            style={[
-              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
-              activeTab === 'deals' && tw`text-strawberryPink font-black`,
-            ]}
+            className={`text-[10px] font-bold text-chocolateBrownMuted mt-0.5 ${(activeTab === 'deals') ? 'text-strawberryPink font-black' : ''}`}
           >
             {t('dealsNav')}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={tw`items-center justify-center py-1 px-3`}
+          className="items-center justify-center py-1 px-3"
           onPress={() => setActiveTab('profile')}
           activeOpacity={0.7}
         >
-          <View style={[tw`p-1 rounded-xl`, activeTab === 'profile' && tw`bg-strawberryPinkLight`]}>
+          <View className={`p-1 rounded-xl ${(activeTab === 'profile') ? 'bg-strawberryPinkLight' : ''}`}>
             <Ionicons
               name={activeTab === 'profile' ? 'person' : 'person-outline'}
               size={20}
@@ -2733,10 +2558,7 @@ export default function DashboardScreen({
             />
           </View>
           <Text
-            style={[
-              tw`text-[10px] font-bold text-chocolateBrownMuted mt-0.5`,
-              activeTab === 'profile' && tw`text-strawberryPink font-black`,
-            ]}
+            className={`text-[10px] font-bold text-chocolateBrownMuted mt-0.5 ${(activeTab === 'profile') ? 'text-strawberryPink font-black' : ''}`}
           >
             {t('profileNav')}
           </Text>
@@ -2750,86 +2572,86 @@ export default function DashboardScreen({
         transparent={true}
         onRequestClose={() => setIsCartModalVisible(false)}
       >
-        <View style={tw`flex-1 bg-black/50 justify-end`}>
-          <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8`}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl max-h-4/5 pb-8">
             {/* Modal Header */}
-            <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-borderSubtle`}>
+            <View className="flex-row justify-between items-center px-5 py-4 border-b border-borderSubtle">
               <View>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>Your Order Cart 🛒</Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-lg font-black text-chocolateBrown">Your Order Cart 🛒</Text>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   Pay with MTN MoMo or Orange Money
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setIsCartModalVisible(false)}
-                style={tw`w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle`}
+                className="w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle"
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
             </View>
 
             {/* Cart Items List */}
-            <ScrollView style={tw`px-5 pt-3`}>
+            <ScrollView className="px-5 pt-3">
               {cart.length === 0 ? (
-                <View style={tw`items-center py-10`}>
-                  <Text style={tw`text-4xl mb-2`}>🍨</Text>
-                  <Text style={tw`text-base font-black text-chocolateBrown`}>Your cart is empty</Text>
-                  <Text style={tw`text-xs text-chocolateBrownMuted mt-1`}>
+                <View className="items-center py-10">
+                  <Text className="text-4xl mb-2">🍨</Text>
+                  <Text className="text-base font-black text-chocolateBrown">Your cart is empty</Text>
+                  <Text className="text-xs text-chocolateBrownMuted mt-1">
                     Add delicious ice cream scoops or pancakes!
                   </Text>
                 </View>
               ) : (
                 cart.map((ci, idx) => (
-                  <View key={idx} style={tw`flex-row items-center py-3 border-b border-borderSubtle`}>
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`}>{ci.name}</Text>
+                  <View key={idx} className="flex-row items-center py-3 border-b border-borderSubtle">
+                    <View className="flex-1">
+                      <Text className="text-sm font-black text-chocolateBrown">{ci.name}</Text>
                       {ci.flavor && (
-                        <Text style={tw`text-xs text-chocolateBrownLight mt-0.5`}>
+                        <Text className="text-xs text-chocolateBrownLight mt-0.5">
                           {ci.flavor}
                         </Text>
                       )}
                       {/* Customization tags */}
                       {ci.servingStyle && (
-                        <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                        <Text className="text-[10px] font-bold text-strawberryPink">
                           {ci.servingStyle}
                         </Text>
                       )}
                       {ci.sizeOption && (
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        <Text className="text-[10px] text-chocolateBrownMuted">
                           {ci.sizeOption}
                         </Text>
                       )}
                       {ci.pancakeStyle && (
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        <Text className="text-[10px] text-chocolateBrownMuted">
                           {ci.pancakeStyle}
                         </Text>
                       )}
                       {ci.selectedToppings.length > 0 && (
-                        <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                        <Text className="text-[10px] text-chocolateBrownMuted">
                           + {ci.selectedToppings.map((t) => t.name).join(', ')}
                         </Text>
                       )}
                       {ci.specialNotes && (
-                        <Text style={tw`text-[10px] font-bold text-strawberryPink mt-0.5`}>
+                        <Text className="text-[10px] font-bold text-strawberryPink mt-0.5">
                           📝 {ci.specialNotes}
                         </Text>
                       )}
-                      <Text style={tw`text-xs font-bold text-chocolateBrown mt-1`}>
+                      <Text className="text-xs font-bold text-chocolateBrown mt-1">
                         {ci.price.toLocaleString()} XAF each
                       </Text>
                     </View>
-                    <View style={tw`flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-1 gap-2`}>
+                    <View className="flex-row items-center bg-surfaceBright rounded-xl border border-borderSubtle p-1 gap-2">
                       <TouchableOpacity
-                        style={tw`w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle`}
+                        className="w-6 h-6 rounded-lg bg-white items-center justify-center shadow-xs border border-borderSubtle"
                         onPress={() => removeFromCartByIndex(idx)}
                       >
                         <Feather name="minus" size={12} color={COLORS.chocolateBrown} />
                       </TouchableOpacity>
-                      <Text style={tw`text-xs font-black text-chocolateBrown min-w-4 text-center`}>
+                      <Text className="text-xs font-black text-chocolateBrown min-w-4 text-center">
                         {ci.quantity}
                       </Text>
                       <TouchableOpacity
-                        style={tw`w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs`}
+                        className="w-6 h-6 rounded-lg bg-strawberryPink items-center justify-center shadow-xs"
                         onPress={() =>
                           setCart((prev) =>
                             prev.map((c, i) =>
@@ -2847,16 +2669,16 @@ export default function DashboardScreen({
 
               {/* Customer Details Section */}
               {totalCartCount > 0 && (
-                <View style={tw`mt-4 pb-6`}>
+                <View className="mt-4 pb-6">
                   {/* Customer Name */}
-                  <View style={tw`mb-3.5`}>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                  <View className="mb-3.5">
+                    <Text className="text-xs font-bold text-chocolateBrown mb-1.5">
                       {t('customerName')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
-                      <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                    <View className="flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5">
+                      <Ionicons name="person-outline" size={16} color={COLORS.chocolateBrown} className="mr-2" />
                       <TextInput
-                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        className="flex-1 text-sm font-semibold text-chocolateBrown"
                         value={customerName}
                         onChangeText={setCustomerName}
                         placeholder={t('customerNamePlaceholder')}
@@ -2866,14 +2688,14 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Phone Number */}
-                  <View style={tw`mb-3.5`}>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                  <View className="mb-3.5">
+                    <Text className="text-xs font-bold text-chocolateBrown mb-1.5">
                       {t('phoneNumberLabel')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
-                      <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                    <View className="flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5">
+                      <Ionicons name="call-outline" size={16} color={COLORS.chocolateBrown} className="mr-2" />
                       <TextInput
-                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        className="flex-1 text-sm font-semibold text-chocolateBrown"
                         value={phoneNumber}
                         onChangeText={setPhoneNumber}
                         keyboardType="phone-pad"
@@ -2884,44 +2706,28 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Order Type: Delivery / Pickup */}
-                  <View style={tw`mb-3.5`}>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                  <View className="mb-3.5">
+                    <Text className="text-xs font-bold text-chocolateBrown mb-1.5">
                       {t('orderType')}
                     </Text>
-                    <View style={tw`flex-row gap-2`}>
+                    <View className="flex-row gap-2">
                       <TouchableOpacity
-                        style={[
-                          tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
-                          orderType === 'delivery'
-                            ? tw`bg-strawberryPinkLight border-strawberryPink`
-                            : tw`bg-surfaceBright border-borderSubtle`,
-                        ]}
+                        className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2 ${(orderType === 'delivery') ? 'bg-strawberryPinkLight border-strawberryPink' : 'bg-surfaceBright border-borderSubtle'}`}
                         onPress={() => setOrderType('delivery')}
                         activeOpacity={0.8}
                       >
                         <Text style={{ fontSize: 18 }}>🛵</Text>
-                        <Text style={[
-                          tw`text-xs font-bold`,
-                          orderType === 'delivery' ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                        ]}>
+                        <Text className={`text-xs font-bold ${(orderType === 'delivery') ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}>
                           {t('orderTypeDelivery')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[
-                          tw`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2`,
-                          orderType === 'pickup'
-                            ? tw`bg-strawberryPinkLight border-strawberryPink`
-                            : tw`bg-surfaceBright border-borderSubtle`,
-                        ]}
+                        className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2 ${(orderType === 'pickup') ? 'bg-strawberryPinkLight border-strawberryPink' : 'bg-surfaceBright border-borderSubtle'}`}
                         onPress={() => setOrderType('pickup')}
                         activeOpacity={0.8}
                       >
                         <Text style={{ fontSize: 18 }}>🏪</Text>
-                        <Text style={[
-                          tw`text-xs font-bold`,
-                          orderType === 'pickup' ? tw`text-strawberryPink` : tw`text-chocolateBrownMuted`,
-                        ]}>
+                        <Text className={`text-xs font-bold ${(orderType === 'pickup') ? 'text-strawberryPink' : 'text-chocolateBrownMuted'}`}>
                           {t('orderTypePickup')}
                         </Text>
                       </TouchableOpacity>
@@ -2931,21 +2737,18 @@ export default function DashboardScreen({
                   {/* Delivery Location (only shown for delivery) */}
                   {orderType === 'delivery' && (
                     <>
-                      <View style={tw`mb-3.5`}>
-                        <View style={tw`flex-row justify-between items-center mb-1.5`}>
-                          <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                      <View className="mb-3.5">
+                        <View className="flex-row justify-between items-center mb-1.5">
+                          <Text className="text-xs font-bold text-chocolateBrown">
                             Delivery Destination 📍
                           </Text>
-                          <Text style={tw`text-[10px] font-bold text-chocolateBrownMuted`}>
+                          <Text className="text-[10px] font-bold text-chocolateBrownMuted">
                             Shop: Centre-ville, Yaoundé
                           </Text>
                         </View>
 
                         <TouchableOpacity
-                          style={[
-                            tw`flex-row items-center justify-center gap-2 bg-strawberryPinkLight border border-strawberryPink/40 rounded-2xl py-2.5 px-3 mb-2`,
-                            locationLoading && tw`opacity-70`,
-                          ]}
+                          className={`flex-row items-center justify-center gap-2 bg-strawberryPinkLight border border-strawberryPink/40 rounded-2xl py-2.5 px-3 mb-2 ${(locationLoading) ? 'opacity-70' : ''}`}
                           onPress={detectGPSLocation}
                           disabled={locationLoading}
                           activeOpacity={0.8}
@@ -2955,15 +2758,15 @@ export default function DashboardScreen({
                           ) : (
                             <Ionicons name="navigate-circle" size={18} color={COLORS.strawberryPink} />
                           )}
-                          <Text style={tw`text-xs font-black text-strawberryPink`}>
+                          <Text className="text-xs font-black text-strawberryPink">
                             {locationLoading ? 'Detecting Location...' : 'Use My Current GPS Location'}
                           </Text>
                         </TouchableOpacity>
 
-                        <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5`}>
-                          <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} style={tw`mr-2`} />
+                        <View className="flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5">
+                          <Ionicons name="location-outline" size={16} color={COLORS.chocolateBrown} className="mr-2" />
                           <TextInput
-                            style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1`}
+                            className="flex-1 text-sm font-semibold text-chocolateBrown py-1"
                             value={deliveryAddress}
                             onChangeText={(txt) => {
                               setDeliveryAddress(txt);
@@ -2973,46 +2776,46 @@ export default function DashboardScreen({
                             placeholderTextColor={COLORS.chocolateBrownMuted}
                           />
                           <TouchableOpacity
-                            style={tw`bg-chocolateBrown px-3 py-1.5 rounded-xl ml-1`}
+                            className="bg-chocolateBrown px-3 py-1.5 rounded-xl ml-1"
                             onPress={geocodeManualAddress}
                             disabled={locationLoading}
                             activeOpacity={0.8}
                           >
-                            <Text style={tw`text-xs font-bold text-white`}>Check</Text>
+                            <Text className="text-xs font-bold text-white">Check</Text>
                           </TouchableOpacity>
                         </View>
 
                         {locationResult ? (
-                          <View style={tw`mt-2.5 bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-3`}>
-                            <View style={tw`flex-row items-center justify-between mb-1`}>
-                              <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-                                <Text style={tw`text-base`}>{locationResult.tier.emoji}</Text>
-                                <Text style={tw`text-xs font-black text-chocolateBrown`} numberOfLines={1}>
+                          <View className="mt-2.5 bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-3">
+                            <View className="flex-row items-center justify-between mb-1">
+                              <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+                                <Text className="text-base">{locationResult.tier.emoji}</Text>
+                                <Text className="text-xs font-black text-chocolateBrown" numberOfLines={1}>
                                   {locationResult.tier.label}
                                 </Text>
                               </View>
-                              <View style={tw`bg-white px-2 py-0.5 rounded-full border border-pistachioGreen/50`}>
-                                <Text style={tw`text-[10px] font-black text-chocolateBrown`}>
+                              <View className="bg-white px-2 py-0.5 rounded-full border border-pistachioGreen/50">
+                                <Text className="text-[10px] font-black text-chocolateBrown">
                                   {formatDistance(locationResult.distanceKm)} from shop
                                 </Text>
                               </View>
                             </View>
 
-                            <Text style={tw`text-xs text-chocolateBrownLight`} numberOfLines={2}>
+                            <Text className="text-xs text-chocolateBrownLight" numberOfLines={2}>
                               📍 {locationResult.displayName}
                             </Text>
 
-                            <View style={tw`flex-row justify-between items-center mt-2 pt-2 border-t border-pistachioGreen/30`}>
-                              <Text style={tw`text-xs text-chocolateBrownMuted`}>
-                                ⏱️ Est. arrival: <Text style={tw`font-bold text-chocolateBrown`}>{locationResult.tier.estimatedMinutes}</Text>
+                            <View className="flex-row justify-between items-center mt-2 pt-2 border-t border-pistachioGreen/30">
+                              <Text className="text-xs text-chocolateBrownMuted">
+                                ⏱️ Est. arrival: <Text className="font-bold text-chocolateBrown">{locationResult.tier.estimatedMinutes}</Text>
                               </Text>
-                              <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                              <Text className="text-xs font-black text-chocolateBrown">
                                 Fee: {locationResult.tier.fee === 0 ? 'FREE' : formatXAF(locationResult.tier.fee)}
                               </Text>
                             </View>
 
                             {locationResult.latitude && locationResult.longitude && (
-                              <View style={tw`mt-2.5 rounded-xl overflow-hidden`}>
+                              <View className="mt-2.5 rounded-xl overflow-hidden">
                                 <YaoundeMapView
                                   userLatitude={locationResult.latitude}
                                   userLongitude={locationResult.longitude}
@@ -3023,7 +2826,7 @@ export default function DashboardScreen({
                             )}
                           </View>
                         ) : (
-                          <Text style={tw`text-[11px] text-chocolateBrownMuted mt-1 ml-1`}>
+                          <Text className="text-[11px] text-chocolateBrownMuted mt-1 ml-1">
                             💡 Tap GPS or enter a quarter in Yaoundé to compute distance & delivery fee.
                           </Text>
                         )}
@@ -3033,28 +2836,28 @@ export default function DashboardScreen({
 
                   {/* Pickup Info (only shown for pickup) */}
                   {orderType === 'pickup' && (
-                    <View style={tw`bg-butterYellowLight border border-butterYellow rounded-2xl p-3 mb-3`}>
-                      <View style={tw`flex-row items-center gap-2 mb-1`}>
+                    <View className="bg-butterYellowLight border border-butterYellow rounded-2xl p-3 mb-3">
+                      <View className="flex-row items-center gap-2 mb-1">
                         <Ionicons name="storefront" size={16} color={COLORS.chocolateBrown} />
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                        <Text className="text-xs font-bold text-chocolateBrown">
                           Pickup at Best Cream, Centre-ville, Yaoundé
                         </Text>
                       </View>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                      <Text className="text-[10px] text-chocolateBrownMuted">
                         No delivery fee. Your order will be ready for collection at the shop.
                       </Text>
                     </View>
                   )}
 
                   {/* Preferred Time */}
-                  <View style={tw`mb-3.5`}>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                  <View className="mb-3.5">
+                    <Text className="text-xs font-bold text-chocolateBrown mb-1.5">
                       {t('preferredTime')}
                     </Text>
-                    <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5`}>
+                    <View className="flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-2.5">
                       <Text style={{ fontSize: 16, marginRight: 8 }}>⏰</Text>
                       <TextInput
-                        style={tw`flex-1 text-sm font-semibold text-chocolateBrown`}
+                        className="flex-1 text-sm font-semibold text-chocolateBrown"
                         value={preferredTime}
                         onChangeText={setPreferredTime}
                         placeholder={t('preferredTimePlaceholder')}
@@ -3064,13 +2867,13 @@ export default function DashboardScreen({
                   </View>
 
                   {/* Additional Instructions */}
-                  <View style={tw`mb-3.5`}>
-                    <Text style={tw`text-xs font-bold text-chocolateBrown mb-1.5`}>
+                  <View className="mb-3.5">
+                    <Text className="text-xs font-bold text-chocolateBrown mb-1.5">
                       {t('orderInstructions')}
                     </Text>
-                    <View style={tw`bg-surfaceBright rounded-2xl border border-borderSubtle`}>
+                    <View className="bg-surfaceBright rounded-2xl border border-borderSubtle">
                       <TextInput
-                        style={tw`text-sm font-medium text-chocolateBrown p-3`}
+                        className="text-sm font-medium text-chocolateBrown p-3"
                         value={orderInstructions}
                         onChangeText={setOrderInstructions}
                         placeholder={t('orderInstructionsPlaceholder')}
@@ -3085,40 +2888,34 @@ export default function DashboardScreen({
 
               {/* Payment Section */}
               {totalCartCount > 0 && (
-                <View style={tw`mt-4 pb-6`}>
-                  <Text style={tw`text-sm font-extrabold text-chocolateBrown mb-2.5`}>
+                <View className="mt-4 pb-6">
+                  <Text className="text-sm font-extrabold text-chocolateBrown mb-2.5">
                     Select Payment Method
                   </Text>
 
                   {/* Payment Choices */}
-                  <View style={tw`flex-row gap-2.5 mb-3.5`}>
+                  <View className="flex-row gap-2.5 mb-3.5">
                     <TouchableOpacity
-                      style={[
-                        tw`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative`,
-                        paymentMethod === 'mtn-momo' && tw`border-strawberryPink bg-strawberryPinkLight`,
-                      ]}
+                      className={`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative ${(paymentMethod === 'mtn-momo') ? 'border-strawberryPink bg-strawberryPinkLight' : ''}`}
                       onPress={() => setPaymentMethod('mtn-momo')}
                     >
-                      <Text style={tw`text-2xl mb-1`}>📱</Text>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>MTN MoMo</Text>
+                      <Text className="text-2xl mb-1">📱</Text>
+                      <Text className="text-xs font-bold text-chocolateBrown">MTN MoMo</Text>
                       {paymentMethod === 'mtn-momo' && (
-                        <View style={tw`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center`}>
+                        <View className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center">
                           <Ionicons name="checkmark" size={10} color={COLORS.white} />
                         </View>
                       )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[
-                        tw`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative`,
-                        paymentMethod === 'orange-money' && tw`border-strawberryPink bg-strawberryPinkLight`,
-                      ]}
+                      className={`flex-1 border-2 border-borderSubtle rounded-2xl p-3 items-center bg-surfaceBright relative ${(paymentMethod === 'orange-money') ? 'border-strawberryPink bg-strawberryPinkLight' : ''}`}
                       onPress={() => setPaymentMethod('orange-money')}
                     >
-                      <Text style={tw`text-2xl mb-1`}>🟠</Text>
-                      <Text style={tw`text-xs font-bold text-chocolateBrown`}>Orange Money</Text>
+                      <Text className="text-2xl mb-1">🟠</Text>
+                      <Text className="text-xs font-bold text-chocolateBrown">Orange Money</Text>
                       {paymentMethod === 'orange-money' && (
-                        <View style={tw`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center`}>
+                        <View className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-strawberryPink items-center justify-center">
                           <Ionicons name="checkmark" size={10} color={COLORS.white} />
                         </View>
                       )}
@@ -3126,36 +2923,33 @@ export default function DashboardScreen({
                   </View>
 
                     {/* Summary */}
-                    <View style={tw`bg-surfaceBright rounded-2xl p-3.5 mb-4 gap-1.5 border border-borderSubtle`}>
-                      <View style={tw`flex-row justify-between`}>
-                        <Text style={tw`text-xs text-chocolateBrownMuted`}>Subtotal</Text>
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+                    <View className="bg-surfaceBright rounded-2xl p-3.5 mb-4 gap-1.5 border border-borderSubtle">
+                      <View className="flex-row justify-between">
+                        <Text className="text-xs text-chocolateBrownMuted">Subtotal</Text>
+                        <Text className="text-xs font-bold text-chocolateBrown">
                           {totalCartPrice.toLocaleString()} XAF
                         </Text>
                       </View>
-                      <View style={tw`flex-row justify-between items-center`}>
-                        <View style={tw`flex-row items-center gap-1`}>
-                          <Text style={tw`text-xs text-chocolateBrownMuted`}>
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center gap-1">
+                          <Text className="text-xs text-chocolateBrownMuted">
                             {orderType === 'delivery' ? 'Delivery' : 'Pickup'}
                           </Text>
                         </View>
                         <Text
-                          style={[
-                            tw`text-xs font-bold`,
-                            cartDeliveryFee === 0 ? tw`text-pistachioGreen` : tw`text-chocolateBrown`,
-                          ]}
+                          className={`text-xs font-bold ${(cartDeliveryFee === 0) ? 'text-pistachioGreen' : 'text-chocolateBrown'}`}
                         >
                           {cartDeliveryFee === 0 ? 'FREE' : formatXAF(cartDeliveryFee)}
                         </Text>
                       </View>
-                      <View style={tw`flex-row justify-between border-t border-borderSubtle pt-2 mt-1`}>
-                        <Text style={tw`text-sm font-black text-chocolateBrown`}>Total Amount</Text>
-                        <View style={tw`items-end`}>
-                          <Text style={tw`text-base font-black text-chocolateBrown`}>
+                      <View className="flex-row justify-between border-t border-borderSubtle pt-2 mt-1">
+                        <Text className="text-sm font-black text-chocolateBrown">Total Amount</Text>
+                        <View className="items-end">
+                          <Text className="text-base font-black text-chocolateBrown">
                             {(totalCartPrice + cartDeliveryFee).toLocaleString()} XAF
                           </Text>
                           {cartDeliveryFee > 0 && (
-                            <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                            <Text className="text-[10px] text-chocolateBrownMuted">
                               incl. {formatXAF(cartDeliveryFee)} delivery
                             </Text>
                           )}
@@ -3165,10 +2959,7 @@ export default function DashboardScreen({
 
                     {/* Action Button */}
                     <TouchableOpacity
-                      style={[
-                        tw`w-full bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-1.5 shadow-md`,
-                        placingOrder && tw`opacity-70`,
-                      ]}
+                      className={`w-full bg-strawberryPink py-4 rounded-2xl flex-row items-center justify-center gap-1.5 shadow-md ${(placingOrder) ? 'opacity-70' : ''}`}
                       disabled={placingOrder}
                       onPress={handlePlaceOrder}
                       activeOpacity={0.85}
@@ -3177,14 +2968,14 @@ export default function DashboardScreen({
                         <ActivityIndicator size="small" color={COLORS.chocolateBrown} />
                       ) : (
                         <>
-                          <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                          <Text className="text-sm font-black text-chocolateBrown">
                             Pay {(totalCartPrice + cartDeliveryFee).toLocaleString()} XAF via {paymentMethod === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'}
                           </Text>
                           <Ionicons name="lock-closed" size={16} color={COLORS.chocolateBrown} />
                         </>
                       )}
                     </TouchableOpacity>
-                    <Text style={tw`text-xs text-chocolateBrownMuted text-center mt-2`}>
+                    <Text className="text-xs text-chocolateBrownMuted text-center mt-2">
                       Upon payment, your order will show 'Pending' until approved by the admin.
                     </Text>
                   </View>
@@ -3201,31 +2992,28 @@ export default function DashboardScreen({
         transparent={true}
         onRequestClose={() => setIsLocationModalVisible(false)}
       >
-        <View style={tw`flex-1 bg-black/50 justify-end`}>
-          <View style={tw`bg-white rounded-t-3xl max-h-4/5 pb-8 px-5 pt-4`}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl max-h-4/5 pb-8 px-5 pt-4">
             {/* Modal Header */}
-            <View style={tw`flex-row justify-between items-center pb-3 border-b border-borderSubtle`}>
+            <View className="flex-row justify-between items-center pb-3 border-b border-borderSubtle">
               <View>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>Set Delivery Destination 📍</Text>
-                <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
+                <Text className="text-lg font-black text-chocolateBrown">Set Delivery Destination 📍</Text>
+                <Text className="text-xs text-chocolateBrownMuted mt-0.5">
                   Store: Best Cream, Centre-ville, Yaoundé
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setIsLocationModalVisible(false)}
-                style={tw`w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle`}
+                className="w-9 h-9 rounded-full bg-surfaceBright items-center justify-center border border-borderSubtle"
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={tw`pt-4`}>
+            <ScrollView showsVerticalScrollIndicator={false} className="pt-4">
               {/* 1. GPS Button */}
               <TouchableOpacity
-                style={[
-                  tw`flex-row items-center justify-center gap-2.5 bg-strawberryPinkLight border-2 border-strawberryPink/50 rounded-2xl py-3 px-4 mb-4 shadow-sm`,
-                  locationLoading && tw`opacity-70`,
-                ]}
+                className={`flex-row items-center justify-center gap-2.5 bg-strawberryPinkLight border-2 border-strawberryPink/50 rounded-2xl py-3 px-4 mb-4 shadow-sm ${(locationLoading) ? 'opacity-70' : ''}`}
                 onPress={detectGPSLocation}
                 disabled={locationLoading}
                 activeOpacity={0.8}
@@ -3235,24 +3023,24 @@ export default function DashboardScreen({
                 ) : (
                   <Ionicons name="navigate-circle" size={22} color={COLORS.strawberryPink} />
                 )}
-                <View style={tw`items-start`}>
-                  <Text style={tw`text-sm font-black text-strawberryPink`}>
+                <View className="items-start">
+                  <Text className="text-sm font-black text-strawberryPink">
                     {locationLoading ? 'Detecting GPS Coordinates...' : 'Use Current GPS Location'}
                   </Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted`}>
+                  <Text className="text-[10px] text-chocolateBrownMuted">
                     Auto-measures exact distance from Yaoundé store
                   </Text>
                 </View>
               </TouchableOpacity>
 
               {/* 2. Manual Address / Quarter Input */}
-              <Text style={tw`text-xs font-black text-chocolateBrown mb-1.5`}>
+              <Text className="text-xs font-black text-chocolateBrown mb-1.5">
                 Or Type Your Quarter in Yaoundé:
               </Text>
-              <View style={tw`flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5 mb-3`}>
-                <Ionicons name="search" size={16} color={COLORS.chocolateBrownMuted} style={tw`mr-2`} />
+              <View className="flex-row items-center bg-surfaceBright rounded-2xl border border-borderSubtle px-3 py-1.5 mb-3">
+                <Ionicons name="search" size={16} color={COLORS.chocolateBrownMuted} className="mr-2" />
                 <TextInput
-                  style={tw`flex-1 text-sm font-semibold text-chocolateBrown py-1.5`}
+                  className="flex-1 text-sm font-semibold text-chocolateBrown py-1.5"
                   value={deliveryAddress}
                   onChangeText={(txt) => {
                     setDeliveryAddress(txt);
@@ -3262,20 +3050,20 @@ export default function DashboardScreen({
                   placeholderTextColor={COLORS.chocolateBrownMuted}
                 />
                 <TouchableOpacity
-                  style={tw`bg-chocolateBrown px-3.5 py-2 rounded-xl ml-1`}
+                  className="bg-chocolateBrown px-3.5 py-2 rounded-xl ml-1"
                   onPress={geocodeManualAddress}
                   disabled={locationLoading}
                   activeOpacity={0.8}
                 >
-                  <Text style={tw`text-xs font-bold text-white`}>Calculate</Text>
+                  <Text className="text-xs font-bold text-white">Calculate</Text>
                 </TouchableOpacity>
               </View>
 
               {/* 3. Popular Yaoundé Quarters Quick Chips */}
-              <Text style={tw`text-xs font-bold text-chocolateBrownMuted mb-2`}>
+              <Text className="text-xs font-bold text-chocolateBrownMuted mb-2">
                 Quick Select Popular Quarters:
               </Text>
-              <View style={tw`flex-row flex-wrap gap-2 mb-4`}>
+              <View className="flex-row flex-wrap gap-2 mb-4">
                 {Object.keys(YAOUNDE_LANDMARKS).map((quarter) => {
                   const isSelected =
                     deliveryAddress.toLowerCase().includes(quarter.toLowerCase()) ||
@@ -3283,18 +3071,12 @@ export default function DashboardScreen({
                   return (
                     <TouchableOpacity
                       key={quarter}
-                      style={[
-                        tw`px-3 py-2 rounded-xl border border-borderSubtle bg-surfaceBright`,
-                        isSelected && tw`bg-strawberryPink border-strawberryPink`,
-                      ]}
+                      className={`px-3 py-2 rounded-xl border border-borderSubtle bg-surfaceBright ${(isSelected) ? 'bg-strawberryPink border-strawberryPink' : ''}`}
                       onPress={() => selectQuarter(quarter)}
                       activeOpacity={0.7}
                     >
                       <Text
-                        style={[
-                          tw`text-xs font-bold text-chocolateBrown`,
-                          isSelected && tw`text-white font-black`,
-                        ]}
+                        className={`text-xs font-bold text-chocolateBrown ${(isSelected) ? 'text-white font-black' : ''}`}
                       >
                         📍 {quarter}
                       </Text>
@@ -3304,12 +3086,12 @@ export default function DashboardScreen({
               </View>
 
               {/* ── Interactive Map of Yaoundé ── */}
-              <View style={tw`mb-4`}>
-                <View style={tw`flex-row justify-between items-center mb-1.5`}>
-                  <Text style={tw`text-xs font-black text-chocolateBrown`}>
+              <View className="mb-4">
+                <View className="flex-row justify-between items-center mb-1.5">
+                  <Text className="text-xs font-black text-chocolateBrown">
                     🗺️ Yaoundé Delivery Map
                   </Text>
-                  <Text style={tw`text-[10px] text-chocolateBrownMuted font-bold`}>
+                  <Text className="text-[10px] text-chocolateBrownMuted font-bold">
                     Tap on map to pick location
                   </Text>
                 </View>
@@ -3324,35 +3106,35 @@ export default function DashboardScreen({
 
               {/* 4. Result Preview Card */}
               {locationResult && (
-                <View style={tw`bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-4 mb-4 shadow-sm`}>
-                  <View style={tw`flex-row items-center justify-between mb-1.5`}>
-                    <View style={tw`flex-row items-center gap-1.5 flex-1 mr-2`}>
-                      <Text style={tw`text-xl`}>{locationResult.tier.emoji}</Text>
-                      <Text style={tw`text-sm font-black text-chocolateBrown`} numberOfLines={1}>
+                <View className="bg-pistachioGreenLight border border-pistachioGreen rounded-2xl p-4 mb-4 shadow-sm">
+                  <View className="flex-row items-center justify-between mb-1.5">
+                    <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+                      <Text className="text-xl">{locationResult.tier.emoji}</Text>
+                      <Text className="text-sm font-black text-chocolateBrown" numberOfLines={1}>
                         {locationResult.tier.label}
                       </Text>
                     </View>
-                    <View style={tw`bg-white px-2.5 py-1 rounded-full border border-pistachioGreen`}>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    <View className="bg-white px-2.5 py-1 rounded-full border border-pistachioGreen">
+                      <Text className="text-xs font-black text-chocolateBrown">
                         {formatDistance(locationResult.distanceKm)} from shop
                       </Text>
                     </View>
                   </View>
 
-                  <Text style={tw`text-xs text-chocolateBrownLight mb-2.5`} numberOfLines={2}>
+                  <Text className="text-xs text-chocolateBrownLight mb-2.5" numberOfLines={2}>
                     📍 {locationResult.displayName}
                   </Text>
 
-                  <View style={tw`flex-row justify-between items-center pt-2.5 border-t border-pistachioGreen/30`}>
+                  <View className="flex-row justify-between items-center pt-2.5 border-t border-pistachioGreen/30">
                     <View>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Est. Delivery Time</Text>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                      <Text className="text-[10px] text-chocolateBrownMuted">Est. Delivery Time</Text>
+                      <Text className="text-xs font-black text-chocolateBrown">
                         ⏱️ {locationResult.tier.estimatedMinutes}
                       </Text>
                     </View>
-                    <View style={tw`items-end`}>
-                      <Text style={tw`text-[10px] text-chocolateBrownMuted`}>Delivery Fee</Text>
-                      <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    <View className="items-end">
+                      <Text className="text-[10px] text-chocolateBrownMuted">Delivery Fee</Text>
+                      <Text className="text-xs font-black text-chocolateBrown">
                         {locationResult.tier.fee === 0
                           ? 'FREE'
                           : formatXAF(locationResult.tier.fee)}
@@ -3364,11 +3146,11 @@ export default function DashboardScreen({
 
               {/* 5. Done / Confirm Button */}
               <TouchableOpacity
-                style={tw`w-full bg-strawberryPink py-3.5 rounded-2xl items-center justify-center mt-1 mb-6 shadow-md`}
+                className="w-full bg-strawberryPink py-3.5 rounded-2xl items-center justify-center mt-1 mb-6 shadow-md"
                 onPress={() => setIsLocationModalVisible(false)}
                 activeOpacity={0.85}
               >
-                <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                <Text className="text-sm font-black text-chocolateBrown">
                   {locationResult ? 'Confirm Delivery Location ✅' : 'Done'}
                 </Text>
               </TouchableOpacity>

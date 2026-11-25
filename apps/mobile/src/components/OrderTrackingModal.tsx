@@ -1,16 +1,3 @@
-/**
- * OrderTrackingModal.tsx
- * Best Cream — Live Customer Order Tracking & Receipt Screen
- *
- * Visual 4-stage delivery timeline:
- *  1. Order Received
- *  2. Payment Verified (MoMo / Orange)
- *  3. Preparing in Kitchen (Ice cream churned / Pancakes baking)
- *  4. Out for Delivery / Ready for Pickup
- *
- * Integrated with interactive Yaoundé OpenStreetMap & direct shop phone call.
- */
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -22,15 +9,15 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import type { Order } from '@best-cream/shared';
-import tw from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import YaoundeMapView from './YaoundeMapView';
-import { STORE_LOCATION, formatDistance, formatXAF, YAOUNDE_LANDMARKS } from '../utils/location';
+import { formatDistance, formatXAF, YAOUNDE_LANDMARKS } from '../utils/location';
 import { downloadReceiptPdf } from '../utils/receipt';
 import { useLanguage } from '../context/LanguageContext';
 import { onSocketEvent } from '../lib/socket';
+import { AppButton, StatusBadge, type BadgeTone } from './ui';
 
 interface OrderTrackingModalProps {
   order: Order | null;
@@ -38,26 +25,29 @@ interface OrderTrackingModalProps {
   onClose: () => void;
 }
 
-export default function OrderTrackingModal({ order: initialOrder, visible, onClose }: OrderTrackingModalProps) {
+export default function OrderTrackingModal({
+  order: initialOrder,
+  visible,
+  onClose,
+}: OrderTrackingModalProps) {
+  const { t, language } = useLanguage();
   const [order, setOrder] = useState<Order | null>(initialOrder);
+  const [downloading, setDownloading] = useState(false);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
 
-  // Keep local order in sync when parent passes a new order prop
   useEffect(() => {
     setOrder(initialOrder);
   }, [initialOrder]);
 
-  // 🔴 Subscribe to real-time order status updates via Socket.IO
   useEffect(() => {
     if (!visible || !initialOrder) return;
 
-    // Listen for status changes on this specific order
     const unsubStatus = onSocketEvent<Order>('order:status_updated', (updated) => {
       if (updated.id === initialOrder.id) {
         setOrder(updated);
       }
     });
 
-    // Also listen for the full orders list refresh and pick out our order
     const unsubList = onSocketEvent<Order[]>('orders:updated', (allOrders) => {
       const found = allOrders.find((o) => o.id === initialOrder.id);
       if (found) setOrder(found);
@@ -71,11 +61,6 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
 
   if (!order) return null;
 
-  const { t, language } = useLanguage();
-  const [downloading, setDownloading] = useState(false);
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
-
-  // Coordinate resolution fallback if coordinates were not explicitly attached
   let resolvedLat = order.latitude;
   let resolvedLon = order.longitude;
   if ((!resolvedLat || !resolvedLon) && order.deliveryAddress) {
@@ -96,8 +81,23 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
   const isCompleted = order.status === 'completed' || (order.status as string) === 'received';
   const isCancelled = order.status === 'cancelled' || order.status === 'rejected';
 
-  // Step indices: 0 = placed, 1 = accepted/payment, 2 = preparing, 3 = ready/out-for-delivery, 4 = completed
-  const currentStep = isCompleted ? 4 : isOutForDelivery || isReady ? 3 : isPreparing ? 2 : isAccepted ? 1 : 0;
+  const currentStep = isCompleted
+    ? 4
+    : isOutForDelivery || isReady
+    ? 3
+    : isPreparing
+    ? 2
+    : isAccepted
+    ? 1
+    : 0;
+
+  const statusTone: BadgeTone = isCompleted || isAccepted
+    ? 'success'
+    : isCancelled
+    ? 'error'
+    : isPreparing || isPending
+    ? 'warning'
+    : 'pink';
 
   const handleCallShop = () => {
     const phoneNumber = '+237670123456';
@@ -131,18 +131,30 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
     },
     {
       title: t('preparingTreats'),
-      desc: isPending ? t('pendingPayment') : isPreparing ? 'Kitchen is preparing your handcrafted treats now!' : t('preparingDesc'),
+      desc: isPending
+        ? t('pendingPayment')
+        : isPreparing
+        ? 'Kitchen is preparing your handcrafted treats now!'
+        : t('preparingDesc'),
       icon: 'flame-outline',
       done: currentStep >= 2 && !isCancelled,
       active: currentStep === 2,
     },
     {
-      title: order.deliveryAddress ? (isOutForDelivery ? 'Rider On The Way' : 'Ready for Dispatch') : 'Ready for Pickup',
+      title: order.deliveryAddress
+        ? isOutForDelivery
+          ? 'Rider On The Way'
+          : 'Ready for Dispatch'
+        : 'Ready for Pickup',
       desc: isOutForDelivery
         ? `Out for delivery to ${order.deliveryAddress}`
         : isReady
-        ? (order.deliveryAddress ? 'Packed and awaiting courier pickup' : 'Ready at the shop counter!')
-        : (order.deliveryAddress ? 'Courier pickup soon' : 'In prep for pickup'),
+        ? order.deliveryAddress
+          ? 'Packed and awaiting courier pickup'
+          : 'Ready at the shop counter!'
+        : order.deliveryAddress
+        ? 'Courier pickup soon'
+        : 'In prep for pickup',
       icon: order.deliveryAddress ? 'bicycle-outline' : 'bag-check-outline',
       done: currentStep >= 3 && !isCancelled,
       active: currentStep === 3,
@@ -150,7 +162,9 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
     {
       title: isCompleted ? t('deliveredStatus') : 'Order Fulfilled',
       desc: isCompleted
-        ? (order.deliveryAddress ? t('deliveredToYou') : 'Picked up at shop counter. Enjoy!')
+        ? order.deliveryAddress
+          ? t('deliveredToYou')
+          : 'Picked up at shop counter. Enjoy!'
         : 'Final delivery / handover',
       icon: 'checkmark-done-circle',
       done: isCompleted,
@@ -162,72 +176,44 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      transparent
       onRequestClose={onClose}
     >
-      <View style={tw`flex-1 bg-black/60 justify-end`}>
-        <View style={tw`bg-white rounded-t-3xl max-h-9/10 pb-6`}>
+      <View className="flex-1 bg-black/60 justify-end">
+        <View className="bg-white rounded-t-3xl max-h-[90%] pb-6">
+          {/* Drag Handle */}
+          <View className="w-10 h-1 rounded-full bg-borderSubtle self-center mt-2.5" />
+
           {/* Header */}
-          <View style={tw`flex-row justify-between items-center px-5 py-4 border-b border-borderSubtle`}>
-            <View>
-              <View style={tw`flex-row items-center gap-2`}>
-                <Text style={tw`text-lg font-black text-chocolateBrown`}>{order.id}</Text>
-                <View
-                  style={[
-                    tw`px-2.5 py-0.5 rounded-full border`,
-                    isCompleted
-                      ? tw`bg-emerald-50 border-emerald-300`
-                      : isOutForDelivery
-                      ? tw`bg-purple-50 border-purple-300`
-                      : isReady
-                      ? tw`bg-blue-50 border-blue-300`
-                      : isPreparing
-                      ? tw`bg-orange-50 border-orange-300`
-                      : isAccepted
-                      ? tw`bg-emerald-50 border-emerald-300`
-                      : isCancelled
-                      ? tw`bg-red-50 border-red-300`
-                      : tw`bg-amber-50 border-amber-300`,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      tw`text-[10px] font-black capitalize`,
-                      isCompleted
-                        ? tw`text-emerald-800`
-                        : isOutForDelivery
-                        ? tw`text-purple-800`
-                        : isReady
-                        ? tw`text-blue-800`
-                        : isPreparing
-                        ? tw`text-orange-800`
-                        : isAccepted
-                        ? tw`text-emerald-800`
-                        : isCancelled
-                        ? tw`text-red-700`
-                        : tw`text-amber-800`,
-                    ]}
-                  >
-                    {order.status.replace(/-/g, ' ')}
-                  </Text>
-                </View>
+          <View className="flex-row justify-between items-center px-5 py-3.5 border-b border-borderSubtle">
+            <View className="flex-1 mr-3">
+              <View className="flex-row items-center gap-2 flex-wrap">
+                <Text className="text-lg font-black text-chocolateBrown">{order.id}</Text>
+                <StatusBadge
+                  label={order.status.replace(/-/g, ' ')}
+                  tone={statusTone}
+                  showDot
+                />
               </View>
-              <Text style={tw`text-xs text-chocolateBrownMuted mt-0.5`}>
-                {new Date(order.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+              <Text className="text-xs text-chocolateBrownMuted mt-0.5">
+                {new Date(order.createdAt).toLocaleDateString(
+                  language === 'fr' ? 'fr-FR' : 'en-GB',
+                  {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }
+                )}
               </Text>
             </View>
 
-            <View style={tw`flex-row items-center gap-2`}>
+            <View className="flex-row items-center gap-2">
               <TouchableOpacity
                 onPress={handleDownloadReceipt}
                 disabled={downloading}
-                style={tw`w-9 h-9 rounded-full bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center shadow-xs`}
-                activeOpacity={0.7}
+                className="w-9 h-9 rounded-full bg-strawberryPinkLight border border-strawberryPink/30 items-center justify-center"
+                activeOpacity={0.75}
               >
                 {downloading ? (
                   <ActivityIndicator size="small" color={COLORS.strawberryPink} />
@@ -237,36 +223,34 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={onClose}
-                style={tw`w-9 h-9 rounded-full bg-surfaceBright border border-borderSubtle items-center justify-center`}
-                activeOpacity={0.7}
+                className="w-9 h-9 rounded-full bg-surfaceBright border border-borderSubtle items-center justify-center"
+                activeOpacity={0.75}
               >
                 <Ionicons name="close" size={20} color={COLORS.chocolateBrown} />
               </TouchableOpacity>
             </View>
           </View>
 
-          <ScrollView style={tw`px-5 pt-3`} showsVerticalScrollIndicator={false}>
-            {/* ── 4-Stage Live Delivery Progress Stepper (Vibrant Eye-Catching Stepper) ── */}
-            <View style={tw`bg-surfaceBright rounded-2xl p-4 mb-4 border border-borderSubtle shadow-xs`}>
-              <Text style={tw`text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3`}>
+          <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
+            {/* 4-Stage Live Delivery Stepper */}
+            <View className="bg-surfaceBright rounded-3xl p-4 mb-4 border border-borderSubtle">
+              <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-3.5">
                 {t('liveOrderProgress')}
               </Text>
 
               {steps.map((s, idx) => {
                 const isLast = idx === steps.length - 1;
                 return (
-                  <View key={idx} style={tw`flex-row items-start`}>
-                    {/* Timeline Column */}
-                    <View style={tw`items-center mr-3`}>
+                  <View key={idx} className="flex-row items-start">
+                    <View className="items-center mr-3">
                       <View
-                        style={[
-                          tw`w-7 h-7 rounded-full items-center justify-center border shadow-xs`,
+                        className={`w-7 h-7 rounded-full items-center justify-center border ${
                           s.done
-                            ? tw`bg-emerald-500 border-emerald-500`
+                            ? 'bg-pistachioGreen border-pistachioGreen'
                             : s.active
-                            ? tw`bg-strawberryPink border-strawberryPink`
-                            : tw`bg-white border-borderSubtle`,
-                        ]}
+                            ? 'bg-strawberryPink border-strawberryPink'
+                            : 'bg-white border-borderSubtle'
+                        }`}
                       >
                         <Ionicons
                           name={s.done ? 'checkmark' : (s.icon as any)}
@@ -274,31 +258,28 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
                           color={s.done || s.active ? COLORS.white : COLORS.chocolateBrownMuted}
                         />
                       </View>
-                      {!isLast && (
+                      {!isLast ? (
                         <View
-                          style={[
-                            tw`w-0.5 h-7 my-0.5`,
-                            s.done ? tw`bg-emerald-400` : tw`bg-borderSubtle`,
-                          ]}
+                          className={`w-0.5 h-7 my-0.5 ${
+                            s.done ? 'bg-pistachioGreen' : 'bg-borderSubtle'
+                          }`}
                         />
-                      )}
+                      ) : null}
                     </View>
 
-                    {/* Text Column */}
-                    <View style={tw`flex-1 pb-2`}>
+                    <View className="flex-1 pb-2.5">
                       <Text
-                        style={[
-                          tw`text-xs font-black`,
+                        className={`text-xs font-black ${
                           s.done
-                            ? tw`text-emerald-900`
+                            ? 'text-emerald-900'
                             : s.active
-                            ? tw`text-strawberryPink`
-                            : tw`text-chocolateBrownMuted`,
-                        ]}
+                            ? 'text-strawberryPink'
+                            : 'text-chocolateBrownMuted'
+                        }`}
                       >
                         {s.title}
                       </Text>
-                      <Text style={tw`text-[11px] text-chocolateBrownLight mt-0.5`}>
+                      <Text className="text-[11px] text-chocolateBrownLight mt-0.5 leading-4">
                         {s.desc}
                       </Text>
                     </View>
@@ -307,35 +288,34 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
               })}
             </View>
 
-            {/* ── Interactive Map of Delivery Route (Enlarged & Elevated) ── */}
-            <View style={tw`bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-md`}>
-              {/* Header */}
-              <View style={tw`flex-row justify-between items-center mb-3 px-0.5`}>
-                <View style={tw`flex-row items-center gap-2.5`}>
-                  <View style={tw`w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20`}>
+            {/* Interactive Map Card */}
+            <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+              <View className="flex-row justify-between items-center mb-3">
+                <View className="flex-row items-center gap-2.5 flex-1">
+                  <View className="w-9 h-9 rounded-2xl bg-strawberryPinkLight items-center justify-center border border-strawberryPink/20">
                     <Ionicons name="map" size={17} color={COLORS.strawberryPink} />
                   </View>
                   <View>
-                    <Text style={tw`text-sm font-black text-chocolateBrown`}>
+                    <Text className="text-sm font-black text-chocolateBrown">
                       {t('liveRiderMap')}
                     </Text>
-                    <Text style={tw`text-[11px] text-chocolateBrownMuted font-medium`}>
+                    <Text className="text-[11px] text-chocolateBrownMuted font-medium">
                       Centre-ville Shop ➔ Destination
                     </Text>
                   </View>
                 </View>
 
-                <View style={tw`flex-row items-center gap-1.5`}>
+                <View className="flex-row items-center gap-1.5">
                   {order.distanceKm ? (
-                    <View style={tw`bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-300`}>
-                      <Text style={tw`text-[10px] font-black text-emerald-900`}>
+                    <View className="bg-pistachioGreenLight px-2.5 py-1 rounded-xl border border-pistachioGreen/40">
+                      <Text className="text-[10px] font-black text-emerald-900">
                         {formatDistance(order.distanceKm)}
                       </Text>
                     </View>
                   ) : null}
 
                   <TouchableOpacity
-                    style={tw`flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1 rounded-xl border border-borderSubtle`}
+                    className="flex-row items-center gap-1 bg-surfaceBright px-2.5 py-1 rounded-xl border border-borderSubtle"
                     onPress={() => setIsMapExpanded(!isMapExpanded)}
                     activeOpacity={0.8}
                   >
@@ -344,57 +324,62 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
                       size={13}
                       color={COLORS.chocolateBrown}
                     />
-                    <Text style={tw`text-[10px] font-bold text-chocolateBrown`}>
+                    <Text className="text-[10px] font-bold text-chocolateBrown">
                       {isMapExpanded ? 'Compact' : 'Larger'}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Dual-Point Delivery Route Header Strip */}
-              <View style={tw`flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-2.5 border border-borderSubtle`}>
-                <View style={tw`flex-row items-center gap-1.5`}>
-                  <View style={tw`w-2.5 h-2.5 rounded-full bg-strawberryPink shadow-sm`} />
-                  <Text style={tw`text-[11px] font-black text-chocolateBrown`}>🍦 Best Cream Shop</Text>
+              {/* Route Strip */}
+              <View className="flex-row items-center justify-between bg-surfaceBright px-3 py-2 rounded-2xl mb-3 border border-borderSubtle">
+                <View className="flex-row items-center gap-1.5">
+                  <View className="w-2.5 h-2.5 rounded-full bg-strawberryPink" />
+                  <Text className="text-[11px] font-black text-chocolateBrown">🍦 Best Cream</Text>
                 </View>
-                <View style={tw`flex-row items-center gap-1`}>
-                  <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
-                    {isOutForDelivery ? '🛵 On Road' : isReady ? '📦 Ready' : isPreparing ? '👨‍🍳 In Prep' : '➔'}
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-[10px] font-bold text-strawberryPink">
+                    {isOutForDelivery
+                      ? '🛵 On Road'
+                      : isReady
+                      ? '📦 Ready'
+                      : isPreparing
+                      ? '👨‍🍳 In Prep'
+                      : '➔'}
                   </Text>
                   <Ionicons name="arrow-forward" size={12} color={COLORS.strawberryPink} />
                 </View>
-                <View style={tw`flex-row items-center gap-1.5 flex-1 justify-end ml-2`}>
-                  <View style={tw`w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm`} />
-                  <Text style={tw`text-[11px] font-black text-emerald-800`} numberOfLines={1}>
+                <View className="flex-row items-center gap-1.5 flex-1 justify-end ml-2">
+                  <View className="w-2.5 h-2.5 rounded-full bg-pistachioGreen" />
+                  <Text className="text-[11px] font-black text-emerald-800" numberOfLines={1}>
                     📍 {order.deliveryAddress || t('destination')}
                   </Text>
                 </View>
               </View>
 
-              {/* OpenStreetMap Canvas (Spacious & Clear) */}
               <YaoundeMapView
                 userLatitude={resolvedLat}
                 userLongitude={resolvedLon}
                 userAddress={order.deliveryAddress || t('destination')}
-                height={isMapExpanded ? 380 : 270}
+                height={isMapExpanded ? 360 : 250}
               />
 
-              {/* Delivery Status & Destination Card below map */}
-              <View style={tw`bg-emerald-50 mt-3 p-3.5 rounded-2xl border border-emerald-200`}>
-                <View style={tw`flex-row items-center justify-between`}>
-                  <View style={tw`flex-row items-center gap-2.5 flex-1 mr-2`}>
-                    <View style={tw`w-8 h-8 rounded-xl bg-emerald-100 items-center justify-center`}>
+              {/* Delivery Destination Card */}
+              <View className="bg-pistachioGreenLight mt-3 p-3.5 rounded-2xl border border-pistachioGreen/40">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                    <View className="w-8 h-8 rounded-xl bg-white items-center justify-center">
                       <Ionicons
                         name={order.deliveryAddress ? 'bicycle' : 'storefront'}
                         size={17}
                         color="#059669"
                       />
                     </View>
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-xs font-black text-emerald-950`} numberOfLines={1}>
+                    <View className="flex-1">
+                      <Text className="text-xs font-black text-emerald-950" numberOfLines={1}>
                         {order.deliveryAddress || 'Pickup at Centre-ville Shop'}
                       </Text>
-                      <Text style={tw`text-[10px] font-bold text-emerald-700 mt-0.5`}>
+                      <Text className="text-[10px] font-bold text-emerald-800 mt-0.5">
                         {isOutForDelivery
                           ? '🛵 Courier is on the way to your delivery address'
                           : isReady
@@ -407,19 +392,19 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
                   </View>
 
                   <TouchableOpacity
-                    style={tw`bg-emerald-600 px-3 py-1.5 rounded-xl flex-row items-center gap-1 shadow-xs`}
+                    className="bg-emerald-600 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
                     onPress={handleCallShop}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="call" size={12} color="#FFFFFF" />
-                    <Text style={tw`text-[11px] font-black text-white`}>Shop</Text>
+                    <Text className="text-[11px] font-black text-white">Shop</Text>
                   </TouchableOpacity>
                 </View>
 
                 {order.phoneNumber ? (
-                  <View style={tw`flex-row items-center gap-1.5 mt-2 pt-2 border-t border-emerald-200/60`}>
+                  <View className="flex-row items-center gap-1.5 mt-2 pt-2 border-t border-pistachioGreen/30">
                     <Ionicons name="phone-portrait-outline" size={12} color="#059669" />
-                    <Text style={tw`text-[10px] font-bold text-emerald-800`}>
+                    <Text className="text-[10px] font-bold text-emerald-900">
                       Customer Contact: {order.phoneNumber}
                     </Text>
                   </View>
@@ -427,144 +412,125 @@ export default function OrderTrackingModal({ order: initialOrder, visible, onClo
               </View>
             </View>
 
-            {/* ── Order Items Summary ── */}
-            <View style={tw`bg-white rounded-2xl p-3.5 mb-4 border border-borderSubtle shadow-xs`}>
-              <Text style={tw`text-xs font-black text-chocolateBrown mb-2.5`}>{t('itemsInOrder')}</Text>
+            {/* Order Items Summary */}
+            <View className="bg-white rounded-3xl p-4 mb-4 border border-borderSubtle shadow-sm">
+              <Text className="text-xs font-black text-chocolateBrown uppercase tracking-wider mb-2">
+                {t('itemsInOrder')}
+              </Text>
               {order.items.map((item, idx) => (
-                <View key={idx} style={tw`py-2 border-b border-borderSubtle`}>
-                  <View style={tw`flex-row justify-between items-center`}>
-                    <View style={tw`flex-row items-center gap-2 flex-1 mr-2`}>
-                      <View style={tw`bg-strawberryPinkLight px-1.5 py-0.5 rounded-md`}>
-                        <Text style={tw`text-[10px] font-black text-strawberryPink`}>
+                <View key={idx} className="py-2.5 border-b border-borderSubtle">
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-2 flex-1 mr-2">
+                      <View className="bg-strawberryPinkLight px-2 py-0.5 rounded-md">
+                        <Text className="text-[10px] font-black text-strawberryPink">
                           {item.quantity}×
                         </Text>
                       </View>
-                      <View style={tw`flex-1`}>
-                        <Text style={tw`text-xs font-bold text-chocolateBrown`}>{item.name}</Text>
-                        {item.flavor && (
-                          <Text style={tw`text-[10px] font-bold text-strawberryPink`}>{item.flavor}</Text>
-                        )}
+                      <View className="flex-1">
+                        <Text className="text-xs font-bold text-chocolateBrown">{item.name}</Text>
+                        {item.flavor ? (
+                          <Text className="text-[10px] font-bold text-strawberryPink">
+                            {item.flavor}
+                          </Text>
+                        ) : null}
                       </View>
                     </View>
-                    <Text style={tw`text-xs font-black text-chocolateBrown`}>
+                    <Text className="text-xs font-black text-chocolateBrown">
                       {(item.price * item.quantity).toLocaleString()} XAF
                     </Text>
                   </View>
-                  {/* Customization details */}
-                  {item.servingStyle && (
-                    <View style={tw`flex-row items-center gap-1.5 ml-8 mt-1`}>
-                      <View style={tw`bg-strawberryPinkLight px-2 py-0.5 rounded-md`}>
-                        <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
-                          {item.servingStyle}
-                        </Text>
-                      </View>
+
+                  {item.servingStyle ? (
+                    <View className="ml-8 mt-1 self-start bg-strawberryPinkLight px-2 py-0.5 rounded-md">
+                      <Text className="text-[10px] font-bold text-strawberryPink">
+                        {item.servingStyle}
+                      </Text>
                     </View>
-                  )}
-                  {item.sizeOption && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-8`}>
+                  ) : null}
+                  {item.sizeOption ? (
+                    <Text className="text-[10px] text-chocolateBrownMuted ml-8 mt-0.5">
                       {item.sizeOption}
                     </Text>
-                  )}
-                  {item.pancakeStyle && (
-                    <View style={tw`ml-8 mt-0.5`}>
-                      <View style={tw`bg-butterYellowLight px-2 py-0.5 rounded-md self-start border border-butterYellow`}>
-                        <Text style={tw`text-[10px] font-bold text-amber-900`}>
-                          {item.pancakeStyle}
-                        </Text>
-                      </View>
+                  ) : null}
+                  {item.pancakeStyle ? (
+                    <View className="ml-8 mt-1 self-start bg-butterYellowLight px-2 py-0.5 rounded-md border border-butterYellow">
+                      <Text className="text-[10px] font-bold text-amber-900">
+                        {item.pancakeStyle}
+                      </Text>
                     </View>
-                  )}
-                  {item.selectedToppings && item.selectedToppings.length > 0 && (
-                    <Text style={tw`text-[10px] text-chocolateBrownMuted ml-8 mt-0.5`}>
-                      + {item.selectedToppings.map((t) => t.name).join(', ')}
+                  ) : null}
+                  {item.selectedToppings && item.selectedToppings.length > 0 ? (
+                    <Text className="text-[10px] text-chocolateBrownMuted ml-8 mt-0.5">
+                      + {item.selectedToppings.map((tp) => tp.name).join(', ')}
                     </Text>
-                  )}
-                  {item.specialNotes && (
-                    <View style={tw`ml-8 mt-1 bg-strawberryPinkLight px-2.5 py-1.5 rounded-lg border border-strawberryPink/30`}>
-                      <Text style={tw`text-[10px] font-bold text-strawberryPink`}>
+                  ) : null}
+                  {item.specialNotes ? (
+                    <View className="ml-8 mt-1.5 bg-strawberryPinkLight px-2.5 py-1.5 rounded-xl border border-strawberryPink/30">
+                      <Text className="text-[10px] font-bold text-strawberryPink">
                         📝 {item.specialNotes}
                       </Text>
                     </View>
-                  )}
+                  ) : null}
                 </View>
               ))}
 
-              {/* Total & Payment details */}
-              <View style={tw`pt-2.5 mt-1`}>
+              {/* Totals */}
+              <View className="pt-3 mt-1">
                 {order.deliveryFee ? (
-                  <View style={tw`flex-row justify-between mb-1`}>
-                    <Text style={tw`text-xs text-chocolateBrownMuted`}>{t('deliveryFeeLabel')}</Text>
-                    <Text style={tw`text-xs font-bold text-pistachioGreen`}>
+                  <View className="flex-row justify-between mb-1.5">
+                    <Text className="text-xs text-chocolateBrownMuted">
+                      {t('deliveryFeeLabel')}
+                    </Text>
+                    <Text className="text-xs font-bold text-pistachioGreen">
                       + {formatXAF(order.deliveryFee)}
                     </Text>
                   </View>
                 ) : null}
-                <View style={tw`flex-row justify-between items-center pt-2 border-t border-borderSubtle`}>
-                  <View style={tw`flex-row items-center gap-1.5`}>
-                    <Text style={tw`text-sm font-black text-chocolateBrown`}>{t('totalPaidLabel')}</Text>
+                <View className="flex-row justify-between items-center pt-2 border-t border-borderSubtle">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-sm font-black text-chocolateBrown">
+                      {t('totalPaidLabel')}
+                    </Text>
                     <View
-                      style={[
-                        tw`px-2 py-0.5 rounded-lg border`,
+                      className={`px-2 py-0.5 rounded-lg border ${
                         order.paymentMethod === 'mtn-momo'
-                          ? tw`bg-yellow-400/20 border-yellow-500/40`
-                          : tw`bg-orange-500/20 border-orange-500/40`,
-                      ]}
+                          ? 'bg-yellow-400/20 border-yellow-500/40'
+                          : 'bg-orange-500/20 border-orange-500/40'
+                      }`}
                     >
                       <Text
-                        style={[
-                          tw`text-[10px] font-black`,
-                          order.paymentMethod === 'mtn-momo' ? tw`text-yellow-950` : tw`text-orange-950`,
-                        ]}
+                        className={`text-[10px] font-black ${
+                          order.paymentMethod === 'mtn-momo' ? 'text-yellow-950' : 'text-orange-950'
+                        }`}
                       >
                         {order.paymentMethod === 'mtn-momo' ? '📱 MTN MoMo' : '🟠 Orange Money'}
                       </Text>
                     </View>
                   </View>
-                  <Text style={tw`text-base font-black text-chocolateBrown`}>
+                  <Text className="text-base font-black text-chocolateBrown">
                     {order.totalAmount.toLocaleString()} XAF
                   </Text>
                 </View>
               </View>
             </View>
 
-            {/* ── Download Official PDF Receipt Button ── */}
-            <TouchableOpacity
-              style={[
-                tw`flex-row items-center justify-center gap-2 bg-strawberryPink py-3.5 rounded-2xl mb-3 shadow-md`,
-                downloading && tw`opacity-70`,
-              ]}
-              disabled={downloading}
+            <AppButton
+              title={downloading ? t('generatingPdfReceipt') : t('downloadOfficialReceipt')}
+              icon="document-text"
+              size="md"
+              loading={downloading}
               onPress={handleDownloadReceipt}
-              activeOpacity={0.85}
-            >
-              {downloading ? (
-                <>
-                  <ActivityIndicator size="small" color={COLORS.white} />
-                  <Text style={tw`text-xs font-black text-white`}>
-                    {t('generatingPdfReceipt')}
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="document-text" size={17} color={COLORS.white} />
-                  <Text style={tw`text-xs font-black text-white`}>
-                    {t('downloadOfficialReceipt')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
+              className="mb-3"
+            />
 
-            {/* ── Contact Shop Support Button ── */}
-            <TouchableOpacity
-              style={tw`flex-row items-center justify-center gap-2 bg-white border-2 border-strawberryPink/30 py-3 rounded-2xl mb-6 shadow-xs`}
+            <AppButton
+              title={t('callShopNumber')}
+              icon="call"
+              variant="outline"
+              size="md"
               onPress={handleCallShop}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="call" size={16} color={COLORS.strawberryPink} />
-              <Text style={tw`text-xs font-black text-strawberryPink`}>
-                {t('callShopNumber')}
-              </Text>
-            </TouchableOpacity>
+              className="mb-8"
+            />
           </ScrollView>
         </View>
       </View>

@@ -7,13 +7,14 @@ import {
   SafeAreaView,
   Animated,
   Easing,
+  ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { tw } from '../theme/tailwind';
 import { COLORS } from '../theme/colors';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
+import { AppButton, AppCard, PaymentBadges } from '../components/ui';
 
 interface WelcomeScreenProps {
   onGoToLogin: () => void;
@@ -21,19 +22,20 @@ interface WelcomeScreenProps {
   onGoToAdminLogin: () => void;
 }
 
-export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLogin }: WelcomeScreenProps) {
+export default function WelcomeScreen({
+  onGoToLogin,
+  onGoToSignUp,
+  onGoToAdminLogin,
+}: WelcomeScreenProps) {
   const { t } = useLanguage();
 
-  // Entrance animations
   const logoFade = useRef(new Animated.Value(0)).current;
-  const logoSlide = useRef(new Animated.Value(-30)).current;
+  const logoSlide = useRef(new Animated.Value(-24)).current;
   const textFade = useRef(new Animated.Value(0)).current;
-  const textSlide = useRef(new Animated.Value(20)).current;
+  const textSlide = useRef(new Animated.Value(18)).current;
   const cardFade = useRef(new Animated.Value(0)).current;
-  const cardSlide = useRef(new Animated.Value(40)).current;
+  const cardSlide = useRef(new Animated.Value(30)).current;
   const badgeFade = useRef(new Animated.Value(0)).current;
-
-  // Floating animation for emblem
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -41,13 +43,13 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLo
       Animated.parallel([
         Animated.timing(logoFade, {
           toValue: 1,
-          duration: 600,
+          duration: 550,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(logoSlide, {
           toValue: 0,
-          duration: 600,
+          duration: 550,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
@@ -55,13 +57,13 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLo
       Animated.parallel([
         Animated.timing(textFade, {
           toValue: 1,
-          duration: 500,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(textSlide, {
           toValue: 0,
-          duration: 500,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
@@ -69,29 +71,28 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLo
       Animated.parallel([
         Animated.timing(cardFade, {
           toValue: 1,
-          duration: 500,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(cardSlide, {
           toValue: 0,
-          duration: 500,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
       ]),
       Animated.timing(badgeFade, {
         toValue: 1,
-        duration: 400,
+        duration: 350,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Subtle floating loop
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
-          toValue: -10,
+          toValue: -8,
           duration: 2000,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
@@ -103,148 +104,138 @@ export default function WelcomeScreen({ onGoToLogin, onGoToSignUp, onGoToAdminLo
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, []);
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [badgeFade, cardFade, cardSlide, floatAnim, logoFade, logoSlide, textFade, textSlide]);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-vanillaCream`}>
+    <SafeAreaView className="flex-1 bg-vanillaCream">
       <StatusBar style="dark" />
 
-      {/* Decorative background blobs */}
-      <View style={tw`absolute w-56 h-56 rounded-full bg-strawberryPinkLight -top-20 -right-20`} />
-      <View style={tw`absolute w-44 h-44 rounded-full bg-butterYellowLight -bottom-16 -left-16`} />
+      {/* Decorative ambient blobs */}
+      <View className="absolute w-64 h-64 rounded-full bg-strawberryPinkLight -top-24 -right-24 opacity-80" />
+      <View className="absolute w-52 h-52 rounded-full bg-butterYellowLight -bottom-20 -left-20 opacity-80" />
 
-      {/* Language Switcher in top bar */}
-      <View style={tw`w-full flex-row justify-end px-5 pt-3 z-10`}>
+      {/* Top Bar */}
+      <View className="w-full flex-row justify-end px-5 pt-3 z-10">
         <LanguageSelector />
       </View>
 
-      <View style={tw`flex-1 items-center justify-center px-6 py-2`}>
-        {/* ── Top: Emblem + Brand name ── */}
+      <ScrollView
+        contentContainerClassName="flex-grow items-center justify-center px-6 pb-8 pt-2"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Emblem */}
         <Animated.View
-          style={[
-            tw`items-center mb-4`,
-            {
-              opacity: logoFade,
-              transform: [{ translateY: logoSlide }, { translateY: floatAnim }],
-            },
-          ]}
+          className="items-center mb-4"
+          style={{
+            opacity: logoFade,
+            transform: [{ translateY: logoSlide }, { translateY: floatAnim }],
+          }}
         >
-          <View style={tw`p-2 rounded-full bg-strawberryPinkLight`}>
-            <View style={tw`w-36 h-36 rounded-full bg-white items-center justify-center border-2 border-strawberryPinkLight shadow-lg`}>
+          <View className="p-2.5 rounded-full bg-strawberryPinkLight/80 border border-borderSubtle">
+            <View className="w-36 h-36 rounded-full bg-white items-center justify-center border-2 border-butterYellow/60 shadow-lg">
               <IceCreamEmblem />
             </View>
           </View>
         </Animated.View>
 
-        {/* ── Heading section ── */}
+        {/* Brand Heading */}
         <Animated.View
-          style={[
-            tw`items-center mb-6`,
-            { opacity: textFade, transform: [{ translateY: textSlide }] },
-          ]}
+          className="items-center mb-6"
+          style={{ opacity: textFade, transform: [{ translateY: textSlide }] }}
         >
-          <Text style={tw`text-4xl font-extrabold text-chocolateBrown tracking-wide`}>
+          <Text className="text-4xl font-black text-chocolateBrown tracking-tight text-center">
             {t('brandName')}
           </Text>
-          <Text style={tw`text-sm font-semibold text-chocolateBrownLight mt-1 tracking-wider`}>
+          <Text className="text-xs font-bold text-chocolateBrownLight mt-1 tracking-widest uppercase">
             {t('brandTagline')}
           </Text>
-          <View style={tw`flex-row gap-2 my-2.5`}>
-            <View style={tw`w-1.5 h-1.5 rounded-full bg-strawberryPink`} />
-            <View style={tw`w-1.5 h-1.5 rounded-full bg-butterYellow`} />
-            <View style={tw`w-1.5 h-1.5 rounded-full bg-pistachioGreen`} />
+
+          <View className="flex-row items-center gap-2 my-3">
+            <View className="w-2 h-2 rounded-full bg-strawberryPink" />
+            <View className="w-2 h-2 rounded-full bg-butterYellow" />
+            <View className="w-2 h-2 rounded-full bg-pistachioGreen" />
           </View>
-          <Text style={tw`text-sm font-medium text-chocolateBrownMuted text-center leading-5`}>
+
+          <Text className="text-sm font-semibold text-chocolateBrownMuted text-center">
             {t('gelato')} • {t('pancakes')}
           </Text>
         </Animated.View>
 
-        {/* ── CTA Card ── */}
+        {/* Main CTA Card */}
         <Animated.View
-          style={[
-            tw`w-full bg-white rounded-3xl px-6 py-7 border border-vanillaCreamDark shadow-lg`,
-            { opacity: cardFade, transform: [{ translateY: cardSlide }] },
-          ]}
+          className="w-full max-w-md"
+          style={{ opacity: cardFade, transform: [{ translateY: cardSlide }] }}
         >
-          <Text style={tw`text-xl font-extrabold text-chocolateBrown text-center mb-1`}>
-            {t('getStarted')}
-          </Text>
-          <Text style={tw`text-xs font-medium text-chocolateBrownLight text-center mb-5`}>
-            {t('welcomeSubtitle')}
-          </Text>
-
-          {/* Sign Up — Primary Button */}
-          <TouchableOpacity
-            style={tw`w-full bg-strawberryPink py-4 rounded-2xl items-center mb-3 shadow-md`}
-            onPress={onGoToSignUp}
-            activeOpacity={0.85}
-          >
-            <Text style={tw`text-base font-extrabold text-chocolateBrown tracking-wide`}>
-              {t('createAccountBtn')}
+          <AppCard variant="elevated" className="border-vanillaCreamDark">
+            <Text className="text-xl font-black text-chocolateBrown text-center mb-1">
+              {t('getStarted')}
             </Text>
-          </TouchableOpacity>
-
-          {/* Log In — Secondary Outline Button */}
-          <TouchableOpacity
-            style={tw`w-full border-2 border-strawberryPink py-3.5 rounded-2xl items-center bg-transparent`}
-            onPress={onGoToLogin}
-            activeOpacity={0.85}
-          >
-            <Text style={tw`text-base font-extrabold text-strawberryPink tracking-wide`}>
-              {t('logIn')}
+            <Text className="text-xs font-medium text-chocolateBrownLight text-center mb-5 leading-4">
+              {t('welcomeSubtitle')}
             </Text>
-          </TouchableOpacity>
 
-          {/* Divider */}
-          <View style={tw`flex-row items-center my-4`}>
-            <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
-            <Text style={tw`mx-2.5 text-xs font-semibold text-chocolateBrownMuted`}>
-              {t('acceptedPayments')}
-            </Text>
-            <View style={tw`flex-1 h-px bg-vanillaCreamDark`} />
-          </View>
+            <AppButton
+              title={t('createAccountBtn')}
+              icon="sparkles"
+              variant="primary"
+              size="lg"
+              onPress={onGoToSignUp}
+              className="mb-3"
+            />
 
-          {/* Payment Badges */}
-          <View style={tw`flex-row items-center justify-center`}>
-            <View style={tw`flex-1 items-center gap-1`}>
-              <Text style={tw`text-2xl`}>📱</Text>
-              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>MTN MoMo</Text>
+            <AppButton
+              title={t('logIn')}
+              icon="log-in-outline"
+              variant="outline"
+              size="lg"
+              onPress={onGoToLogin}
+            />
+
+            {/* Divider */}
+            <View className="flex-row items-center my-5">
+              <View className="flex-1 h-px bg-vanillaCreamDark" />
+              <Text className="mx-3 text-[11px] font-bold uppercase tracking-wider text-chocolateBrownMuted">
+                {t('acceptedPayments')}
+              </Text>
+              <View className="flex-1 h-px bg-vanillaCreamDark" />
             </View>
-            <View style={tw`w-px h-8 bg-vanillaCreamDark mx-4`} />
-            <View style={tw`flex-1 items-center gap-1`}>
-              <Text style={tw`text-2xl`}>🟠</Text>
-              <Text style={tw`text-xs font-bold text-chocolateBrownLight`}>Orange Money</Text>
-            </View>
-          </View>
+
+            <PaymentBadges />
+          </AppCard>
         </Animated.View>
 
-        {/* ── Staff/Admin Portal Link ── */}
-        <Animated.View style={[tw`mt-4`, { opacity: badgeFade }]}>
+        {/* Staff / Admin Portal Link */}
+        <Animated.View className="mt-5" style={{ opacity: badgeFade }}>
           <TouchableOpacity
-            style={tw`flex-row items-center justify-center gap-1.5 bg-white/80 px-4 py-2 rounded-full border border-vanillaCreamDark shadow-sm`}
+            className="flex-row items-center justify-center gap-2 bg-white/90 px-4 py-2.5 rounded-full border border-vanillaCreamDark shadow-sm"
             onPress={onGoToAdminLogin}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
-            <Ionicons name="shield-checkmark" size={16} color={COLORS.chocolateBrown} />
-            <Text style={tw`text-xs font-bold text-chocolateBrown`}>
+            <Ionicons name="shield-checkmark" size={15} color={COLORS.chocolateBrown} />
+            <Text className="text-xs font-extrabold text-chocolateBrown">
               {t('staffPortalLink')}
             </Text>
           </TouchableOpacity>
         </Animated.View>
 
-        {/* ── Bottom Offer Pill ── */}
-        <Animated.View style={[tw`mt-5 bg-butterYellow px-5 py-2.5 rounded-full shadow`, { opacity: badgeFade }]}>
-          <Text style={tw`text-xs font-extrabold text-chocolateBrown text-center`}>
+        {/* Bottom Offer Pill */}
+        <Animated.View
+          className="mt-4 bg-butterYellow px-5 py-2.5 rounded-full shadow-sm border border-amber-400/40"
+          style={{ opacity: badgeFade }}
+        >
+          <Text className="text-xs font-extrabold text-chocolateBrown text-center">
             {t('newMemberOffer')}
           </Text>
         </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ─── Ice Cream Emblem ────────────────────────────────────────────────────────
+// ─── Ice Cream Emblem (geometric shapes) ─────────────────────────────────────
 function IceCreamEmblem() {
   return (
     <View style={emblemStyles.wrapper}>
@@ -255,9 +246,24 @@ function IceCreamEmblem() {
       <View style={emblemStyles.cherry} />
       <View style={emblemStyles.drizzle1} />
       <View style={emblemStyles.drizzle2} />
-      <View style={[emblemStyles.sprinkle, { top: 24, left: 8, backgroundColor: COLORS.butterYellow, transform: [{ rotate: '30deg' }] }]} />
-      <View style={[emblemStyles.sprinkle, { top: 30, right: 10, backgroundColor: COLORS.pistachioGreen, transform: [{ rotate: '-20deg' }] }]} />
-      <View style={[emblemStyles.sprinkle, { top: 44, left: 14, backgroundColor: COLORS.strawberryPink, transform: [{ rotate: '50deg' }] }]} />
+      <View
+        style={[
+          emblemStyles.sprinkle,
+          { top: 24, left: 8, backgroundColor: COLORS.butterYellow, transform: [{ rotate: '30deg' }] },
+        ]}
+      />
+      <View
+        style={[
+          emblemStyles.sprinkle,
+          { top: 30, right: 10, backgroundColor: COLORS.pistachioGreen, transform: [{ rotate: '-20deg' }] },
+        ]}
+      />
+      <View
+        style={[
+          emblemStyles.sprinkle,
+          { top: 44, left: 14, backgroundColor: COLORS.strawberryPink, transform: [{ rotate: '50deg' }] },
+        ]}
+      />
     </View>
   );
 }
@@ -279,22 +285,9 @@ const emblemStyles = StyleSheet.create({
     borderRightColor: 'transparent',
     borderTopColor: '#D4854A',
   },
-  scoop: {
-    position: 'absolute',
-    borderRadius: 60,
-  },
-  scoopBottom: {
-    width: 56,
-    height: 56,
-    backgroundColor: COLORS.strawberryPink,
-    bottom: 42,
-  },
-  scoopMiddle: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#F9C6D0',
-    bottom: 66,
-  },
+  scoop: { position: 'absolute', borderRadius: 60 },
+  scoopBottom: { width: 56, height: 56, backgroundColor: COLORS.strawberryPink, bottom: 42 },
+  scoopMiddle: { width: 50, height: 50, backgroundColor: '#F9C6D0', bottom: 66 },
   scoopTop: {
     width: 42,
     height: 42,
@@ -331,10 +324,5 @@ const emblemStyles = StyleSheet.create({
     right: 14,
     transform: [{ rotate: '14deg' }],
   },
-  sprinkle: {
-    position: 'absolute',
-    width: 10,
-    height: 3,
-    borderRadius: 2,
-  },
+  sprinkle: { position: 'absolute', width: 10, height: 3, borderRadius: 2 },
 });
