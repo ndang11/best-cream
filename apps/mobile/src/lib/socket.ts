@@ -53,18 +53,21 @@ export function connectSocket(serverUrl: string, token?: string): Socket {
   }
 
   _socket = io(serverUrl, {
-    transports: ['websocket'],      // skip long-polling — faster for React Native
+    transports: ['websocket', 'polling'], // prefer websocket, allow polling fallback
     reconnection: true,
     reconnectionAttempts: Infinity,
-    reconnectionDelay: 1_000,
-    reconnectionDelayMax: 10_000,
+    reconnectionDelay: 2_000,
+    reconnectionDelayMax: 15_000,
     timeout: 20_000,
     // ── Token-based auth ──────────────────────────────────────────────────────
     // Server reads this in io.use() middleware via socket.handshake.auth.token
     auth: token ? { token } : {},
   });
 
+  let hasLoggedConnectError = false;
+
   _socket.on('connect', () => {
+    hasLoggedConnectError = false;
     console.log(`🔌 Socket connected → ${serverUrl} (id: ${_socket?.id})`);
   });
 
@@ -73,8 +76,11 @@ export function connectSocket(serverUrl: string, token?: string): Socket {
   });
 
   _socket.on('connect_error', (err) => {
-    // "Authentication failed" comes here when the server rejects the token
-    console.warn(`🔌 Socket connect_error: ${err.message}`);
+    // Log once per disconnect streak so offline/restarting backend doesn't flood LogBox
+    if (!hasLoggedConnectError) {
+      hasLoggedConnectError = true;
+      console.warn(`🔌 Socket connect_error (${serverUrl}): ${err.message}`);
+    }
   });
 
   return _socket;

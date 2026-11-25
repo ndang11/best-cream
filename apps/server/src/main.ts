@@ -26,8 +26,8 @@ async function bootstrap() {
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
   const PORT = process.env.PORT || 5000;
-  await app.listen(PORT);
-  console.log(`🍦 Best Cream NestJS API & Socket.IO running on http://localhost:${PORT}`);
+  await app.listen(PORT, '0.0.0.0');
+  console.log(`🍦 Best Cream NestJS API & Socket.IO running on http://0.0.0.0:${PORT}`);
 }
 
 bootstrap();
